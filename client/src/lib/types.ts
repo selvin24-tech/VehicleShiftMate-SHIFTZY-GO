@@ -23,7 +23,7 @@ export interface Trip {
 
 export interface Vehicle {
   id: string;
-  type: 'car' | 'bike';
+  type: 'car' | 'bike' | 'suv' | 'luxury';
   make: string;
   model: string;
   registrationNumber: string;
@@ -70,8 +70,34 @@ export interface ShiftRequestFormData {
 }
 
 export interface TravelSearchFilters {
-  vehicleType?: 'car' | 'bike' | 'luxury';
+  vehicleType?: 'car' | 'bike' | 'suv' | 'luxury';
   pickupLocation?: string;
   destination?: string;
   searchQuery?: string;
+  dateRange?: string;
+  distance?: string;
+  reward?: string;
+}
+
+export interface ShiftRequest {
+  id: string;
+  userId: number;
+  userName: string;
+  userAvatar: string;
+  vehicle: {
+    id: string;
+    type: string;
+    make: string;
+    model: string;
+    registrationNumber: string;
+    image?: string;
+  };
+  pickupLocation: Location;
+  dropLocation: Location;
+  pickupTime: string;
+  distance: string;
+  estimatedDuration: string;
+  reward: number;
+  postedTime: string;
+  status: 'pending' | 'approved' | 'in-transit' | 'completed' | 'cancelled';
 }

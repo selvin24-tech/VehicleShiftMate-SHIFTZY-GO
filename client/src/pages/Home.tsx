@@ -4,7 +4,9 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import TestimonialCard from "@/components/common/TestimonialCard";
 import TripCard from "@/components/common/TripCard";
-import { TESTIMONIALS, RECENT_TRIPS } from "@/lib/constants";
+import ShiftRequestCard from "@/components/common/ShiftRequestCard";
+import { TESTIMONIALS, RECENT_TRIPS, NEARBY_SHIFT_REQUESTS } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [, navigate] = useLocation();
@@ -47,9 +49,40 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Nearby Ride Opportunities Section */}
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-bold text-lg">Nearby Ride Opportunities</h2>
+            <Button 
+              variant="link" 
+              className="text-primary-600 text-sm p-0 h-auto"
+              onClick={() => navigate("/travel")}
+            >
+              See All
+            </Button>
+          </div>
+          
+          <p className="text-sm text-neutral-600 mb-4">
+            Available rides within 15 km of your location that need to be picked up in the next 6 hours.
+          </p>
+          
+          <div className="space-y-4">
+            {NEARBY_SHIFT_REQUESTS.slice(0, 3).map((request) => (
+              <ShiftRequestCard key={request.id} request={request} />
+            ))}
+            
+            <Button 
+              className="w-full bg-transparent border border-primary-500 text-primary-500 hover:bg-primary-50"
+              onClick={() => navigate("/travel")}
+            >
+              View All Ride Opportunities
+            </Button>
+          </div>
+        </div>
+        
         {/* Recent Trips Section */}
         <div className="mt-8">
-          <h2 className="font-bold text-lg mb-4">Recent Trips</h2>
+          <h2 className="font-bold text-lg mb-4">Your Recent Trips</h2>
           
           {RECENT_TRIPS.map((trip) => (
             <TripCard key={trip.id} trip={trip} />
