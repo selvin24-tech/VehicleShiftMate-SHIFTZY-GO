@@ -9,6 +9,7 @@ import Profile from "@/pages/Profile";
 import Plan from "@/pages/Plan";
 import Track from "@/pages/Track";
 import Help from "@/pages/Help";
+import SOSButton from "@/components/common/SOSButton";
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function App() {
     <TooltipProvider>
       <Toaster />
       <Router />
+      <SOSButton />
     </TooltipProvider>
   );
 }
