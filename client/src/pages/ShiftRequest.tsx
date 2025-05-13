@@ -101,7 +101,7 @@ export default function ShiftRequest() {
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-16">
-      <Header title="Shift Your Vehicle" showBackButton variant="primary" />
+      <Header title="Shift Your Vehicle" showBackButton variant="primary" showAnimation={true} />
 
       <div className="px-4 py-6">
         <Form {...form}>
