@@ -16,7 +16,7 @@ export default function Home() {
       <Header />
 
       {/* Main Tabs - Shifting & Travel */}
-      <div className="px-4 py-6">
+      <div className="px-4 py-6 pt-8">
         <div className="grid grid-cols-2 gap-4">
           <div 
             className="bg-white border border-neutral-100 shadow-md rounded-xl p-4 flex flex-col items-center justify-center transition hover:shadow-lg cursor-pointer"

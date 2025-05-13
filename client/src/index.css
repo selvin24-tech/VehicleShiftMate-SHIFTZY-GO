@@ -97,7 +97,7 @@
   background-size: cover;
   background-position: center 40%;
   position: relative;
-  height: 140px; /* Reduced height to compress the banner */
+  height: 120px; /* Further reduced height for maximum compression */
   overflow: hidden;
   border-radius: 0 0 24px 24px;
 }
@@ -120,7 +120,7 @@
 .animated-car {
   animation: moveCar 5s linear infinite; /* Fast animation */
   position: absolute;
-  bottom: 30px; /* Positioned for good visibility */
+  bottom: 20px; /* Adjusted for compressed banner */
   left: 0; /* Start from left edge */
   z-index: 15; /* Higher z-index to ensure visibility */
   filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7)); /* Subtle glow effect */
@@ -130,7 +130,7 @@
 
 /* Scale the icon within the animated-car div */
 .animated-car svg {
-  width: 35px; /* Moderate width */
-  height: 35px; /* Moderate height */
+  width: 28px; /* Smaller width for compressed banner */
+  height: 28px; /* Smaller height for compressed banner */
   transform-origin: center;
 }

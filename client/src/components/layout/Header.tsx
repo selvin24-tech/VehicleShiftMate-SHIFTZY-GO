@@ -50,8 +50,8 @@ export default function Header({
             backgroundPosition: "center 35%", // Focus more on the dashboard/steering wheel
           }}
         >
-          <div className="absolute inset-0 z-10 flex items-center justify-center">
-            <h1 className="text-white text-2xl font-bold tracking-tight drop-shadow-lg">{title}</h1>
+          <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ paddingBottom: "20px" }}>
+            <h1 className="text-white text-xl font-bold tracking-tight drop-shadow-lg">{title}</h1>
           </div>
           
           <div className="animated-car">
