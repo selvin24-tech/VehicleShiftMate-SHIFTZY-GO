@@ -103,13 +103,10 @@ export default function Travel() {
     
     // Apply vehicle type filter if active
     if (activeFilter) {
-      if (activeFilter === "car" || activeFilter === "bike") {
+      if (activeFilter === "car" || activeFilter === "bike" || activeFilter === "suv") {
         filtered = filtered.filter(vehicle => vehicle.type === activeFilter);
       } else if (activeFilter === "luxury") {
-        filtered = filtered.filter(vehicle => 
-          (vehicle.pricePerDay && vehicle.pricePerDay > 2500) || 
-          (vehicle.features && vehicle.features.includes("Premium"))
-        );
+        filtered = filtered.filter(vehicle => vehicle.type === "luxury");
       }
     }
     
@@ -533,6 +530,20 @@ export default function Travel() {
                   onClick={() => handleFilterClick('bike')}
                 >
                   Bike
+                </Badge>
+                <Badge 
+                  variant="outline" 
+                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'suv' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  onClick={() => handleFilterClick('suv')}
+                >
+                  SUV
+                </Badge>
+                <Badge 
+                  variant="outline" 
+                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'luxury' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  onClick={() => handleFilterClick('luxury')}
+                >
+                  Luxury
                 </Badge>
               </div>
             </div>
