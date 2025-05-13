@@ -36,8 +36,8 @@ export default function Header({
     ? "bg-primary-500" 
     : "bg-secondary-500";
     
-  // Using a more compact driving interior image
-  const bgImage = "https://images.unsplash.com/photo-1558989891-ac27e1eef535?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80";
+  // Using a premium car interior image with luxury styling
+  const bgImage = "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=85";
 
   return (
     <>
@@ -56,9 +56,9 @@ export default function Header({
           
           <div className="animated-car">
             {vehicleType === "car" ? (
-              <Car className="text-white drop-shadow-lg" strokeWidth={1.5} />
+              <Car className="text-white drop-shadow-lg" strokeWidth={1.5} size={32} />
             ) : (
-              <Bike className="text-white drop-shadow-lg" strokeWidth={1.5} />
+              <Bike className="text-white drop-shadow-lg" strokeWidth={1.5} size={32} />
             )}
           </div>
           

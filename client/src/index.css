@@ -95,11 +95,12 @@
 
 .vehicle-shifting-animation {
   background-size: cover;
-  background-position: center 40%;
+  background-position: center 45%;
   position: relative;
-  height: 120px; /* Further reduced height for maximum compression */
+  height: 150px; /* Balanced height for luxury feel while being compact */
   overflow: hidden;
   border-radius: 0 0 24px 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Add subtle shadow for premium look */
 }
 
 .vehicle-shifting-animation::after {
@@ -109,7 +110,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+  background: linear-gradient(to bottom, 
+    rgba(13, 41, 98, 0.4), 
+    rgba(13, 41, 98, 0.7)
+  );
+  /* Rich blue gradient overlay for premium look */
 }
 
 @keyframes moveCar {
@@ -133,4 +138,103 @@
   width: 28px; /* Smaller width for compressed banner */
   height: 28px; /* Smaller height for compressed banner */
   transform-origin: center;
+}
+
+/* Vehicle-themed option cards */
+.vehicle-option-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+}
+
+.vehicle-option-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.option-content {
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.option-icon-container {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.travel-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.option-text {
+  flex: 1;
+}
+
+.arrow-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+/* Car shape for the shifting card */
+.car-shape-bottom {
+  height: 6px;
+  background: #2563eb;
+  position: relative;
+}
+
+.car-shape-bottom::before,
+.car-shape-bottom::after {
+  content: "";
+  position: absolute;
+  height: 10px;
+  width: 40px;
+  background: #2563eb;
+  bottom: 0;
+  border-radius: 50% 50% 0 0;
+}
+
+.car-shape-bottom::before {
+  left: 20%;
+}
+
+.car-shape-bottom::after {
+  right: 20%;
+}
+
+/* Road pattern for travel card */
+.road-shape-bottom {
+  height: 6px;
+  background: #f59e0b;
+  position: relative;
+}
+
+.road-shape-bottom::after {
+  content: "";
+  position: absolute;
+  height: 2px;
+  left: 10%;
+  right: 10%;
+  background: white;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 1px;
 }

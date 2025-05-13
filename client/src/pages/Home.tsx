@@ -17,35 +17,45 @@ export default function Home() {
 
       {/* Main Tabs - Shifting & Travel */}
       <div className="px-4 py-6 pt-8">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-5">
+          {/* Vehicle Shifting Option - Styled as a car-like shape */}
           <div 
-            className="bg-white border border-neutral-100 shadow-md rounded-xl p-4 flex flex-col items-center justify-center transition hover:shadow-lg cursor-pointer"
+            className="vehicle-option-card shifting-card"
             onClick={() => navigate("/shift-request")}
           >
-            <div className="w-16 h-16 rounded-full mb-3 overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80&w=2670&ixlib=rb-4.0.3" 
-                alt="Vehicle shifting service" 
-                className="w-full h-full object-cover" 
-              />
+            <div className="option-content">
+              <div className="option-icon-container">
+                <i className="fas fa-car text-2xl"></i>
+              </div>
+              <div className="option-text">
+                <h2 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Vehicle Shifting</h2>
+                <p className="text-sm text-neutral-600">Transport your vehicle to another location</p>
+              </div>
+              <div className="arrow-icon">
+                <i className="fas fa-arrow-right"></i>
+              </div>
             </div>
-            <h2 className="font-bold text-lg text-primary-600">Shifting</h2>
-            <p className="text-sm text-neutral-600 text-center mt-1">Transport your vehicle to another location</p>
+            <div className="car-shape-bottom"></div>
           </div>
 
+          {/* Travel Option - Styled with road-like design */}
           <div 
-            className="bg-white border border-neutral-100 shadow-md rounded-xl p-4 flex flex-col items-center justify-center transition hover:shadow-lg cursor-pointer"
+            className="vehicle-option-card travel-card"
             onClick={() => navigate("/travel")}
           >
-            <div className="w-16 h-16 rounded-full mb-3 overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1464038008305-ee8def75f234?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150" 
-                alt="Vehicle travel experience" 
-                className="w-full h-full object-cover" 
-              />
+            <div className="option-content">
+              <div className="option-icon-container travel-icon">
+                <i className="fas fa-route text-2xl"></i>
+              </div>
+              <div className="option-text">
+                <h2 className="text-xl font-bold bg-gradient-to-r from-secondary-500 to-secondary-300 bg-clip-text text-transparent">Travel Experience</h2>
+                <p className="text-sm text-neutral-600">Rent and drive vehicles for your journey</p>
+              </div>
+              <div className="arrow-icon">
+                <i className="fas fa-arrow-right"></i>
+              </div>
             </div>
-            <h2 className="font-bold text-lg text-secondary-500">Travel</h2>
-            <p className="text-sm text-neutral-600 text-center mt-1">Rent and drive vehicles for your journey</p>
+            <div className="road-shape-bottom"></div>
           </div>
         </div>
 
