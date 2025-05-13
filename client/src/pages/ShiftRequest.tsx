@@ -23,13 +23,14 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
 const formSchema = z.object({
-  vehicleType: z.enum(["car", "bike"]),
+  vehicleType: z.enum(["car", "bike", "suv", "luxury"]),
   vehicleModel: z.string().min(2, "Vehicle model is required"),
   registrationNumber: z.string().min(5, "Valid registration number is required"),
   pickupLocation: z.string().min(2, "Pickup location is required"),
   dropLocation: z.string().min(2, "Drop location is required"),
   insuranceExpiryDate: z.string().min(2, "Insurance expiry date is required"),
   // We'll handle the file upload separately
+  luxuryBrand: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -50,8 +51,12 @@ export default function ShiftRequest() {
       pickupLocation: "",
       dropLocation: "",
       insuranceExpiryDate: "",
+      luxuryBrand: "",
     },
   });
+  
+  // State to track if we should show the luxury brand field
+  const [showLuxuryField, setShowLuxuryField] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,11 +76,19 @@ export default function ShiftRequest() {
       // Here you would typically upload the photo to a server
       // and then submit the form data with the photo URL
       
-      // For now, simulate a request
-      await apiRequest("POST", "/api/shift-requests", {
+      // Prepare the submission data
+      const submissionData = {
         ...data,
         photoUploaded: !!photoFile,
-      });
+      };
+      
+      // If it's not a luxury vehicle, remove the luxury brand field
+      if (data.vehicleType !== "luxury") {
+        delete submissionData.luxuryBrand;
+      }
+      
+      // For now, simulate a request
+      await apiRequest("POST", "/api/shift-requests", submissionData);
 
       toast({
         title: "Request Submitted",
@@ -118,7 +131,10 @@ export default function ShiftRequest() {
                     <FormLabel className="block text-neutral-700 mb-2 font-medium">Vehicle Type</FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setShowLuxuryField(value === "luxury");
+                        }}
                         defaultValue={field.value}
                         className="grid grid-cols-2 gap-3"
                       >
@@ -136,12 +152,54 @@ export default function ShiftRequest() {
                             <span>Bike</span>
                           </Label>
                         </div>
+                        <div className={`border rounded-lg p-3 flex items-center cursor-pointer ${field.value === "suv" ? "border-primary-500 bg-primary-50" : "border-neutral-300"}`}>
+                          <RadioGroupItem value="suv" id="suv" className="mr-2" />
+                          <Label htmlFor="suv" className="flex items-center cursor-pointer">
+                            <i className={`fas fa-truck ${field.value === "suv" ? "text-primary-500" : "text-neutral-500"} mr-2`}></i>
+                            <span>SUV</span>
+                          </Label>
+                        </div>
+                        <div className={`border rounded-lg p-3 flex items-center cursor-pointer ${field.value === "luxury" ? "border-primary-500 bg-primary-50" : "border-neutral-300"}`}>
+                          <RadioGroupItem value="luxury" id="luxury" className="mr-2" />
+                          <Label htmlFor="luxury" className="flex items-center cursor-pointer">
+                            <i className={`fas fa-gem ${field.value === "luxury" ? "text-primary-500" : "text-neutral-500"} mr-2`}></i>
+                            <span>Luxury</span>
+                          </Label>
+                        </div>
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Luxury Brand - Only shown when Luxury is selected */}
+              {showLuxuryField && (
+                <FormField
+                  control={form.control}
+                  name="luxuryBrand"
+                  render={({ field }) => (
+                    <FormItem className="mb-5">
+                      <FormLabel className="block text-neutral-700 mb-2 font-medium">Luxury Brand</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                          <option value="">Select Brand</option>
+                          <option value="Mercedes">Mercedes</option>
+                          <option value="BMW">BMW</option>
+                          <option value="Audi">Audi</option>
+                          <option value="Lexus">Lexus</option>
+                          <option value="Porsche">Porsche</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {/* Vehicle Model */}
               <FormField
