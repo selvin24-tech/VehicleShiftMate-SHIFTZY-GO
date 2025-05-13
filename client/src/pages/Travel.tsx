@@ -31,17 +31,20 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import VehicleCard from "@/components/common/VehicleCard";
 import ShiftRequestCard from "@/components/common/ShiftRequestCard";
-import { AVAILABLE_VEHICLES, LOCATIONS, NEARBY_SHIFT_REQUESTS } from "@/lib/constants";
-import { TravelSearchFilters, Vehicle } from "@/lib/types";
-import { Search, Filter, Calendar, MapPin, Clock, IndianRupee } from "lucide-react";
+import { AVAILABLE_VEHICLES, LOCATIONS, NEARBY_SHIFT_REQUESTS, LOCAL_SHIFT_REQUESTS, CHENNAI_LOCALITIES } from "@/lib/constants";
+import { TravelSearchFilters, Vehicle, ShiftRequest } from "@/lib/types";
+import { Search, Filter, Calendar, MapPin, Clock, IndianRupee, Navigation } from "lucide-react";
 
 export default function Travel() {
   const [activeFilter, setActiveFilter] = useState<string | null>("car");
   const [searchResults, setSearchResults] = useState<Vehicle[]>(AVAILABLE_VEHICLES);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"vehicles" | "requests">("vehicles");
+  const [viewMode, setViewMode] = useState<"vehicles" | "requests" | "local">("vehicles");
   const [distance, setDistance] = useState([0, 500]);
   const [reward, setReward] = useState([500, 5000]);
+  const [filteredLocalRequests, setFilteredLocalRequests] = useState<ShiftRequest[]>(LOCAL_SHIFT_REQUESTS);
+  const [selectedPickupLocality, setSelectedPickupLocality] = useState<string>("");
+  const [selectedDropLocality, setSelectedDropLocality] = useState<string>("");
   const { toast } = useToast();
 
   const form = useForm<TravelSearchFilters>({
@@ -125,6 +128,40 @@ export default function Travel() {
       title: "Vehicle Selected",
       description: "You've selected this vehicle. Booking feature coming soon!",
     });
+  };
+
+  const filterLocalRequests = () => {
+    let filtered = [...LOCAL_SHIFT_REQUESTS];
+    
+    // Filter by vehicle type if active
+    if (activeFilter) {
+      filtered = filtered.filter(request => request.vehicle.type === activeFilter);
+    }
+    
+    // Filter by pickup locality if selected
+    if (selectedPickupLocality) {
+      filtered = filtered.filter(request => 
+        request.pickupLocation.name.toLowerCase() === selectedPickupLocality.toLowerCase());
+    }
+    
+    // Filter by drop locality if selected
+    if (selectedDropLocality) {
+      filtered = filtered.filter(request => 
+        request.dropLocation.name.toLowerCase() === selectedDropLocality.toLowerCase());
+    }
+    
+    setFilteredLocalRequests(filtered);
+  };
+  
+  // Handle locality selection
+  const handlePickupLocalityChange = (value: string) => {
+    setSelectedPickupLocality(value);
+    filterLocalRequests();
+  };
+  
+  const handleDropLocalityChange = (value: string) => {
+    setSelectedDropLocality(value);
+    filterLocalRequests();
   };
 
   return (

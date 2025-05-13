@@ -187,6 +187,182 @@ export const LOCATIONS = [
   "Kochi"
 ];
 
+export const CHENNAI_LOCALITIES = [
+  "Mambakkam", 
+  "Avadi", 
+  "Kelambakkam", 
+  "Thiruvallur", 
+  "Anna Nagar", 
+  "T Nagar", 
+  "Adyar", 
+  "Velachery", 
+  "Porur", 
+  "Chromepet", 
+  "Tambaram", 
+  "Sholinganallur", 
+  "Perungudi", 
+  "Siruseri",
+  "Kodambakkam",
+  "Besant Nagar",
+  "Nungambakkam",
+  "Mylapore",
+  "OMR",
+  "ECR"
+];
+
+export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
+  {
+    id: "lsr1",
+    userId: 7,
+    userName: "Rajan K.",
+    userAvatar: "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1",
+    vehicle: {
+      id: "v9",
+      type: "bike",
+      make: "Royal Enfield",
+      model: "Classic 350",
+      registrationNumber: "TN 04 RE 3500",
+      image: "https://images.unsplash.com/photo-1558979159-2b18a4070a87",
+    },
+    pickupLocation: {
+      id: "loc_mambakkam",
+      name: "Mambakkam",
+      address: "Mambakkam, Chennai"
+    },
+    dropLocation: {
+      id: "loc_avadi",
+      name: "Avadi",
+      address: "Avadi, Chennai"
+    },
+    pickupTime: "09:30 AM (Tomorrow)",
+    distance: "28 km",
+    estimatedDuration: "50m",
+    reward: 300,
+    postedTime: "2 hours ago",
+    status: "pending"
+  },
+  {
+    id: "lsr2",
+    userId: 8,
+    userName: "Lakshmi S.",
+    userAvatar: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604",
+    vehicle: {
+      id: "v10",
+      type: "car",
+      make: "Maruti",
+      model: "Swift",
+      registrationNumber: "TN 07 MS 1234",
+      image: "https://images.unsplash.com/photo-1523676060187-f55189a71f5e",
+    },
+    pickupLocation: {
+      id: "loc_kelambakkam",
+      name: "Kelambakkam",
+      address: "Kelambakkam, Chennai"
+    },
+    dropLocation: {
+      id: "loc_thiruvallur",
+      name: "Thiruvallur",
+      address: "Thiruvallur, Chennai"
+    },
+    pickupTime: "11:00 AM",
+    distance: "45 km",
+    estimatedDuration: "1h 15m",
+    reward: 600,
+    postedTime: "1 hour ago",
+    status: "pending"
+  },
+  {
+    id: "lsr3",
+    userId: 9,
+    userName: "Deepak V.",
+    userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+    vehicle: {
+      id: "v11",
+      type: "car",
+      make: "Hyundai",
+      model: "i10",
+      registrationNumber: "TN 05 HY 5678",
+      image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d",
+    },
+    pickupLocation: {
+      id: "loc_adyar",
+      name: "Adyar",
+      address: "Adyar, Chennai"
+    },
+    dropLocation: {
+      id: "loc_porur",
+      name: "Porur",
+      address: "Porur, Chennai"
+    },
+    pickupTime: "02:00 PM (Tomorrow)",
+    distance: "15 km",
+    estimatedDuration: "40m",
+    reward: 400,
+    postedTime: "3 hours ago",
+    status: "pending"
+  },
+  {
+    id: "lsr4",
+    userId: 10,
+    userName: "Arun N.",
+    userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+    vehicle: {
+      id: "v12",
+      type: "bike",
+      make: "TVS",
+      model: "Apache",
+      registrationNumber: "TN 01 TV 9876",
+      image: "https://images.unsplash.com/photo-1558981001-5864b3250a69",
+    },
+    pickupLocation: {
+      id: "loc_tambaram",
+      name: "Tambaram",
+      address: "Tambaram, Chennai"
+    },
+    dropLocation: {
+      id: "loc_tnagar",
+      name: "T Nagar",
+      address: "T Nagar, Chennai"
+    },
+    pickupTime: "08:00 AM",
+    distance: "22 km",
+    estimatedDuration: "50m",
+    reward: 350,
+    postedTime: "30 minutes ago",
+    status: "pending"
+  },
+  {
+    id: "lsr5",
+    userId: 11,
+    userName: "Preethi M.",
+    userAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
+    vehicle: {
+      id: "v13",
+      type: "car",
+      make: "Tata",
+      model: "Nexon",
+      registrationNumber: "TN 09 TA 4567",
+      image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738",
+    },
+    pickupLocation: {
+      id: "loc_sholinganallur",
+      name: "Sholinganallur",
+      address: "Sholinganallur, Chennai"
+    },
+    dropLocation: {
+      id: "loc_annanagar",
+      name: "Anna Nagar",
+      address: "Anna Nagar, Chennai"
+    },
+    pickupTime: "10:30 AM (Tomorrow)",
+    distance: "30 km",
+    estimatedDuration: "1h",
+    reward: 500,
+    postedTime: "2 hours ago",
+    status: "pending"
+  }
+];
+
 export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
   {
     id: "sr1",
