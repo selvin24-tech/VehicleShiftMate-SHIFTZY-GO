@@ -36,7 +36,8 @@ export default function Header({
     ? "bg-primary-500" 
     : "bg-secondary-500";
     
-  const bgImage = "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80&w=2670&ixlib=rb-4.0.3";
+  // Using a more compact driving interior image
+  const bgImage = "https://images.unsplash.com/photo-1558989891-ac27e1eef535?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80";
 
   return (
     <>
@@ -46,7 +47,7 @@ export default function Header({
           style={{
             backgroundImage: `url('${bgImage}')`,
             backgroundSize: "cover",
-            backgroundPosition: "center 60%", // Focus more on the road
+            backgroundPosition: "center 35%", // Focus more on the dashboard/steering wheel
           }}
         >
           <div className="absolute inset-0 z-10 flex items-center justify-center">

@@ -95,9 +95,9 @@
 
 .vehicle-shifting-animation {
   background-size: cover;
-  background-position: center;
+  background-position: center 40%;
   position: relative;
-  height: 200px; /* Increased height */
+  height: 140px; /* Reduced height to compress the banner */
   overflow: hidden;
   border-radius: 0 0 24px 24px;
 }
