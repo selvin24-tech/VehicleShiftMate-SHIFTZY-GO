@@ -132,6 +132,7 @@ export const TESTIMONIALS: Testimonial[] = [
 ];
 
 export const AVAILABLE_VEHICLES: Vehicle[] = [
+  // Cars - 6 options
   {
     id: "av1",
     type: "car",
@@ -150,6 +151,88 @@ export const AVAILABLE_VEHICLES: Vehicle[] = [
   },
   {
     id: "av2",
+    type: "car",
+    make: "Hyundai",
+    model: "Creta",
+    registrationNumber: "TN 02 CD 5678",
+    fuelType: "Petrol",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738",
+    ownerId: "u3",
+    ownerName: "Priya M.",
+    rating: 4.9,
+    availabilityStatus: "available",
+    features: ["Premium", "Available Now"],
+    pricePerDay: 2800
+  },
+  {
+    id: "av3",
+    type: "car",
+    make: "Maruti",
+    model: "Swift",
+    registrationNumber: "TN 06 EF 9012",
+    fuelType: "Petrol",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d",
+    ownerId: "u4",
+    ownerName: "Karthik R.",
+    rating: 4.8,
+    availabilityStatus: "available",
+    features: ["Economical", "Available Now"],
+    pricePerDay: 1800
+  },
+  {
+    id: "av4",
+    type: "car",
+    make: "Honda",
+    model: "City",
+    registrationNumber: "TN 08 GH 3456",
+    fuelType: "Petrol",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1533106418989-88406c7cc8ca",
+    ownerId: "u5",
+    ownerName: "Divya P.",
+    rating: 4.6,
+    availabilityStatus: "available",
+    features: ["Bluetooth", "Available Now"],
+    pricePerDay: 2200
+  },
+  {
+    id: "av5",
+    type: "car",
+    make: "Kia",
+    model: "Seltos",
+    registrationNumber: "TN 11 IJ 7890",
+    fuelType: "Diesel",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1609521263047-f8f205293f24",
+    ownerId: "u6",
+    ownerName: "Sanjay N.",
+    rating: 4.7,
+    availabilityStatus: "available-tomorrow",
+    features: ["Sunroof", "Available Tomorrow"],
+    pricePerDay: 2900
+  },
+  {
+    id: "av6",
+    type: "car",
+    make: "Tata",
+    model: "Nexon",
+    registrationNumber: "TN 14 KL 1234",
+    fuelType: "Petrol",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2",
+    ownerId: "u7",
+    ownerName: "Vikram S.",
+    rating: 4.5,
+    availabilityStatus: "available",
+    features: ["5-Star Safety", "Available Now"],
+    pricePerDay: 2400
+  },
+  
+  // Bikes - 6 options
+  {
+    id: "av7",
     type: "bike",
     make: "Royal Enfield",
     model: "Himalayan",
@@ -164,20 +247,275 @@ export const AVAILABLE_VEHICLES: Vehicle[] = [
     pricePerDay: 1200
   },
   {
-    id: "av3",
-    type: "car",
-    make: "Hyundai",
-    model: "Creta",
-    registrationNumber: "TN 02 CD 5678",
+    id: "av8",
+    type: "bike",
+    make: "TVS",
+    model: "Apache RTR 160",
+    registrationNumber: "TN 16 MN 5678",
     fuelType: "Petrol",
-    seatingCapacity: 5,
-    image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738",
-    ownerId: "u3",
-    ownerName: "Priya M.",
-    rating: 4.9,
+    image: "https://images.unsplash.com/photo-1626269555258-3a239f90dccf",
+    ownerId: "u8",
+    ownerName: "Rahul V.",
+    rating: 4.3,
+    availabilityStatus: "available",
+    features: ["Sport", "Available Now"],
+    pricePerDay: 800
+  },
+  {
+    id: "av9",
+    type: "bike",
+    make: "Bajaj",
+    model: "Pulsar NS200",
+    registrationNumber: "TN 18 OP 9012",
+    fuelType: "Petrol",
+    image: "https://images.unsplash.com/photo-1632266093059-9aebb514a27e",
+    ownerId: "u9",
+    ownerName: "Arjun M.",
+    rating: 4.6,
+    availabilityStatus: "available",
+    features: ["Performance", "Available Now"],
+    pricePerDay: 950
+  },
+  {
+    id: "av10",
+    type: "bike",
+    make: "Hero",
+    model: "Xpulse 200",
+    registrationNumber: "TN 20 QR 3456",
+    fuelType: "Petrol",
+    image: "https://images.unsplash.com/photo-1609780447631-05b93e5a88ea",
+    ownerId: "u10",
+    ownerName: "Vijay T.",
+    rating: 4.4,
+    availabilityStatus: "available-tomorrow",
+    features: ["Off-Road", "Available Tomorrow"],
+    pricePerDay: 1000
+  },
+  {
+    id: "av11",
+    type: "bike",
+    make: "Yamaha",
+    model: "R15",
+    registrationNumber: "TN 22 ST 7890",
+    fuelType: "Petrol",
+    image: "https://images.unsplash.com/photo-1635073908681-69d1926b8911",
+    ownerId: "u11",
+    ownerName: "Pravin K.",
+    rating: 4.7,
+    availabilityStatus: "available",
+    features: ["Race", "Available Now"],
+    pricePerDay: 1100
+  },
+  {
+    id: "av12",
+    type: "bike",
+    make: "KTM",
+    model: "Duke 390",
+    registrationNumber: "TN 24 UV 1234",
+    fuelType: "Petrol",
+    image: "https://images.unsplash.com/photo-1615207757930-a68d3c4c7252",
+    ownerId: "u12",
+    ownerName: "Mohan L.",
+    rating: 4.8,
     availabilityStatus: "available",
     features: ["Premium", "Available Now"],
-    pricePerDay: 2800
+    pricePerDay: 1400
+  },
+  
+  // SUVs - 6 options
+  {
+    id: "av13",
+    type: "suv",
+    make: "Mahindra",
+    model: "Scorpio",
+    registrationNumber: "TN 26 WX 5678",
+    fuelType: "Diesel",
+    seatingCapacity: 7,
+    image: "https://images.unsplash.com/photo-1609780447631-05b93e5a88ea",
+    ownerId: "u13",
+    ownerName: "Harish G.",
+    rating: 4.6,
+    availabilityStatus: "available",
+    features: ["Rugged", "Available Now"],
+    pricePerDay: 3200
+  },
+  {
+    id: "av14",
+    type: "suv",
+    make: "Mahindra",
+    model: "XUV700",
+    registrationNumber: "TN 28 YZ 9012",
+    fuelType: "Diesel",
+    seatingCapacity: 7,
+    image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738",
+    ownerId: "u14",
+    ownerName: "Kiruthika S.",
+    rating: 4.9,
+    availabilityStatus: "available-tomorrow",
+    features: ["Luxury", "Available Tomorrow"],
+    pricePerDay: 3800
+  },
+  {
+    id: "av15",
+    type: "suv",
+    make: "Tata",
+    model: "Harrier",
+    registrationNumber: "TN 30 AB 3456",
+    fuelType: "Diesel",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf",
+    ownerId: "u15",
+    ownerName: "Ramesh B.",
+    rating: 4.7,
+    availabilityStatus: "available",
+    features: ["Panoramic Sunroof", "Available Now"],
+    pricePerDay: 3600
+  },
+  {
+    id: "av16",
+    type: "suv",
+    make: "MG",
+    model: "Hector",
+    registrationNumber: "TN 32 CD 7890",
+    fuelType: "Petrol",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1550355291-bbee04a92027",
+    ownerId: "u16",
+    ownerName: "Lakshmi R.",
+    rating: 4.8,
+    availabilityStatus: "available",
+    features: ["Connected Car", "Available Now"],
+    pricePerDay: 3500
+  },
+  {
+    id: "av17",
+    type: "suv",
+    make: "Hyundai",
+    model: "Venue",
+    registrationNumber: "TN 34 EF 1234",
+    fuelType: "Petrol",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2",
+    ownerId: "u17",
+    ownerName: "Prabhu N.",
+    rating: 4.5,
+    availabilityStatus: "available-tomorrow",
+    features: ["Compact", "Available Tomorrow"],
+    pricePerDay: 2600
+  },
+  {
+    id: "av18",
+    type: "suv",
+    make: "Jeep",
+    model: "Compass",
+    registrationNumber: "TN 36 GH 5678",
+    fuelType: "Diesel",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1533106418989-88406c7cc8ca",
+    ownerId: "u18",
+    ownerName: "Shreya K.",
+    rating: 4.7,
+    availabilityStatus: "available",
+    features: ["Premium", "Available Now"],
+    pricePerDay: 3900
+  },
+  
+  // Luxury - 6 options
+  {
+    id: "av19",
+    type: "luxury",
+    make: "BMW",
+    model: "5 Series",
+    registrationNumber: "TN 38 IJ 9012",
+    fuelType: "Petrol",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1520050206274-a1ae44613e6d",
+    ownerId: "u19",
+    ownerName: "Aditya P.",
+    rating: 4.9,
+    availabilityStatus: "available",
+    features: ["Luxury", "Premium Sound", "Available Now"],
+    pricePerDay: 8500
+  },
+  {
+    id: "av20",
+    type: "luxury",
+    make: "Mercedes",
+    model: "E-Class",
+    registrationNumber: "TN 40 KL 3456",
+    fuelType: "Diesel",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1583267746897-2cf415887172",
+    ownerId: "u20",
+    ownerName: "Nikita M.",
+    rating: 4.8,
+    availabilityStatus: "available-tomorrow",
+    features: ["Business Class", "Leather Seats", "Available Tomorrow"],
+    pricePerDay: 9000
+  },
+  {
+    id: "av21",
+    type: "luxury",
+    make: "Audi",
+    model: "A6",
+    registrationNumber: "TN 42 MN 7890",
+    fuelType: "Petrol",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a",
+    ownerId: "u21",
+    ownerName: "Rajiv C.",
+    rating: 4.9,
+    availabilityStatus: "available",
+    features: ["Quattro", "Sunroof", "Available Now"],
+    pricePerDay: 8800
+  },
+  {
+    id: "av22",
+    type: "luxury",
+    make: "Jaguar",
+    model: "XF",
+    registrationNumber: "TN 44 OP 1234",
+    fuelType: "Petrol",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537",
+    ownerId: "u22",
+    ownerName: "Deepak S.",
+    rating: 4.7,
+    availabilityStatus: "available",
+    features: ["British Luxury", "Premium Interiors", "Available Now"],
+    pricePerDay: 9500
+  },
+  {
+    id: "av23",
+    type: "luxury",
+    make: "Lexus",
+    model: "ES",
+    registrationNumber: "TN 46 QR 5678",
+    fuelType: "Hybrid",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1546614042-7df3c24c9e5d",
+    ownerId: "u23",
+    ownerName: "Sneha V.",
+    rating: 4.8,
+    availabilityStatus: "available-tomorrow",
+    features: ["Japanese Luxury", "Eco-Friendly", "Available Tomorrow"],
+    pricePerDay: 8200
+  },
+  {
+    id: "av24",
+    type: "luxury",
+    make: "Land Rover",
+    model: "Range Rover Sport",
+    registrationNumber: "TN 48 ST 9012",
+    fuelType: "Diesel",
+    seatingCapacity: 5,
+    image: "https://images.unsplash.com/photo-1526626607369-f89e339bee41",
+    ownerId: "u24",
+    ownerName: "Ajith K.",
+    rating: 4.9,
+    availabilityStatus: "available",
+    features: ["Luxury SUV", "Off-Road Capability", "Available Now"],
+    pricePerDay: 10500
   }
 ];
 
@@ -246,6 +584,7 @@ export const CHENNAI_LOCALITIES = [
 ];
 
 export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
+  // Bike requests
   {
     id: "lsr1",
     userId: 7,
@@ -278,6 +617,38 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
   },
   {
     id: "lsr2",
+    userId: 10,
+    userName: "Arun N.",
+    userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+    vehicle: {
+      id: "v12",
+      type: "bike",
+      make: "TVS",
+      model: "Apache",
+      registrationNumber: "TN 01 TV 9876",
+      image: "https://images.unsplash.com/photo-1558981001-5864b3250a69",
+    },
+    pickupLocation: {
+      id: "loc_tambaram",
+      name: "Tambaram",
+      address: "Tambaram, Chennai"
+    },
+    dropLocation: {
+      id: "loc_tnagar",
+      name: "T Nagar",
+      address: "T Nagar, Chennai"
+    },
+    pickupTime: "08:00 AM",
+    distance: "22 km",
+    estimatedDuration: "50m",
+    reward: 350,
+    postedTime: "30 minutes ago",
+    status: "pending"
+  },
+  
+  // Car requests
+  {
+    id: "lsr3",
     userId: 8,
     userName: "Lakshmi S.",
     userAvatar: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604",
@@ -307,7 +678,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     status: "pending"
   },
   {
-    id: "lsr3",
+    id: "lsr4",
     userId: 9,
     userName: "Deepak V.",
     userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
@@ -336,64 +707,128 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     postedTime: "3 hours ago",
     status: "pending"
   },
-  {
-    id: "lsr4",
-    userId: 10,
-    userName: "Arun N.",
-    userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-    vehicle: {
-      id: "v12",
-      type: "bike",
-      make: "TVS",
-      model: "Apache",
-      registrationNumber: "TN 01 TV 9876",
-      image: "https://images.unsplash.com/photo-1558981001-5864b3250a69",
-    },
-    pickupLocation: {
-      id: "loc_tambaram",
-      name: "Tambaram",
-      address: "Tambaram, Chennai"
-    },
-    dropLocation: {
-      id: "loc_tnagar",
-      name: "T Nagar",
-      address: "T Nagar, Chennai"
-    },
-    pickupTime: "08:00 AM",
-    distance: "22 km",
-    estimatedDuration: "50m",
-    reward: 350,
-    postedTime: "30 minutes ago",
-    status: "pending"
-  },
+  
+  // SUV requests
   {
     id: "lsr5",
     userId: 11,
-    userName: "Preethi M.",
-    userAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
+    userName: "Karthik N.",
+    userAvatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d",
     vehicle: {
       id: "v13",
-      type: "car",
-      make: "Tata",
-      model: "Nexon",
-      registrationNumber: "TN 09 TA 4567",
+      type: "suv",
+      make: "Mahindra",
+      model: "XUV700",
+      registrationNumber: "TN 10 MX 7890",
       image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738",
     },
     pickupLocation: {
-      id: "loc_sholinganallur",
-      name: "Sholinganallur",
-      address: "Sholinganallur, Chennai"
+      id: "loc_omr",
+      name: "OMR",
+      address: "OMR, Chennai"
     },
     dropLocation: {
-      id: "loc_annanagar",
-      name: "Anna Nagar",
-      address: "Anna Nagar, Chennai"
+      id: "loc_mylapore",
+      name: "Mylapore",
+      address: "Mylapore, Chennai"
     },
-    pickupTime: "10:30 AM (Tomorrow)",
-    distance: "30 km",
+    pickupTime: "09:00 AM",
+    distance: "22 km",
+    estimatedDuration: "50m",
+    reward: 550,
+    postedTime: "4 hours ago",
+    status: "pending"
+  },
+  {
+    id: "lsr6",
+    userId: 12,
+    userName: "Preethi R.",
+    userAvatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e",
+    vehicle: {
+      id: "v14",
+      type: "suv",
+      make: "Hyundai",
+      model: "Creta",
+      registrationNumber: "TN 15 HC 4321",
+      image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738",
+    },
+    pickupLocation: {
+      id: "loc_nungambakkam",
+      name: "Nungambakkam",
+      address: "Nungambakkam, Chennai"
+    },
+    dropLocation: {
+      id: "loc_ecr",
+      name: "ECR",
+      address: "ECR, Chennai"
+    },
+    pickupTime: "04:30 PM",
+    distance: "26 km",
     estimatedDuration: "1h",
-    reward: 500,
+    reward: 650,
+    postedTime: "5 hours ago",
+    status: "pending"
+  },
+  
+  // Luxury requests
+  {
+    id: "lsr7",
+    userId: 13,
+    userName: "Shreya M.",
+    userAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2",
+    vehicle: {
+      id: "v15",
+      type: "luxury",
+      make: "BMW",
+      model: "3 Series",
+      registrationNumber: "TN 20 BM 9876",
+      image: "https://images.unsplash.com/photo-1520050206274-a1ae44613e6d",
+    },
+    pickupLocation: {
+      id: "loc_velachery",
+      name: "Velachery",
+      address: "Velachery, Chennai"
+    },
+    dropLocation: {
+      id: "loc_chromepet",
+      name: "Chromepet",
+      address: "Chromepet, Chennai"
+    },
+    pickupTime: "10:30 AM",
+    distance: "15 km",
+    estimatedDuration: "35m",
+    reward: 800,
     postedTime: "2 hours ago",
+    status: "pending"
+  },
+  {
+    id: "lsr8",
+    userId: 14,
+    userName: "Rohan D.",
+    userAvatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671857",
+    vehicle: {
+      id: "v16",
+      type: "luxury",
+      make: "Mercedes",
+      model: "C-Class",
+      registrationNumber: "TN 25 MB 5432",
+      image: "https://images.unsplash.com/photo-1583267746897-2cf415887172",
+    },
+    pickupLocation: {
+      id: "loc_siruseri",
+      name: "Siruseri",
+      address: "Siruseri, Chennai"
+    },
+    dropLocation: {
+      id: "loc_kodambakkam",
+      name: "Kodambakkam",
+      address: "Kodambakkam, Chennai"
+    },
+    pickupTime: "02:00 PM (Tomorrow)",
+    distance: "35 km",
+    estimatedDuration: "1h 10m",
+    reward: 1200,
+    postedTime: "30 minutes ago",
     status: "pending"
   }
 ];

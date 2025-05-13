@@ -1,0 +1,249 @@
+export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
+  // Bike requests
+  {
+    id: "lsr1",
+    userId: 7,
+    userName: "Rajan K.",
+    userAvatar: "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1",
+    vehicle: {
+      id: "v9",
+      type: "bike",
+      make: "Royal Enfield",
+      model: "Classic 350",
+      registrationNumber: "TN 04 RE 3500",
+      image: "https://images.unsplash.com/photo-1558979159-2b18a4070a87",
+    },
+    pickupLocation: {
+      id: "loc_mambakkam",
+      name: "Mambakkam",
+      address: "Mambakkam, Chennai"
+    },
+    dropLocation: {
+      id: "loc_avadi",
+      name: "Avadi",
+      address: "Avadi, Chennai"
+    },
+    pickupTime: "09:30 AM (Tomorrow)",
+    distance: "28 km",
+    estimatedDuration: "50m",
+    reward: 300,
+    postedTime: "2 hours ago",
+    status: "pending"
+  },
+  {
+    id: "lsr2",
+    userId: 10,
+    userName: "Arun N.",
+    userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+    vehicle: {
+      id: "v12",
+      type: "bike",
+      make: "TVS",
+      model: "Apache",
+      registrationNumber: "TN 01 TV 9876",
+      image: "https://images.unsplash.com/photo-1558981001-5864b3250a69",
+    },
+    pickupLocation: {
+      id: "loc_tambaram",
+      name: "Tambaram",
+      address: "Tambaram, Chennai"
+    },
+    dropLocation: {
+      id: "loc_tnagar",
+      name: "T Nagar",
+      address: "T Nagar, Chennai"
+    },
+    pickupTime: "08:00 AM",
+    distance: "22 km",
+    estimatedDuration: "50m",
+    reward: 350,
+    postedTime: "30 minutes ago",
+    status: "pending"
+  },
+  
+  // Car requests
+  {
+    id: "lsr3",
+    userId: 8,
+    userName: "Lakshmi S.",
+    userAvatar: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604",
+    vehicle: {
+      id: "v10",
+      type: "car",
+      make: "Maruti",
+      model: "Swift",
+      registrationNumber: "TN 07 MS 1234",
+      image: "https://images.unsplash.com/photo-1523676060187-f55189a71f5e",
+    },
+    pickupLocation: {
+      id: "loc_kelambakkam",
+      name: "Kelambakkam",
+      address: "Kelambakkam, Chennai"
+    },
+    dropLocation: {
+      id: "loc_thiruvallur",
+      name: "Thiruvallur",
+      address: "Thiruvallur, Chennai"
+    },
+    pickupTime: "11:00 AM",
+    distance: "45 km",
+    estimatedDuration: "1h 15m",
+    reward: 600,
+    postedTime: "1 hour ago",
+    status: "pending"
+  },
+  {
+    id: "lsr4",
+    userId: 9,
+    userName: "Deepak V.",
+    userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+    vehicle: {
+      id: "v11",
+      type: "car",
+      make: "Hyundai",
+      model: "i10",
+      registrationNumber: "TN 05 HY 5678",
+      image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d",
+    },
+    pickupLocation: {
+      id: "loc_adyar",
+      name: "Adyar",
+      address: "Adyar, Chennai"
+    },
+    dropLocation: {
+      id: "loc_porur",
+      name: "Porur",
+      address: "Porur, Chennai"
+    },
+    pickupTime: "02:00 PM (Tomorrow)",
+    distance: "15 km",
+    estimatedDuration: "40m",
+    reward: 400,
+    postedTime: "3 hours ago",
+    status: "pending"
+  },
+  
+  // SUV requests
+  {
+    id: "lsr5",
+    userId: 11,
+    userName: "Karthik N.",
+    userAvatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d",
+    vehicle: {
+      id: "v13",
+      type: "suv",
+      make: "Mahindra",
+      model: "XUV700",
+      registrationNumber: "TN 10 MX 7890",
+      image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738",
+    },
+    pickupLocation: {
+      id: "loc_omr",
+      name: "OMR",
+      address: "OMR, Chennai"
+    },
+    dropLocation: {
+      id: "loc_mylapore",
+      name: "Mylapore",
+      address: "Mylapore, Chennai"
+    },
+    pickupTime: "09:00 AM",
+    distance: "22 km",
+    estimatedDuration: "50m",
+    reward: 550,
+    postedTime: "4 hours ago",
+    status: "pending"
+  },
+  {
+    id: "lsr6",
+    userId: 12,
+    userName: "Preethi R.",
+    userAvatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e",
+    vehicle: {
+      id: "v14",
+      type: "suv",
+      make: "Hyundai",
+      model: "Creta",
+      registrationNumber: "TN 15 HC 4321",
+      image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738",
+    },
+    pickupLocation: {
+      id: "loc_nungambakkam",
+      name: "Nungambakkam",
+      address: "Nungambakkam, Chennai"
+    },
+    dropLocation: {
+      id: "loc_ecr",
+      name: "ECR",
+      address: "ECR, Chennai"
+    },
+    pickupTime: "04:30 PM",
+    distance: "26 km",
+    estimatedDuration: "1h",
+    reward: 650,
+    postedTime: "5 hours ago",
+    status: "pending"
+  },
+  
+  // Luxury requests
+  {
+    id: "lsr7",
+    userId: 13,
+    userName: "Shreya M.",
+    userAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2",
+    vehicle: {
+      id: "v15",
+      type: "luxury",
+      make: "BMW",
+      model: "3 Series",
+      registrationNumber: "TN 20 BM 9876",
+      image: "https://images.unsplash.com/photo-1520050206274-a1ae44613e6d",
+    },
+    pickupLocation: {
+      id: "loc_velachery",
+      name: "Velachery",
+      address: "Velachery, Chennai"
+    },
+    dropLocation: {
+      id: "loc_chromepet",
+      name: "Chromepet",
+      address: "Chromepet, Chennai"
+    },
+    pickupTime: "10:30 AM",
+    distance: "15 km",
+    estimatedDuration: "35m",
+    reward: 800,
+    postedTime: "2 hours ago",
+    status: "pending"
+  },
+  {
+    id: "lsr8",
+    userId: 14,
+    userName: "Rohan D.",
+    userAvatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671857",
+    vehicle: {
+      id: "v16",
+      type: "luxury",
+      make: "Mercedes",
+      model: "C-Class",
+      registrationNumber: "TN 25 MB 5432",
+      image: "https://images.unsplash.com/photo-1583267746897-2cf415887172",
+    },
+    pickupLocation: {
+      id: "loc_siruseri",
+      name: "Siruseri",
+      address: "Siruseri, Chennai"
+    },
+    dropLocation: {
+      id: "loc_kodambakkam",
+      name: "Kodambakkam",
+      address: "Kodambakkam, Chennai"
+    },
+    pickupTime: "02:00 PM (Tomorrow)",
+    distance: "35 km",
+    estimatedDuration: "1h 10m",
+    reward: 1200,
+    postedTime: "30 minutes ago",
+    status: "pending"
+  }
+];
