@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { 
@@ -163,6 +163,11 @@ export default function Travel() {
     setSelectedDropLocality(value);
     filterLocalRequests();
   };
+  
+  // Apply local filtering when any filter changes
+  useEffect(() => {
+    filterLocalRequests();
+  }, [activeFilter, selectedPickupLocality, selectedDropLocality]);
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-16">
@@ -192,19 +197,25 @@ export default function Travel() {
             />
             
             {/* View Type Toggle */}
-            <div className="flex justify-between items-center mb-4">
-              <div className="bg-neutral-100 rounded-lg p-1 flex">
+            <div className="flex justify-center items-center mb-4">
+              <div className="bg-neutral-100 rounded-lg p-1 flex w-full text-xs sm:text-sm">
                 <button
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'vehicles' ? 'bg-white shadow-sm' : 'text-neutral-600'}`}
+                  className={`flex-1 px-2 py-1 rounded-md font-medium transition-colors ${viewMode === 'vehicles' ? 'bg-white shadow-sm' : 'text-neutral-600'}`}
                   onClick={() => setViewMode('vehicles')}
                 >
                   Available Vehicles
                 </button>
                 <button
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'requests' ? 'bg-white shadow-sm' : 'text-neutral-600'}`}
+                  className={`flex-1 px-2 py-1 rounded-md font-medium transition-colors ${viewMode === 'requests' ? 'bg-white shadow-sm' : 'text-neutral-600'}`}
                   onClick={() => setViewMode('requests')}
                 >
                   Shift Requests
+                </button>
+                <button
+                  className={`flex-1 px-2 py-1 rounded-md font-medium transition-colors ${viewMode === 'local' ? 'bg-white shadow-sm' : 'text-neutral-600'}`}
+                  onClick={() => setViewMode('local')}
+                >
+                  Local
                 </button>
               </div>
             </div>
@@ -432,7 +443,7 @@ export default function Travel() {
               </div>
             )}
           </>
-        ) : (
+        ) : viewMode === "requests" ? (
           <>
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-bold text-lg">Shift Requests</h2>
@@ -456,6 +467,92 @@ export default function Travel() {
                 </div>
                 <h3 className="font-semibold text-lg mb-1">No shift requests found</h3>
                 <p className="text-neutral-600">There are currently no shift requests matching your criteria. Try different filters or check back later.</p>
+              </div>
+            )}
+          </>
+        ) : (
+          // Local tab content
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-bold text-lg">Local Shifts</h2>
+              <div className="text-sm text-neutral-500">
+                {filteredLocalRequests.length} local shifts
+              </div>
+            </div>
+            
+            {/* Local Filter Options */}
+            <div className="mb-4 space-y-3 bg-neutral-50 p-3 rounded-lg">
+              <div className="text-sm font-medium text-neutral-700 mb-2 flex items-center">
+                <Navigation className="w-4 h-4 mr-1" />
+                <span>Filter by area</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="pickup-locality" className="block text-xs text-neutral-500 mb-1">From</label>
+                  <select
+                    id="pickup-locality"
+                    value={selectedPickupLocality}
+                    onChange={(e) => handlePickupLocalityChange(e.target.value)}
+                    className="w-full p-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                  >
+                    <option value="">Any area</option>
+                    {CHENNAI_LOCALITIES.map((locality) => (
+                      <option key={locality} value={locality}>{locality}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label htmlFor="drop-locality" className="block text-xs text-neutral-500 mb-1">To</label>
+                  <select
+                    id="drop-locality"
+                    value={selectedDropLocality}
+                    onChange={(e) => handleDropLocalityChange(e.target.value)}
+                    className="w-full p-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                  >
+                    <option value="">Any area</option>
+                    {CHENNAI_LOCALITIES.map((locality) => (
+                      <option key={locality} value={locality}>{locality}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 overflow-x-auto py-1">
+                <Badge 
+                  variant="outline" 
+                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'car' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  onClick={() => handleFilterClick('car')}
+                >
+                  Car
+                </Badge>
+                <Badge 
+                  variant="outline" 
+                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'bike' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  onClick={() => handleFilterClick('bike')}
+                >
+                  Bike
+                </Badge>
+              </div>
+            </div>
+            
+            {/* Local Shift Requests */}
+            {filteredLocalRequests.length > 0 ? (
+              filteredLocalRequests.map((request) => (
+                <ShiftRequestCard 
+                  key={request.id} 
+                  request={request} 
+                  showDetails
+                />
+              ))
+            ) : (
+              <div className="bg-white border border-neutral-200 rounded-lg p-8 text-center">
+                <div className="text-neutral-500 mb-2">
+                  <i className="fas fa-map-marker-alt text-3xl"></i>
+                </div>
+                <h3 className="font-semibold text-lg mb-1">No local shifts found</h3>
+                <p className="text-neutral-600">There are currently no local shift requests matching your criteria. Try different areas or vehicle types.</p>
               </div>
             )}
           </>
