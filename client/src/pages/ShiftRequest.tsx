@@ -18,7 +18,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import { LOCATIONS } from "@/lib/constants";
+import { LOCATIONS, DETAILED_VEHICLE_TYPES } from "@/lib/constants";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
@@ -57,6 +57,12 @@ export default function ShiftRequest() {
   
   // State to track if we should show the luxury brand field
   const [showLuxuryField, setShowLuxuryField] = useState(false);
+  
+  // State to track the selected vehicle type for the detailed dropdown
+  const [selectedVehicleType, setSelectedVehicleType] = useState<"car" | "bike" | "suv" | "luxury">("car");
+  
+  // Get the vehicle models for the currently selected type
+  const vehicleModels = DETAILED_VEHICLE_TYPES[selectedVehicleType] || [];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -132,8 +138,13 @@ export default function ShiftRequest() {
                     <FormControl>
                       <RadioGroup
                         onValueChange={(value) => {
-                          field.onChange(value);
-                          setShowLuxuryField(value === "luxury");
+                          const vehicleType = value as "car" | "bike" | "suv" | "luxury";
+                          field.onChange(vehicleType);
+                          setShowLuxuryField(vehicleType === "luxury");
+                          setSelectedVehicleType(vehicleType);
+                          
+                          // Reset the model field when changing the vehicle type
+                          form.setValue("vehicleModel", "");
                         }}
                         defaultValue={field.value}
                         className="grid grid-cols-2 gap-3"
@@ -209,11 +220,20 @@ export default function ShiftRequest() {
                   <FormItem className="mb-5">
                     <FormLabel className="block text-neutral-700 mb-2 font-medium">Vehicle Model</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="e.g. Honda City, Royal Enfield Classic"
+                      <select
                         {...field}
                         className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      />
+                      >
+                        <option value="">Select a vehicle model</option>
+                        {vehicleModels.map((model, index) => (
+                          <option 
+                            key={index} 
+                            value={`${model.name} (${model.model})`}
+                          >
+                            {model.name} - {model.model} ({model.range})
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

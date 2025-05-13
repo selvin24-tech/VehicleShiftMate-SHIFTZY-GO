@@ -23,6 +23,41 @@ export const VEHICLE_TYPES = [
   }
 ];
 
+export const DETAILED_VEHICLE_TYPES = {
+  car: [
+    { name: "Maruti Alto", model: "2020 LXI", range: "Economy" },
+    { name: "Hyundai i10", model: "2019 Magna", range: "Low" },
+    { name: "Honda Amaze", model: "2021 S", range: "Mid" },
+    { name: "Maruti Ciaz", model: "2022 ZXI", range: "Mid-High" },
+    { name: "Honda City", model: "2023 ZX", range: "High" },
+    { name: "Skoda Slavia", model: "2024 Style", range: "Luxury" }
+  ],
+  bike: [
+    { name: "TVS Sport", model: "2020 Kick Start", range: "Economy" },
+    { name: "Hero Splendor", model: "2021 iSmart", range: "Low" },
+    { name: "Bajaj Pulsar 150", model: "2022 DTS-i", range: "Mid" },
+    { name: "Yamaha FZ", model: "2023 V3", range: "Mid-High" },
+    { name: "Royal Enfield Classic 350", model: "2023 Signals", range: "High" },
+    { name: "Kawasaki Ninja 300", model: "2024 KRT", range: "Luxury" }
+  ],
+  suv: [
+    { name: "Renault Kiger", model: "2021 RXL", range: "Economy" },
+    { name: "Tata Nexon", model: "2022 XZ", range: "Low" },
+    { name: "Hyundai Creta", model: "2023 SX", range: "Mid" },
+    { name: "Kia Seltos", model: "2023 HTX", range: "Mid-High" },
+    { name: "MG Hector", model: "2024 Sharp", range: "High" },
+    { name: "Toyota Fortuner", model: "2024 Legender", range: "Luxury" }
+  ],
+  luxury: [
+    { name: "BMW 3 Series", model: "2023 Sport", range: "Entry Luxury" },
+    { name: "Audi A4", model: "2023 Premium Plus", range: "Luxury" },
+    { name: "Mercedes C-Class", model: "2024 Avantgarde", range: "Luxury" },
+    { name: "Jaguar XF", model: "2024 Prestige", range: "Luxury" },
+    { name: "Land Rover Discovery", model: "2024 R-Dynamic", range: "Premium SUV" },
+    { name: "Lexus RX500h", model: "2024 F Sport", range: "Top Luxury" }
+  ]
+};
+
 export const RECENT_TRIPS: Trip[] = [
   {
     id: "trip1",

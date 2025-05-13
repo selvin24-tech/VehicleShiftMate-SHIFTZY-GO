@@ -1,0 +1,85 @@
+Here’s how you can structure the vehicle types with duplicates under the Traveler Option (on Replit) for your app. This list ensures a range from minimum to luxury vehicles across all categories: Car, Bike, SUV, and Luxury. You can paste this as a list or use it in a dropdown/input in your Replit database or UI component.
+
+
+---
+
+Traveler Option: Vehicle Types (with Min to Luxury duplicates)
+
+{
+  "vehicle_types": {
+    "Car": [
+      { "name": "Maruti Alto", "model": "2020 LXI", "range": "Economy" },
+      { "name": "Hyundai i10", "model": "2019 Magna", "range": "Low" },
+      { "name": "Honda Amaze", "model": "2021 S", "range": "Mid" },
+      { "name": "Maruti Ciaz", "model": "2022 ZXI", "range": "Mid-High" },
+      { "name": "Honda City", "model": "2023 ZX", "range": "High" },
+      { "name": "Skoda Slavia", "model": "2024 Style", "range": "Luxury" }
+    ],
+    "Bike": [
+      { "name": "TVS Sport", "model": "2020 Kick Start", "range": "Economy" },
+      { "name": "Hero Splendor", "model": "2021 iSmart", "range": "Low" },
+      { "name": "Bajaj Pulsar 150", "model": "2022 DTS-i", "range": "Mid" },
+      { "name": "Yamaha FZ", "model": "2023 V3", "range": "Mid-High" },
+      { "name": "Royal Enfield Classic 350", "model": "2023 Signals", "range": "High" },
+      { "name": "Kawasaki Ninja 300", "model": "2024 KRT", "range": "Luxury" }
+    ],
+    "SUV": [
+      { "name": "Renault Kiger", "model": "2021 RXL", "range": "Economy" },
+      { "name": "Tata Nexon", "model": "2022 XZ", "range": "Low" },
+      { "name": "Hyundai Creta", "model": "2023 SX", "range": "Mid" },
+      { "name": "Kia Seltos", "model": "2023 HTX", "range": "Mid-High" },
+      { "name": "MG Hector", "model": "2024 Sharp", "range": "High" },
+      { "name": "Toyota Fortuner", "model": "2024 Legender", "range": "Luxury" }
+    ],
+    "Luxury": [
+      { "name": "BMW 3 Series", "model": "2023 Sport", "range": "Entry Luxury" },
+      { "name": "Audi A4", "model": "2023 Premium Plus", "range": "Luxury" },
+      { "name": "Mercedes C-Class", "model": "2024 Avantgarde", "range": "Luxury" },
+      { "name": "Jaguar XF", "model": "2024 Prestige", "range": "Luxury" },
+      { "name": "Land Rover Discovery", "model": "2024 R-Dynamic", "range": "Premium SUV" },
+      { "name": "Lexus RX500h", "model": "2024 F Sport", "range": "Top Luxury" }
+    ]
+  }
+}
+
+
+---
+
+How to Use This in Replit (Steps):
+
+1. Go to Replit’s Backend (if using JSON or Firebase)
+
+Store the above JSON in your backend as default values.
+
+
+
+2. Update UI (Traveler Page):
+
+Change your vehicleType dropdown to dynamically load from this structured list.
+
+Add a filter or display option to show: Economy → Luxury badge or category.
+
+
+
+3. Traveler Option Component Example (React JSX or HTML):
+
+
+
+<select name="vehicleType">
+  <optgroup label="Car">
+    <option value="Maruti Alto">Maruti Alto (Economy)</option>
+    <option value="Hyundai i10">Hyundai i10 (Low)</option>
+    <!-- and so on -->
+  </optgroup>
+  <optgroup label="Bike">
+    <option value="TVS Sport">TVS Sport (Economy)</option>
+    <!-- etc -->
+  </optgroup>
+  <!-- Add SUV and Luxury similarly -->
+</select>
+
+
+---
+
+Would you like me to help you insert this directly into a Replit project or help with the database upload format?
+
