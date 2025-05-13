@@ -198,14 +198,19 @@ export default function ShiftRequest() {
                           className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                           <option value="">Select Brand</option>
-                          <option value="Mercedes">Mercedes</option>
+                          {/* Hard-coded unique luxury brands from the data */}
                           <option value="BMW">BMW</option>
                           <option value="Audi">Audi</option>
+                          <option value="Mercedes">Mercedes</option>
+                          <option value="Jaguar">Jaguar</option>
+                          <option value="Land">Land Rover</option>
                           <option value="Lexus">Lexus</option>
-                          <option value="Porsche">Porsche</option>
                           <option value="Other">Other</option>
                         </select>
                       </FormControl>
+                      <p className="text-xs text-neutral-500 mt-1">
+                        Select the brand of your luxury vehicle
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -235,6 +240,9 @@ export default function ShiftRequest() {
                         ))}
                       </select>
                     </FormControl>
+                    <p className="text-xs text-neutral-500 mt-1">
+                      Select from available {selectedVehicleType} models ranging from Economy to Luxury
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
