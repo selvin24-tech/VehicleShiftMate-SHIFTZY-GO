@@ -113,22 +113,24 @@
 }
 
 @keyframes moveCar {
-  0% { transform: translateX(-30%) scale(1.8); } /* Start further outside the visible area */
-  100% { transform: translateX(130%) scale(1.8); } /* Go further beyond the visible area */
+  0% { transform: translateX(-100%) scale(1.2); } /* Start completely outside left edge */
+  100% { transform: translateX(100vw) scale(1.2); } /* Move to completely outside right edge */
 }
 
 .animated-car {
-  animation: moveCar 6s linear infinite; /* Even faster animation */
+  animation: moveCar 5s linear infinite; /* Fast animation */
   position: absolute;
-  bottom: 40px; /* Positioned higher for better visibility */
+  bottom: 30px; /* Positioned for good visibility */
+  left: 0; /* Start from left edge */
   z-index: 15; /* Higher z-index to ensure visibility */
-  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.8)); /* Enhanced glow effect */
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7)); /* Subtle glow effect */
   font-size: 1.5rem; /* Make icons larger */
+  width: 30px; /* Control width of container */
 }
 
 /* Scale the icon within the animated-car div */
 .animated-car svg {
-  width: 60px; /* Increased width */
-  height: 60px; /* Increased height */
+  width: 35px; /* Moderate width */
+  height: 35px; /* Moderate height */
   transform-origin: center;
 }
