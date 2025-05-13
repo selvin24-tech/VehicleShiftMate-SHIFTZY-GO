@@ -43,7 +43,11 @@ export default function Header({
       {(isHome || showAnimation) ? (
         <div 
           className="vehicle-shifting-animation bg-no-repeat relative" 
-          style={{backgroundImage: `url('${bgImage}')`}}
+          style={{
+            backgroundImage: `url('${bgImage}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center 60%", // Focus more on the road
+          }}
         >
           <div className="absolute inset-0 z-10 flex items-center justify-center">
             <h1 className="text-white text-2xl font-bold tracking-tight drop-shadow-lg">{title}</h1>
@@ -51,9 +55,9 @@ export default function Header({
           
           <div className="animated-car">
             {vehicleType === "car" ? (
-              <Car className="text-white text-3xl drop-shadow-lg" />
+              <Car className="text-white drop-shadow-lg" strokeWidth={1.5} />
             ) : (
-              <Bike className="text-white text-3xl drop-shadow-lg" />
+              <Bike className="text-white drop-shadow-lg" strokeWidth={1.5} />
             )}
           </div>
           

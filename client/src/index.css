@@ -97,7 +97,7 @@
   background-size: cover;
   background-position: center;
   position: relative;
-  height: 180px;
+  height: 200px; /* Increased height */
   overflow: hidden;
   border-radius: 0 0 24px 24px;
 }
@@ -113,13 +113,22 @@
 }
 
 @keyframes moveCar {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
+  0% { transform: translateX(-30%) scale(1.8); } /* Start further outside the visible area */
+  100% { transform: translateX(130%) scale(1.8); } /* Go further beyond the visible area */
 }
 
 .animated-car {
-  animation: moveCar 15s linear infinite;
+  animation: moveCar 6s linear infinite; /* Even faster animation */
   position: absolute;
-  bottom: 20px;
-  z-index: 2;
+  bottom: 40px; /* Positioned higher for better visibility */
+  z-index: 15; /* Higher z-index to ensure visibility */
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.8)); /* Enhanced glow effect */
+  font-size: 1.5rem; /* Make icons larger */
+}
+
+/* Scale the icon within the animated-car div */
+.animated-car svg {
+  width: 60px; /* Increased width */
+  height: 60px; /* Increased height */
+  transform-origin: center;
 }
