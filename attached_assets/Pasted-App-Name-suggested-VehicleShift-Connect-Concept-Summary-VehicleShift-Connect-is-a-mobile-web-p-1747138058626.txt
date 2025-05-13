@@ -1,0 +1,101 @@
+App Name (suggested): VehicleShift Connect
+
+Concept Summary:
+
+VehicleShift Connect is a mobile/web platform designed to connect vehicle owners who want to shift their vehicles (cars or bikes) from one location to another with travelers who are willing to drive these vehicles along their journey. It aims to provide a cost-effective and experiential solution for both parties — one gets their vehicle transported safely, and the other enjoys a travel experience with a new vehicle.
+
+
+---
+
+Main Features to Include in the App Summary:
+
+1. Home Page Design
+
+Top Banner: Animated graphic of a vehicle being driven (rider animation from point A to point B).
+
+Top-Right Corner: Profile icon for user account details, history of rides, vehicle info, and settings.
+
+Two Main Buttons (centered below banner):
+
+"Shift a Vehicle" – for customers who want their vehicle transported.
+
+"I’m a Traveler" – for travelers who want to pick up available vehicles to drive.
+
+Add a dynamic preview section under the “Shift a Vehicle” and “I’m a Traveler” buttons on the home screen. This section should show 5–6 nearby ride requests scheduled to be picked up within the next 6 hours and within 10–15 km of the user’s current location. Include sample ride cards with customer names, vehicle model, pickup/drop locations, pickup timing, and a “View Details” option. This allows travelers to immediately see ride opportunities around them.
+
+2. Shift Request Form (For Customers)
+
+Pickup location
+
+Drop location
+
+Vehicle type (car/bike/others)
+
+Vehicle brand & model
+
+Registration number
+
+RC document (upload)
+
+Insurance expiry date
+
+Upload vehicle photo
+
+Any special instructions
+
+
+3. Traveler Section (For People Who Want to Shift the Vehicle)
+
+Rider animation and profile icon as above
+
+Search Column to filter by:
+
+Vehicle type (bike, car, SUV, etc.)
+
+Pickup location / Drop location
+
+Date range
+
+Distance
+
+Reward/budget
+
+
+List View showing requests with:
+
+Customer name
+
+Vehicle photo/logo
+
+Vehicle model
+
+Pickup to drop city names
+
+Button: “View Details”
+
+Add an animated rider banner at the top, alternating between bike and car (bike with flying hair effect). This should be consistent across all pages. Below that, place a profile icon in the top right. Add a powerful search bar to let travelers find rides by vehicle type or pickup/drop location, with a filter icon on the right for sorting and narrowing results. Below this, show a long list (at least 25–30) of currently available ride requests with details like vehicle name, pickup/drop, model, and icons. Maintain a fixed bottom bar across pages with Home, Plan, Live Tracking, and Help options
+
+
+4. Bottom Navigation Bar (Fixed on All Pages)
+
+Home
+
+Plans (for future monetization or paid services)
+
+Live Tracking (of vehicle during journey)
+
+Help/Support
+
+
+
+---
+
+Additional Notes to Add in the App Summary:
+
+The app is beneficial for vehicle owners, helping them shift their vehicles without hiring expensive logistics.
+
+It is equally helpful for travelers looking for a unique experience, short-term vehicle access, or road trips.
+
+Focus is on mutual benefit and trust, with an integrated tracking and rating system planned in future phases.
+
+Future enhancements will include payment integration, chat between user & traveler, and live vehicle tracking.
