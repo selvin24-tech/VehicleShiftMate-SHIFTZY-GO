@@ -37,7 +37,7 @@ export default function Header({
     : "bg-secondary-500";
     
   // Using a premium car interior image with luxury styling
-  const bgImage = "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=85";
+  const bgImage = "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=85";
 
   return (
     <>
@@ -50,31 +50,45 @@ export default function Header({
             backgroundPosition: "center 35%", // Focus more on the dashboard/steering wheel
           }}
         >
-          <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ paddingBottom: "20px" }}>
-            <div style={{
-              background: "#000000",
-              padding: "15px 35px",
-              borderRadius: "16px",
-              border: "3px solid #3b82f6",
-            }}>
+          <div className="absolute inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center" style={{ paddingBottom: "20px" }}>
+            <div>
               <h1 style={{
-                fontFamily: "Arial, sans-serif",
-                fontSize: "36px",
+                fontFamily: "Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif",
+                fontSize: "72px",
                 fontWeight: "bold",
                 textAlign: "center",
                 lineHeight: "1",
                 margin: "0",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                WebkitTextStroke: "1px #000",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
               }}>
                 <span style={{
                   color: "#3b82f6",
-                }}>Shift</span>
+                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  display: "inline-block"
+                }}>SHIFT</span>
                 <span style={{
                   color: "#ff8c00",
-                }}>zy</span>
+                  background: "linear-gradient(135deg, #ff8c00, #f59e0b)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  display: "inline-block"
+                }}>ZY</span>
                 <span style={{
                   color: "#3b82f6",
-                  marginLeft: "10px"
-                }}>Go</span>
+                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  display: "inline-block",
+                  marginLeft: "20px"
+                }}>GO</span>
               </h1>
             </div>
           </div>
@@ -125,21 +139,38 @@ export default function Header({
             </button>
           )}
           {title === "Shiftzy Go" ? (
-            <div style={{
-              background: "#000000",
-              padding: "6px 12px",
-              borderRadius: "8px",
-              border: "2px solid #3b82f6",
-            }}>
+            <div>
               <span style={{
-                fontFamily: "Arial, sans-serif",
-                fontSize: "20px",
+                fontFamily: "Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif",
+                fontSize: "36px",
                 fontWeight: "bold",
                 lineHeight: "1",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                WebkitTextStroke: "1px #000",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
+                display: "flex",
+                alignItems: "center"
               }}>
-                <span style={{ color: "#3b82f6" }}>Shift</span>
-                <span style={{ color: "#ff8c00" }}>zy</span>
-                <span style={{ color: "#3b82f6", marginLeft: "5px" }}>Go</span>
+                <span style={{
+                  color: "#3b82f6",
+                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}>SHIFT</span>
+                <span style={{
+                  color: "#ff8c00",
+                  background: "linear-gradient(135deg, #ff8c00, #f59e0b)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}>ZY</span>
+                <span style={{
+                  color: "#3b82f6",
+                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  marginLeft: "10px"
+                }}>GO</span>
               </span>
             </div>
           ) : (
