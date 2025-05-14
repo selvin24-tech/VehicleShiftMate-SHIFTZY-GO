@@ -52,7 +52,6 @@ export default function Home() {
               </div>
               <div className="option-text">
                 <h2 className="option-brand-name">
-                  <span className="option-brand-travel">Travel</span>
                   <span className="option-brand-go">Go</span>
                 </h2>
                 <p className="text-sm text-neutral-600">Rent and drive vehicles for your journey</p>

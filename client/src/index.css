@@ -473,6 +473,9 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
 }
 
 /* Alternative brand logo for inner pages */
