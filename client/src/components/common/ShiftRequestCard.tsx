@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import ChatButton from "@/components/common/ChatButton";
 
 interface ShiftRequestCardProps {
   request: ShiftRequest;
@@ -112,12 +113,20 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
         )}
 
         {showDetails && (
-          <Button 
-            className="mt-2 bg-primary-500 text-white hover:bg-primary-600"
-            onClick={handleViewDetails}
-          >
-            Accept Drive
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button 
+              className="bg-primary-500 text-white hover:bg-primary-600"
+              onClick={handleViewDetails}
+            >
+              Accept Drive
+            </Button>
+            <ChatButton 
+              userId={Number(request.userId)} 
+              shiftRequestId={Number(request.id)}
+              variant="outline"
+              size="default"
+            />
+          </div>
         )}
       </div>
     </Card>

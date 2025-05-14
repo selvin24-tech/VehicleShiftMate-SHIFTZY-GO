@@ -60,7 +60,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [connected, setConnected] = useState(false);
 
-  const userId = USER_PROFILE.id;
+  // Convert USER_PROFILE.id to number to avoid type issues
+  const userId = Number(USER_PROFILE.id);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -119,8 +120,12 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const fetchConversations = async () => {
     setLoadingConversations(true);
     try {
-      const data = await apiRequest('/api/chat/conversations');
-      setConversations(data as ChatConversation[]);
+      const response = await fetch('/api/chat/conversations');
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setConversations(data);
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {
@@ -142,8 +147,12 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const loadMessages = async (conversationId: number) => {
     setLoadingMessages(true);
     try {
-      const data = await apiRequest(`/api/chat/conversations/${conversationId}/messages`);
-      setMessages(data as ChatMessage[]);
+      const response = await fetch(`/api/chat/conversations/${conversationId}/messages`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setMessages(data);
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {
@@ -176,7 +185,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   // Function to start a new conversation
   const startConversation = async (travelerId: number, shiftRequestId: number) => {
     try {
-      const data = await apiRequest('/api/chat/conversations', {
+      const response = await fetch('/api/chat/conversations', {
         method: 'POST',
         body: JSON.stringify({
           travelerId,
@@ -187,11 +196,17 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         }
       });
       
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
       // Refresh conversations and select the new one
       await refreshConversations();
       
       // Find the newly created conversation in the updated list
-      const newConversation = conversations.find(c => c.id === (data as any).id);
+      const newConversation = conversations.find(c => c.id === data.id);
       if (newConversation) {
         await selectConversation(newConversation);
       }
