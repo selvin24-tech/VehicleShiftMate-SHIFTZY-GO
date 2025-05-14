@@ -33,7 +33,7 @@ export default function Home() {
                   <span className="option-brand-accent">zy</span>
                   <span className="option-brand-shift">Go</span>
                 </h2>
-                <p className="text-sm text-neutral-600">Transport your vehicle to another location</p>
+                <p className="text-sm text-neutral-600">Shift</p>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>
