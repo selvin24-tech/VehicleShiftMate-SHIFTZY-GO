@@ -46,8 +46,8 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
               <AvatarFallback>{request.userName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-sm">{request.userName}</h3>
-              <p className="text-xs text-neutral-500">{request.postedTime}</p>
+              <h3 className="font-semibold h5">{request.userName}</h3>
+              <p className="small-text text-neutral-500">{request.postedTime}</p>
             </div>
           </div>
 
@@ -56,12 +56,12 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
               <i className={`fas fa-${getVehicleIcon(request.vehicle.type)} text-primary-500`}></i>
             </div>
             <div>
-              <h4 className="font-semibold">{request.vehicle.make} {request.vehicle.model}</h4>
-              <p className="text-xs text-neutral-500">{request.vehicle.registrationNumber}</p>
+              <h4 className="font-semibold h4">{request.vehicle.make} {request.vehicle.model}</h4>
+              <p className="small-text text-neutral-500">{request.vehicle.registrationNumber}</p>
             </div>
           </div>
 
-          <div className="flex items-center text-sm mb-3">
+          <div className="flex items-center body-text mb-3">
             <div className="flex flex-col items-start">
               <div className="flex items-center mb-1">
                 <div className="w-2 h-2 bg-primary-500 rounded-full mr-2"></div>

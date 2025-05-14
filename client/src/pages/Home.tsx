@@ -12,11 +12,11 @@ export default function Home() {
   const [, navigate] = useLocation();
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen relative pb-16">
+    <div className="container max-w-lg mx-auto bg-white min-h-screen relative pb-16">
       <Header />
 
       {/* Main Tabs - Shifting & Travel */}
-      <div className="px-4 py-6 pt-8">
+      <div className="px-resp py-resp">
         <div className="space-y-5">
           {/* Shiftzy Option - Styled as a car-like shape */}
           <div 
@@ -66,7 +66,7 @@ export default function Home() {
         {/* Nearby Ride Opportunities Section */}
         <div className="mt-8">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-bold text-lg">Nearby Ride Opportunities</h2>
+            <h2 className="font-bold h2">Nearby Ride Opportunities</h2>
             <Button 
               variant="link" 
               className="text-primary-600 text-sm p-0 h-auto"
@@ -76,7 +76,7 @@ export default function Home() {
             </Button>
           </div>
           
-          <p className="text-sm text-neutral-600 mb-4">
+          <p className="body-text text-neutral-600 mb-resp">
             Available rides within 15 km of your location that need to be picked up in the next 6 hours.
           </p>
           
@@ -96,7 +96,7 @@ export default function Home() {
         
         {/* Recent Trips Section */}
         <div className="mt-8">
-          <h2 className="font-bold text-lg mb-4">Your Recent Trips</h2>
+          <h2 className="font-bold h2 mb-resp">Your Recent Trips</h2>
           
           {RECENT_TRIPS.map((trip) => (
             <TripCard key={trip.id} trip={trip} />
@@ -105,7 +105,7 @@ export default function Home() {
 
         {/* Testimonials Section */}
         <div className="mt-8">
-          <h2 className="font-bold text-lg mb-4">Customer Stories</h2>
+          <h2 className="font-bold h2 mb-resp">Customer Stories</h2>
           <div className="overflow-x-auto flex -mx-4 px-4 py-2 gap-4 pb-4">
             {TESTIMONIALS.map((testimonial) => (
               <TestimonialCard key={testimonial.id} testimonial={testimonial} />
