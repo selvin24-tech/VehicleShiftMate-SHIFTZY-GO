@@ -134,149 +134,26 @@
 }
 
 @keyframes moveCar {
-  0% { 
-    transform: translateX(-100%) scale(1.2) rotate(0deg) translateY(0); 
-  }
-  10% { 
-    transform: translateX(-70vw) scale(1.2) rotate(2deg) translateY(-5px); 
-  }
-  20% { 
-    transform: translateX(-40vw) scale(1.2) rotate(-1deg) translateY(3px); 
-  }
-  30% { 
-    transform: translateX(-10vw) scale(1.2) rotate(1deg) translateY(-4px); 
-  }
-  40% { 
-    transform: translateX(20vw) scale(1.25) rotate(-2deg) translateY(6px); 
-  }
-  50% { 
-    transform: translateX(50vw) scale(1.3) rotate(2deg) translateY(-8px); 
-  }
-  60% { 
-    transform: translateX(60vw) scale(1.25) rotate(-1deg) translateY(4px); 
-  }
-  70% { 
-    transform: translateX(70vw) scale(1.2) rotate(1deg) translateY(-2px); 
-  }
-  80% { 
-    transform: translateX(80vw) scale(1.2) rotate(-1deg) translateY(5px); 
-  }
-  90% { 
-    transform: translateX(90vw) scale(1.2) rotate(1deg) translateY(-3px); 
-  }
-  100% { 
-    transform: translateX(100vw) scale(1.2) rotate(0deg) translateY(0); 
-  }
-}
-
-@keyframes pulsateGlow {
-  0% { filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.8)); }
-  25% { filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.8)); }
-  50% { filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.8)); }
-  75% { filter: drop-shadow(0 0 12px rgba(236, 72, 153, 0.8)); }
-  100% { filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.8)); }
+  0% { transform: translateX(-100%) scale(1.5); } /* Start completely outside left edge, wider scale */
+  100% { transform: translateX(100vw) scale(1.5); } /* Move to completely outside right edge, wider scale */
 }
 
 .animated-car {
-  animation: moveCar 8s linear infinite; /* Slower animation to appreciate effects */
+  animation: moveCar 5s linear infinite; /* Original animation speed */
   position: absolute;
   bottom: 20px; /* Adjusted for compressed banner */
   left: 0; /* Start from left edge */
   z-index: 15; /* Higher z-index to ensure visibility */
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7)); /* Subtle glow effect */
   font-size: 1.5rem; /* Make icons larger */
-  width: 40px; /* Slightly larger container */
-  height: 40px; /* Fixed height for container */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 70%); /* Add shadow beneath */
-  border-radius: 50%;
-  padding: 10px;
+  width: 60px; /* Wider width as requested */
 }
 
-/* Style the vehicle icons within the animated-car div */
-.vehicle-icon {
-  width: 40px; /* Larger for more visibility */
-  height: 40px; /* Larger for more visibility */
+/* Scale the icon within the animated-car div */
+.animated-car svg {
+  width: 48px; /* Wider than original */
+  height: 32px; /* Keep original height */
   transform-origin: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%; /* Make it circular */
-  position: relative;
-  overflow: hidden;
-}
-
-/* Car icon styling */
-.car-icon {
-  background: linear-gradient(135deg, #3b82f6, #0c4a6e); /* Blue gradient background */
-  box-shadow: 
-    0 0 0 3px rgba(255, 255, 255, 0.4), 
-    0 0 20px rgba(59, 130, 246, 0.7);
-  animation: carGlow 4s ease-in-out infinite;
-}
-
-@keyframes carGlow {
-  0% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4), 0 0 20px rgba(59, 130, 246, 0.7); }
-  50% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5), 0 0 30px rgba(59, 130, 246, 0.9); }
-  100% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4), 0 0 20px rgba(59, 130, 246, 0.7); }
-}
-
-.car-icon::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0) 40%,
-    rgba(255, 255, 255, 0.6) 50%,
-    rgba(255, 255, 255, 0) 60%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: rotate(45deg);
-  animation: carShine 4s linear infinite;
-}
-
-@keyframes carShine {
-  0% { transform: rotate(45deg) translateY(-80px); opacity: 0; }
-  30% { opacity: 0; }
-  50% { opacity: 1; }
-  70% { opacity: 0; }
-  100% { transform: rotate(45deg) translateY(80px); opacity: 0; }
-}
-
-/* Bike icon styling */
-.bike-icon {
-  background: linear-gradient(135deg, #ff8c00, #d97706); /* Orange gradient background */
-  box-shadow: 
-    0 0 0 3px rgba(255, 255, 255, 0.4), 
-    0 0 20px rgba(245, 158, 11, 0.7);
-  animation: bikeGlow 4s ease-in-out infinite;
-}
-
-@keyframes bikeGlow {
-  0% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4), 0 0 20px rgba(245, 158, 11, 0.7); }
-  50% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5), 0 0 30px rgba(245, 158, 11, 0.9); }
-  100% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4), 0 0 20px rgba(245, 158, 11, 0.7); }
-}
-
-.bike-icon::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 70%);
-  animation: bikeFlash 6s ease-in-out infinite;
-  opacity: 0;
-}
-
-@keyframes bikeFlash {
-  0%, 100% { opacity: 0; transform: scale(0.5); }
-  50% { opacity: 0.7; transform: scale(1.2); }
 }
 
 /* Vehicle-themed option cards */
