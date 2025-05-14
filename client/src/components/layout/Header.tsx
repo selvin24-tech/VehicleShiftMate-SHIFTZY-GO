@@ -13,7 +13,7 @@ interface HeaderProps {
 }
 
 export default function Header({
-  title = "VehicleShift Connect",
+  title = "Shiftzy Go",
   showBackButton = false,
   currentLocation = "Chennai",
   variant = "primary",

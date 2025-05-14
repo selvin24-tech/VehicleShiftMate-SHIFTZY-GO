@@ -18,7 +18,7 @@ export default function Home() {
       {/* Main Tabs - Shifting & Travel */}
       <div className="px-4 py-6 pt-8">
         <div className="space-y-5">
-          {/* Vehicle Shifting Option - Styled as a car-like shape */}
+          {/* Shiftzy Option - Styled as a car-like shape */}
           <div 
             className="vehicle-option-card shifting-card"
             onClick={() => navigate("/shift-request")}
@@ -28,7 +28,7 @@ export default function Home() {
                 <i className="fas fa-car text-2xl"></i>
               </div>
               <div className="option-text">
-                <h2 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Vehicle Shifting</h2>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Shiftzy</h2>
                 <p className="text-sm text-neutral-600">Transport your vehicle to another location</p>
               </div>
               <div className="arrow-icon">

@@ -120,7 +120,7 @@ export const TESTIMONIALS: Testimonial[] = [
     userName: "Priya Sharma",
     userAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
     rating: 4.5,
-    comment: "I needed to transport my bike to my hometown urgently, and VehicleShift made it so easy. The driver was professional and kept me updated."
+    comment: "I needed to transport my bike to my hometown urgently, and Shiftzy Go made it so easy. The driver was professional and kept me updated."
   },
   {
     id: "t3",

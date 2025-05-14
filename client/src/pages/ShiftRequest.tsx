@@ -98,7 +98,7 @@ export default function ShiftRequest() {
 
       toast({
         title: "Request Submitted",
-        description: "Your vehicle shift request has been submitted successfully.",
+        description: "Your Shiftzy request has been submitted successfully.",
       });
 
       // Invalidate relevant queries
