@@ -153,14 +153,14 @@ export default function SOSButton() {
   return (
     <>
       {/* Main SOS Button */}
-      <div className="fixed bottom-20 right-5 z-50">
+      <div className="fixed bottom-20 right-5 z-[50]">
         <button 
           onClick={handleSOSClick}
           className={`w-16 h-16 rounded-full bg-red-600 text-white 
             flex items-center justify-center shadow-lg hover:bg-red-700 
             focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
             ${isBouncing ? 'animate-bounce' : ''}
-            relative z-50 transition-all duration-300 ease-in-out
+            relative z-[55] transition-all duration-300 ease-in-out
             border-2 border-red-300`}
           aria-label="Emergency SOS Button"
         >
@@ -169,21 +169,22 @@ export default function SOSButton() {
         
         {/* Vertical stack of buttons that appears on top of SOS when clicked */}
         {isOpen && (
-          <div className="absolute transform -translate-x-1/2 left-1/2">
+          <div className="absolute left-0 bottom-0 w-full">
             {Object.entries(emergencyServices).map(([key, service], index) => {
               // Calculate vertical position above the SOS button
-              const offsetY = -((index + 1) * 60); // Stack them 60px apart
+              const offsetY = -((index + 1) * 60 + 8); // Stack them 60px apart, 8px extra for button height
               
               return (
                 <button
                   key={key}
                   onClick={() => handleServiceSelect(key)}
-                  className={`absolute w-14 h-14 rounded-full shadow-lg 
+                  className={`absolute left-1/2 -translate-x-1/2 w-14 h-14 rounded-full shadow-lg 
                     flex items-center justify-center
                     transition-all duration-300 ${service.color}
-                    hover:scale-110 animate-in slide-in-from-bottom-5 ${service.animationDelay}`}
+                    hover:scale-110 animate-in slide-in-from-bottom-5 ${service.animationDelay}
+                    z-[60]`} // Higher z-index to ensure it appears on top
                   style={{
-                    transform: `translateY(${offsetY}px)`,
+                    bottom: `${Math.abs(offsetY)}px`,
                   }}
                   disabled={isCallInProgress}
                   aria-label={service.name}
