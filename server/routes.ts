@@ -293,6 +293,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // --- Chat Routes ---
+  // Get conversations for a user
+  app.get("/api/chat/conversations", async (req, res) => {
+    try {
+      // In a real app, we would get the user ID from the session
+      const userId = 1;
+      
+      const conversations = await storage.getChatConversationsByUserId(userId);
+      
+      // Enhance conversations with additional info
+      const enhancedConversations = await Promise.all(conversations.map(async (conversation) => {
+        const messages = await storage.getChatMessages(conversation.id);
+        const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+        
+        // Get the other user (not the current user)
+        const otherUserId = conversation.ownerId === userId ? conversation.travelerId : conversation.ownerId;
+        const otherUser = await storage.getUser(otherUserId);
+        
+        return {
+          ...conversation,
+          lastMessage,
+          otherUser: otherUser ? {
+            id: otherUser.id,
+            name: otherUser.name,
+            avatarUrl: otherUser.avatarUrl
+          } : null,
+          unreadCount: messages.filter(m => m.recipientId === userId && !m.isRead).length
+        };
+      }));
+      
+      res.json(enhancedConversations);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  // Get messages for a conversation
+  app.get("/api/chat/conversations/:id/messages", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      
+      // In a real app, we would get the user ID from the session
+      const userId = 1;
+      
+      // Verify the user is part of the conversation
+      const conversation = await storage.getChatConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      
+      if (conversation.ownerId !== userId && conversation.travelerId !== userId) {
+        return res.status(403).json({ message: "Not authorized to view this conversation" });
+      }
+      
+      const messages = await storage.getChatMessages(conversationId);
+      
+      // Mark messages as read
+      await storage.markMessagesAsRead(conversationId, userId);
+      
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  // Create a new conversation
+  app.post("/api/chat/conversations", async (req, res) => {
+    try {
+      // In a real app, we would get the user ID from the session
+      const userId = 1;
+      
+      const conversationData = insertChatConversationSchema.parse({
+        ...req.body,
+        ownerId: userId
+      });
+      
+      // Check if a conversation already exists between these users
+      const existingConversations = await storage.getChatConversationsByUserId(userId);
+      const existingConversation = existingConversations.find(
+        c => (c.ownerId === userId && c.travelerId === conversationData.travelerId) || 
+             (c.travelerId === userId && c.ownerId === conversationData.travelerId)
+      );
+      
+      if (existingConversation) {
+        return res.status(200).json(existingConversation);
+      }
+      
+      const newConversation = await storage.createChatConversation(conversationData);
+      res.status(201).json(newConversation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      console.error("Error creating conversation:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  // WebSocket server for real-time chat
   const httpServer = createServer(app);
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store active connections
+  const clients = new Map<number, WebSocket>();
+  
+  wss.on('connection', (ws) => {
+    let userId: number | null = null;
+    
+    ws.on('message', async (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        // Handle authentication message
+        if (data.type === 'auth') {
+          userId = parseInt(data.userId);
+          clients.set(userId, ws);
+          ws.send(JSON.stringify({ type: 'auth', success: true }));
+          return;
+        }
+        
+        // If not authenticated, reject other message types
+        if (!userId) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Not authenticated' }));
+          return;
+        }
+        
+        // Handle chat message
+        if (data.type === 'message') {
+          const messageData = insertChatMessageSchema.parse({
+            conversationId: data.conversationId,
+            senderId: userId,
+            recipientId: data.recipientId,
+            message: data.message
+          });
+          
+          // Store message in database
+          const savedMessage = await storage.sendChatMessage(messageData);
+          
+          // Send to recipient if online
+          const recipientWs = clients.get(data.recipientId);
+          if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
+            recipientWs.send(JSON.stringify({
+              type: 'message',
+              message: savedMessage
+            }));
+          }
+          
+          // Confirm to sender
+          ws.send(JSON.stringify({
+            type: 'message_sent',
+            message: savedMessage
+          }));
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        }));
+      }
+    });
+    
+    ws.on('close', () => {
+      if (userId) {
+        clients.delete(userId);
+      }
+    });
+  });
+  
   return httpServer;
 }

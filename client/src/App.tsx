@@ -9,7 +9,9 @@ import Profile from "@/pages/Profile";
 import Plan from "@/pages/Plan";
 import Track from "@/pages/Track";
 import Help from "@/pages/Help";
+import Chat from "@/pages/Chat";
 import SOSButton from "@/components/common/SOSButton";
+import { ChatProvider } from "@/contexts/ChatContext";
 
 function Router() {
   return (
@@ -21,6 +23,7 @@ function Router() {
       <Route path="/plan" component={Plan} />
       <Route path="/track" component={Track} />
       <Route path="/help" component={Help} />
+      <Route path="/chat" component={Chat} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -29,9 +32,11 @@ function Router() {
 function App() {
   return (
     <TooltipProvider>
-      <Toaster />
-      <Router />
-      <SOSButton />
+      <ChatProvider>
+        <Toaster />
+        <Router />
+        <SOSButton />
+      </ChatProvider>
     </TooltipProvider>
   );
 }
