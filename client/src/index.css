@@ -355,15 +355,15 @@
 
 /* Stylish brand logo styling */
 .brand-logo-container {
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px);
-  padding: 10px 25px;
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(2px);
+  padding: 12px 30px;
   border-radius: 16px;
   box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(59, 130, 246, 0.7),
-    0 0 50px rgba(59, 130, 246, 0.4);
-  border: 2px solid rgba(59, 130, 246, 0.5);
+    0 6px 20px rgba(0, 0, 0, 0.6),
+    0 0 30px rgba(59, 130, 246, 0.8),
+    0 0 60px rgba(245, 158, 11, 0.5);
+  border: 2px solid rgba(59, 130, 246, 0.6);
   transform: perspective(800px) rotateX(8deg);
   position: relative;
   overflow: hidden;
@@ -413,13 +413,18 @@
 }
 
 .brand-name-accent {
-  color: white; /* White color */
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-  font-size: 16px; /* Smaller size */
+  color: #f59e0b; /* Orange color */
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.9);
+  font-size: 18px; /* Slightly larger */
   position: relative;
   top: 2px; /* Adjust position to support "Shift" */
   margin-left: -2px; /* Move it closer */
   letter-spacing: 0.5px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .brand-name-go {
@@ -553,13 +558,18 @@
 }
 
 .alt-brand-accent {
-  color: white; /* White color */
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  color: #f59e0b; /* Orange color */
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.9);
   display: flex;
   font-size: 14px; /* Smaller size */
   position: relative;
   top: 2px; /* Adjust position to support "Shift" */
   margin-left: -1px; /* Move it closer */
+  font-weight: bold;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .alt-brand-go {
