@@ -72,6 +72,8 @@ export class MemStorage implements IStorage {
   private shiftRequestIdCounter: number = 1;
   private tripIdCounter: number = 1;
   private testimonialIdCounter: number = 1;
+  private chatConversationIdCounter: number = 1;
+  private chatMessageIdCounter: number = 1;
   
   constructor() {
     this.users = new Map();
@@ -79,6 +81,8 @@ export class MemStorage implements IStorage {
     this.shiftRequests = new Map();
     this.trips = new Map();
     this.testimonials = new Map();
+    this.chatConversations = new Map();
+    this.chatMessages = new Map();
     
     // Initialize with some sample data
     this.initSampleData();
@@ -298,6 +302,72 @@ export class MemStorage implements IStorage {
     const testimonial: Testimonial = { ...testimonialData, id, createdAt: now };
     this.testimonials.set(id, testimonial);
     return testimonial;
+  }
+
+  // Chat conversation operations
+  async getChatConversation(id: number): Promise<ChatConversation | undefined> {
+    return this.chatConversations.get(id);
+  }
+
+  async getChatConversationsByUserId(userId: number): Promise<ChatConversation[]> {
+    return Array.from(this.chatConversations.values()).filter(
+      conversation => conversation.ownerId === userId || conversation.travelerId === userId
+    );
+  }
+
+  async createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation> {
+    const id = this.chatConversationIdCounter++;
+    const now = new Date();
+    
+    const chatConversation: ChatConversation = { 
+      ...conversation, 
+      id, 
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.chatConversations.set(id, chatConversation);
+    return chatConversation;
+  }
+
+  // Chat message operations
+  async getChatMessages(conversationId: number): Promise<ChatMessage[]> {
+    return Array.from(this.chatMessages.values())
+      .filter(message => message.conversationId === conversationId)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
+
+  async sendChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const id = this.chatMessageIdCounter++;
+    const now = new Date();
+    
+    const chatMessage: ChatMessage = { 
+      ...message, 
+      id, 
+      createdAt: now 
+    };
+    
+    this.chatMessages.set(id, chatMessage);
+    
+    // Update the conversation's updatedAt timestamp
+    const conversation = await this.getChatConversation(message.conversationId);
+    if (conversation) {
+      conversation.updatedAt = now;
+      this.chatConversations.set(conversation.id, conversation);
+    }
+    
+    return chatMessage;
+  }
+
+  async markMessagesAsRead(conversationId: number, userId: number): Promise<void> {
+    const messages = await this.getChatMessages(conversationId);
+    
+    messages.forEach(message => {
+      if (message.recipientId === userId && !message.isRead) {
+        message.isRead = true;
+        this.chatMessages.set(message.id, message);
+      }
+    });
   }
 }
 
