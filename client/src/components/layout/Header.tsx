@@ -96,9 +96,13 @@ export default function Header({
           
           <div className="animated-car">
             {vehicleType === "car" ? (
-              <Car className="text-white drop-shadow-lg" strokeWidth={1.5} size={32} />
+              <div className="vehicle-icon car-icon">
+                <Car className="text-white" strokeWidth={2} size={32} />
+              </div>
             ) : (
-              <Bike className="text-white drop-shadow-lg" strokeWidth={1.5} size={32} />
+              <div className="vehicle-icon bike-icon">
+                <Bike className="text-white" strokeWidth={2} size={32} />
+              </div>
             )}
           </div>
           
