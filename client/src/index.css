@@ -410,6 +410,10 @@
 .brand-name-accent {
   color: white; /* White color */
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  font-size: 18px; /* Smaller size */
+  position: relative;
+  top: 2px; /* Adjust position to support "Shift" */
+  margin-left: -2px; /* Move it closer */
 }
 
 .brand-name-go {
@@ -528,6 +532,10 @@
   color: white; /* White color */
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
   display: flex;
+  font-size: 14px; /* Smaller size */
+  position: relative;
+  top: 2px; /* Adjust position to support "Shift" */
+  margin-left: -1px; /* Move it closer */
 }
 
 .alt-brand-go {
