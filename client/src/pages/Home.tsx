@@ -30,8 +30,6 @@ export default function Home() {
               <div className="option-text">
                 <h2 className="option-brand-name">
                   <span className="option-brand-shift">Shift</span>
-                  <span className="option-brand-accent">zy</span>
-                  <span className="option-brand-shift">Go</span>
                 </h2>
                 <p className="text-sm text-neutral-600">Transport your vehicle to another location</p>
               </div>
