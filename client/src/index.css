@@ -459,6 +459,22 @@
   text-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
 }
 
+.option-brand-travel {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.option-brand-go {
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
 /* Alternative brand logo for inner pages */
 .alternative-brand-logo {
   display: flex;

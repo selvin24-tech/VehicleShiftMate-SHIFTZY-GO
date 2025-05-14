@@ -51,7 +51,10 @@ export default function Home() {
                 <i className="fas fa-route text-2xl"></i>
               </div>
               <div className="option-text">
-                <h2 className="text-xl font-bold bg-gradient-to-r from-secondary-500 to-secondary-300 bg-clip-text text-transparent">Travel Experience</h2>
+                <h2 className="option-brand-name">
+                  <span className="option-brand-travel">Travel</span>
+                  <span className="option-brand-go">Go</span>
+                </h2>
                 <p className="text-sm text-neutral-600">Rent and drive vehicles for your journey</p>
               </div>
               <div className="arrow-icon">
