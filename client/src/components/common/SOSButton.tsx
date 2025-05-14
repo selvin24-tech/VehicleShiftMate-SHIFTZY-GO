@@ -30,21 +30,21 @@ const emergencyServices: Record<string, EmergencyService> = {
     number: "108",
     icon: <Ambulance size={24} />,
     color: "bg-red-600 hover:bg-red-700 text-white border-2 border-red-300",
-    animationDelay: "delay-0"
+    animationDelay: "delay-[200ms]"
   },
   police: {
     name: "Police",
     number: "100",
     icon: <ShieldAlert size={24} />,
     color: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-300",
-    animationDelay: "delay-100"
+    animationDelay: "delay-[400ms]"
   },
   fire: {
     name: "Fire Dept",
     number: "101",
     icon: <Flame size={24} />,
     color: "bg-orange-600 hover:bg-orange-700 text-white border-2 border-orange-300",
-    animationDelay: "delay-200"
+    animationDelay: "delay-[600ms]"
   }
 };
 
@@ -180,8 +180,8 @@ export default function SOSButton() {
                   onClick={() => handleServiceSelect(key)}
                   className={`absolute left-1/2 -translate-x-1/2 w-14 h-14 rounded-full shadow-lg 
                     flex items-center justify-center
-                    transition-all duration-300 ${service.color}
-                    hover:scale-110 animate-in slide-in-from-bottom-5 ${service.animationDelay}
+                    transition-all duration-700 ${service.color}
+                    hover:scale-110 sos-button-animation ${service.animationDelay}
                     z-[60]`} // Higher z-index to ensure it appears on top
                   style={{
                     bottom: `${Math.abs(offsetY)}px`,
