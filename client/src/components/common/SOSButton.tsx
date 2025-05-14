@@ -167,15 +167,12 @@ export default function SOSButton() {
           <span className="font-bold text-sm">SOS</span>
         </button>
         
-        {/* Circular menu that appears when SOS is clicked */}
+        {/* Vertical stack of buttons that appears on top of SOS when clicked */}
         {isOpen && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute transform -translate-x-1/2 left-1/2">
             {Object.entries(emergencyServices).map(([key, service], index) => {
-              // Calculate position in a circle
-              const angle = (index * 120 - 90) * (Math.PI / 180); // 120 degrees apart, starting from top
-              const distance = 80; // Distance from center in pixels
-              const x = Math.cos(angle) * distance;
-              const y = Math.sin(angle) * distance;
+              // Calculate vertical position above the SOS button
+              const offsetY = -((index + 1) * 60); // Stack them 60px apart
               
               return (
                 <button
@@ -184,9 +181,9 @@ export default function SOSButton() {
                   className={`absolute w-14 h-14 rounded-full shadow-lg 
                     flex items-center justify-center
                     transition-all duration-300 ${service.color}
-                    hover:scale-110 animate-in zoom-in ${service.animationDelay}`}
+                    hover:scale-110 animate-in slide-in-from-bottom-5 ${service.animationDelay}`}
                   style={{
-                    transform: `translate(${x}px, ${y}px)`,
+                    transform: `translateY(${offsetY}px)`,
                   }}
                   disabled={isCallInProgress}
                   aria-label={service.name}
