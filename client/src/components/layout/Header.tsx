@@ -53,8 +53,21 @@ export default function Header({
           <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ paddingBottom: "20px" }}>
             <div className="brand-logo-container">
               <h1 className="brand-logo-text">
-                <span className="brand-name-shift">Shift<span className="brand-name-accent">zy</span></span>
-                <span className="brand-name-go">Go</span>
+                <span className="brand-name-shift">
+                  <span className="brand-letter">S</span>
+                  <span className="brand-letter">h</span>
+                  <span className="brand-letter">i</span>
+                  <span className="brand-letter">f</span>
+                  <span className="brand-letter">t</span>
+                  <span className="brand-name-accent">
+                    <span className="brand-letter">z</span>
+                    <span className="brand-letter">y</span>
+                  </span>
+                </span>
+                <span className="brand-name-go">
+                  <span className="brand-letter">G</span>
+                  <span className="brand-letter">o</span>
+                </span>
               </h1>
             </div>
           </div>
@@ -106,9 +119,21 @@ export default function Header({
           )}
           {title === "Shiftzy Go" ? (
             <div className="alternative-brand-logo">
-              <span className="alt-brand-shift">Shift</span>
-              <span className="alt-brand-accent">zy</span>
-              <span className="alt-brand-go">Go</span>
+              <span className="alt-brand-shift">
+                <span className="alt-letter">S</span>
+                <span className="alt-letter">h</span>
+                <span className="alt-letter">i</span>
+                <span className="alt-letter">f</span>
+                <span className="alt-letter">t</span>
+              </span>
+              <span className="alt-brand-accent">
+                <span className="alt-letter">z</span>
+                <span className="alt-letter">y</span>
+              </span>
+              <span className="alt-brand-go">
+                <span className="alt-letter">G</span>
+                <span className="alt-letter">o</span>
+              </span>
             </div>
           ) : (
             <h1 className="text-xl font-semibold">{title}</h1>
