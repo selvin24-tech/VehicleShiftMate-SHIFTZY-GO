@@ -31,7 +31,7 @@ export default function Home() {
                 <h2 className="option-brand-name">
                   <span className="option-brand-shift">Shift</span>
                 </h2>
-                <p className="text-sm text-neutral-600">Transport your vehicle to another location</p>
+                <p className="body-text text-neutral-600">Transport your vehicle to another location</p>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>
@@ -53,7 +53,7 @@ export default function Home() {
                 <h2 className="option-brand-name">
                   <span className="option-brand-go">Go</span>
                 </h2>
-                <p className="text-sm text-neutral-600">Rent and drive vehicles for your journey</p>
+                <p className="body-text text-neutral-600">Rent and drive vehicles for your journey</p>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>

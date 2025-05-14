@@ -54,7 +54,7 @@ export default function Header({
             <div>
               <h1 style={{
                 fontFamily: "Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif",
-                fontSize: "72px",
+                fontSize: "clamp(40px, 8vw, 72px)", // Responsive font size
                 fontWeight: "bold",
                 textAlign: "center",
                 lineHeight: "1",
@@ -65,7 +65,8 @@ export default function Header({
                 textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center"
+                justifyContent: "center",
+                flexWrap: "wrap" // Allow wrapping on very small screens
               }}>
                 <span style={{
                   color: "#3b82f6",
@@ -142,7 +143,7 @@ export default function Header({
             <div>
               <span style={{
                 fontFamily: "Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif",
-                fontSize: "36px",
+                fontSize: "clamp(24px, 5vw, 36px)", // Responsive font size
                 fontWeight: "bold",
                 lineHeight: "1",
                 letterSpacing: "1px",
@@ -150,7 +151,8 @@ export default function Header({
                 WebkitTextStroke: "1px #000",
                 textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
                 display: "flex",
-                alignItems: "center"
+                alignItems: "center",
+                flexWrap: "wrap" // Allow wrapping on small screens
               }}>
                 <span style={{
                   color: "#3b82f6",
