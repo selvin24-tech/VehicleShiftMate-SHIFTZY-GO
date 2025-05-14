@@ -51,7 +51,12 @@ export default function Header({
           }}
         >
           <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ paddingBottom: "20px" }}>
-            <h1 className="text-white text-xl font-bold tracking-tight drop-shadow-lg">{title}</h1>
+            <div className="brand-logo-container">
+              <h1 className="brand-logo-text">
+                <span className="brand-name-shift">Shift<span className="brand-name-accent">zy</span></span>
+                <span className="brand-name-go">Go</span>
+              </h1>
+            </div>
           </div>
           
           <div className="animated-car">
@@ -99,7 +104,15 @@ export default function Header({
               <i className="fas fa-arrow-left"></i>
             </button>
           )}
-          <h1 className="text-xl font-semibold">{title}</h1>
+          {title === "Shiftzy Go" ? (
+            <div className="alternative-brand-logo">
+              <span className="alt-brand-shift">Shift</span>
+              <span className="alt-brand-accent">zy</span>
+              <span className="alt-brand-go">Go</span>
+            </div>
+          ) : (
+            <h1 className="text-xl font-semibold">{title}</h1>
+          )}
           {!showBackButton && (
             <div className="ml-auto">
               <Avatar 

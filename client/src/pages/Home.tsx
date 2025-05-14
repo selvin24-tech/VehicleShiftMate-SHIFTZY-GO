@@ -28,7 +28,10 @@ export default function Home() {
                 <i className="fas fa-car text-2xl"></i>
               </div>
               <div className="option-text">
-                <h2 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Shiftzy</h2>
+                <h2 className="option-brand-name">
+                  <span className="option-brand-shift">Shift</span>
+                  <span className="option-brand-accent">zy</span>
+                </h2>
                 <p className="text-sm text-neutral-600">Transport your vehicle to another location</p>
               </div>
               <div className="arrow-icon">

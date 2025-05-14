@@ -336,3 +336,132 @@
   font-size: 8px;
   animation: pulse 1.5s infinite;
 }
+
+/* Stylish brand logo styling */
+.brand-logo-container {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
+  padding: 5px 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transform: perspective(500px) rotateX(5deg);
+  animation: float 5s ease-in-out infinite;
+}
+
+.brand-logo-text {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.brand-name-shift {
+  background: linear-gradient(135deg, #ffffff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+.brand-name-accent {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 10px rgba(59, 130, 246, 0.5);
+}
+
+.brand-name-go {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 10px rgba(245, 158, 11, 0.5);
+  margin-left: 2px;
+  position: relative;
+  top: 1px;
+  font-size: 24px;
+}
+
+@keyframes float {
+  0% {
+    transform: perspective(500px) rotateX(5deg) translateY(0px);
+  }
+  50% {
+    transform: perspective(500px) rotateX(5deg) translateY(-5px);
+  }
+  100% {
+    transform: perspective(500px) rotateX(5deg) translateY(0px);
+  }
+}
+
+/* Stylish brand name in option cards */
+.option-brand-name {
+  display: flex;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.option-brand-shift {
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.option-brand-accent {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+/* Alternative brand logo for inner pages */
+.alternative-brand-logo {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+  position: relative;
+  animation: subtle-pulse 3s ease-in-out infinite;
+}
+
+.alt-brand-shift {
+  color: white;
+  letter-spacing: -1px;
+}
+
+.alt-brand-accent {
+  color: #FBAF3F;
+  text-shadow: 0 0 5px rgba(251, 175, 63, 0.5);
+}
+
+.alt-brand-go {
+  font-size: 16px;
+  color: white;
+  opacity: 0.9;
+  margin-left: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 1px 4px;
+  border-radius: 4px;
+  position: relative;
+  top: -1px;
+}
+
+@keyframes subtle-pulse {
+  0% { opacity: 0.9; }
+  50% { opacity: 1; }
+  100% { opacity: 0.9; }
+}
