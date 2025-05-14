@@ -10,7 +10,6 @@ import Plan from "@/pages/Plan";
 import Track from "@/pages/Track";
 import Help from "@/pages/Help";
 import Chat from "@/pages/Chat";
-import SOSButton from "@/components/common/SOSButton";
 import { ChatProvider } from "@/contexts/ChatContext";
 
 function Router() {
@@ -30,15 +29,11 @@ function Router() {
 }
 
 function App() {
-  const [location] = useLocation();
-  const isHomePage = location === "/";
-  
   return (
     <TooltipProvider>
       <ChatProvider>
         <Toaster />
         <Router />
-        {isHomePage && <SOSButton />}
       </ChatProvider>
     </TooltipProvider>
   );
