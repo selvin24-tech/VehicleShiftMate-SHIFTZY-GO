@@ -171,72 +171,79 @@ export default function BottomNav() {
     <div className="relative">
       <button 
         onClick={handleSOSClick}
-        className={`w-10 h-10 rounded-full bg-red-600 text-white 
-          flex items-center justify-center shadow-lg hover:bg-red-700 
-          focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+        className={`flex flex-col items-center text-neutral-500
           ${isBouncing ? 'animate-bounce' : ''}
-          relative z-[55] transition-all duration-300 ease-in-out
-          border-2 border-red-300`}
+          relative z-[55] transition-all duration-300 ease-in-out`}
         aria-label="Emergency SOS Button"
       >
-        <span className="font-bold text-xs">SOS</span>
+        <div className="w-8 h-8 rounded-full bg-red-600 text-white 
+          flex items-center justify-center shadow-lg hover:bg-red-700 
+          focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+          border-2 border-red-300 mb-1">
+          <span className="font-bold text-xs">SOS</span>
+        </div>
+        <span className="text-xs">SOS</span>
       </button>
       
-      {/* Rectangular pattern of buttons that appear around SOS when clicked */}
+      {/* Rectangular pattern of buttons that appear above the navigation bar */}
       {isOpen && (
-        <div className="absolute left-0 bottom-0 w-full">
-          {/* Ambulance - Top */}
-          <button
-            onClick={() => handleServiceSelect('ambulance')}
-            className={`absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full shadow-lg 
-              flex items-center justify-center
-              transition-all duration-700 ${emergencyServices.ambulance.color}
-              hover:scale-110 sos-button-animation ${emergencyServices.ambulance.animationDelay}
-              z-[60]`}
-            style={{
-              bottom: '60px', // Position directly above the SOS button
-            }}
-            disabled={isCallInProgress}
-            aria-label={emergencyServices.ambulance.name}
-          >
-            {emergencyServices.ambulance.icon}
-          </button>
-          
-          {/* Police - Left */}
-          <button
-            onClick={() => handleServiceSelect('police')}
-            className={`absolute w-10 h-10 rounded-full shadow-lg 
-              flex items-center justify-center
-              transition-all duration-700 ${emergencyServices.police.color}
-              hover:scale-110 sos-button-animation ${emergencyServices.police.animationDelay}
-              z-[60]`}
-            style={{
-              bottom: '25px',
-              left: 'calc(50% - 60px)', // Position to the left of SOS
-            }}
-            disabled={isCallInProgress}
-            aria-label={emergencyServices.police.name}
-          >
-            {emergencyServices.police.icon}
-          </button>
-          
-          {/* Fire - Right */}
-          <button
-            onClick={() => handleServiceSelect('fire')}
-            className={`absolute w-10 h-10 rounded-full shadow-lg 
-              flex items-center justify-center
-              transition-all duration-700 ${emergencyServices.fire.color}
-              hover:scale-110 sos-button-animation ${emergencyServices.fire.animationDelay}
-              z-[60]`}
-            style={{
-              bottom: '25px',
-              left: 'calc(50% + 50px)', // Position to the right of SOS
-            }}
-            disabled={isCallInProgress}
-            aria-label={emergencyServices.fire.name}
-          >
-            {emergencyServices.fire.icon}
-          </button>
+        <div className="fixed left-0 right-0 bottom-16 mx-auto max-w-md z-[60]">
+          <div className="relative flex justify-center items-center h-24">
+            {/* Ambulance - Top */}
+            <button
+              onClick={() => handleServiceSelect('ambulance')}
+              className={`absolute w-10 h-10 rounded-full shadow-lg 
+                flex items-center justify-center
+                transition-all duration-700 ${emergencyServices.ambulance.color}
+                hover:scale-110 sos-button-animation ${emergencyServices.ambulance.animationDelay}
+                z-[60]`}
+              style={{
+                bottom: '60px',
+                left: '50%',
+                transform: 'translateX(-50%)'
+              }}
+              disabled={isCallInProgress}
+              aria-label={emergencyServices.ambulance.name}
+            >
+              {emergencyServices.ambulance.icon}
+            </button>
+            
+            {/* Police - Left */}
+            <button
+              onClick={() => handleServiceSelect('police')}
+              className={`absolute w-10 h-10 rounded-full shadow-lg 
+                flex items-center justify-center
+                transition-all duration-700 ${emergencyServices.police.color}
+                hover:scale-110 sos-button-animation ${emergencyServices.police.animationDelay}
+                z-[60]`}
+              style={{
+                bottom: '30px',
+                left: 'calc(50% - 60px)'
+              }}
+              disabled={isCallInProgress}
+              aria-label={emergencyServices.police.name}
+            >
+              {emergencyServices.police.icon}
+            </button>
+            
+            {/* Fire - Right */}
+            <button
+              onClick={() => handleServiceSelect('fire')}
+              className={`absolute w-10 h-10 rounded-full shadow-lg 
+                flex items-center justify-center
+                transition-all duration-700 ${emergencyServices.fire.color}
+                hover:scale-110 sos-button-animation ${emergencyServices.fire.animationDelay}
+                z-[60]`}
+              style={{
+                bottom: '30px',
+                left: 'calc(50% + 60px)'
+              }}
+              disabled={isCallInProgress}
+              aria-label={emergencyServices.fire.name}
+            >
+              {emergencyServices.fire.icon}
+            </button>
+          </div>
         </div>
       )}
 
