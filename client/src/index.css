@@ -355,16 +355,16 @@
 
 /* Stylish brand logo styling */
 .brand-logo-container {
-  background: rgba(13, 17, 23, 0.85);
-  backdrop-filter: blur(2px);
-  padding: 12px 30px;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: none;
+  padding: 15px 35px;
   border-radius: 16px;
   box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.6),
-    0 0 30px rgba(59, 130, 246, 0.8),
-    0 0 60px rgba(245, 158, 11, 0.5);
-  border: 2px solid rgba(59, 130, 246, 0.6);
-  transform: perspective(800px) rotateX(8deg);
+    0 8px 25px rgba(0, 0, 0, 0.8),
+    0 0 40px rgba(59, 130, 246, 0.9),
+    0 0 80px rgba(245, 158, 11, 0.6);
+  border: 3px solid rgba(59, 130, 246, 0.8);
+  transform: perspective(900px) rotateX(8deg);
   position: relative;
   overflow: hidden;
   animation: float 5s ease-in-out infinite;
@@ -403,43 +403,64 @@
 }
 
 .brand-name-shift {
-  color: #3b82f6; /* Blue color */
+  color: #0066ff; /* Brighter blue color */
   position: relative;
-  text-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
-  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  text-shadow: 0 0 20px rgba(0, 102, 255, 0.9);
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: 900;
+  font-size: 36px;
+  animation: pulse-blue 2s infinite alternate;
+}
+
+@keyframes pulse-blue {
+  0% { text-shadow: 0 0 15px rgba(0, 102, 255, 0.9); }
+  100% { text-shadow: 0 0 30px rgba(0, 102, 255, 0.9), 0 0 50px rgba(0, 102, 255, 0.5); }
 }
 
 .brand-name-accent {
-  color: #f59e0b; /* Orange color */
-  text-shadow: 0 0 12px rgba(245, 158, 11, 0.9);
-  font-size: 18px; /* Slightly larger */
+  color: #ff8c00; /* Brighter orange color */
+  text-shadow: 0 0 15px rgba(255, 140, 0, 1);
+  font-size: 20px; /* Larger */
   position: relative;
   top: 2px; /* Adjust position to support "Shift" */
-  margin-left: -2px; /* Move it closer */
+  margin-left: -1px; /* Move it closer */
   letter-spacing: 0.5px;
-  font-weight: bold;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  font-weight: 900;
+  background: linear-gradient(135deg, #ff8c00, #ffb700);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: pulse-orange 2s infinite;
+}
+
+@keyframes pulse-orange {
+  0% { text-shadow: 0 0 15px rgba(255, 140, 0, 1); }
+  50% { text-shadow: 0 0 25px rgba(255, 140, 0, 1), 0 0 40px rgba(255, 140, 0, 0.8); }
+  100% { text-shadow: 0 0 15px rgba(255, 140, 0, 1); }
 }
 
 .brand-name-go {
-  color: #3b82f6; /* Blue color */
-  text-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
-  margin-left: 10px; /* Add more space between ShiftzyGo */
+  color: #0066ff; /* Brighter blue color */
+  text-shadow: 0 0 20px rgba(0, 102, 255, 0.9);
+  margin-left: 15px; /* More space between ShiftzyGo */
   position: relative;
-  top: 1px;
-  font-size: 26px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  top: 0px;
+  font-size: 30px;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 1000;
   letter-spacing: 1px;
+  animation: pulse-blue-go 2s infinite alternate-reverse;
+}
+
+@keyframes pulse-blue-go {
+  0% { text-shadow: 0 0 15px rgba(0, 102, 255, 0.9); }
+  100% { text-shadow: 0 0 30px rgba(0, 102, 255, 0.9), 0 0 50px rgba(0, 102, 255, 0.5); }
 }
 
 @keyframes float {
@@ -551,38 +572,49 @@
 }
 
 .alt-brand-shift {
-  color: #3b82f6; /* Blue color */
+  color: #0066ff; /* Brighter blue color */
   letter-spacing: -1px;
   display: flex;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 10px rgba(0, 102, 255, 0.9);
+  font-weight: bold;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 18px;
 }
 
 .alt-brand-accent {
-  color: #f59e0b; /* Orange color */
-  text-shadow: 0 0 10px rgba(245, 158, 11, 0.9);
+  color: #ff8c00; /* Brighter orange color */
+  text-shadow: 0 0 10px rgba(255, 140, 0, 0.9);
   display: flex;
-  font-size: 14px; /* Smaller size */
+  font-size: 16px; /* Slightly larger */
   position: relative;
-  top: 2px; /* Adjust position to support "Shift" */
+  top: 1px; /* Adjust position */
   margin-left: -1px; /* Move it closer */
   font-weight: bold;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #ff8c00, #ffb700);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .alt-brand-go {
-  font-size: 16px;
-  color: #3b82f6; /* Blue color */
-  margin-left: 2px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 2px 5px;
-  border-radius: 4px;
+  font-size: 18px;
+  color: #0066ff; /* Brighter blue color */
+  margin-left: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 8px;
+  border-radius: 6px;
   position: relative;
   top: -1px;
   display: flex;
-  text-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
+  text-shadow: 0 0 10px rgba(0, 102, 255, 0.9);
+  font-weight: bold;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .alt-letter {
