@@ -171,43 +171,72 @@ export default function BottomNav() {
     <div className="relative">
       <button 
         onClick={handleSOSClick}
-        className={`w-14 h-14 rounded-full bg-red-600 text-white 
+        className={`w-10 h-10 rounded-full bg-red-600 text-white 
           flex items-center justify-center shadow-lg hover:bg-red-700 
           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
           ${isBouncing ? 'animate-bounce' : ''}
           relative z-[55] transition-all duration-300 ease-in-out
-          border-2 border-red-300 -mt-10`}
+          border-2 border-red-300`}
         aria-label="Emergency SOS Button"
       >
-        <span className="font-bold text-sm">SOS</span>
+        <span className="font-bold text-xs">SOS</span>
       </button>
       
-      {/* Vertical stack of buttons that appears on top of SOS when clicked */}
+      {/* Rectangular pattern of buttons that appear around SOS when clicked */}
       {isOpen && (
-        <div className="absolute left-0 bottom-4 w-full">
-          {Object.entries(emergencyServices).map(([key, service], index) => {
-            // Calculate vertical position above the SOS button
-            const offsetY = -((index + 1) * 60 + 8); // Stack them 60px apart, 8px extra for button height
-            
-            return (
-              <button
-                key={key}
-                onClick={() => handleServiceSelect(key)}
-                className={`absolute left-1/2 -translate-x-1/2 w-14 h-14 rounded-full shadow-lg 
-                  flex items-center justify-center
-                  transition-all duration-700 ${service.color}
-                  hover:scale-110 sos-button-animation ${service.animationDelay}
-                  z-[60]`} // Higher z-index to ensure it appears on top
-                style={{
-                  bottom: `${Math.abs(offsetY)}px`,
-                }}
-                disabled={isCallInProgress}
-                aria-label={service.name}
-              >
-                {service.icon}
-              </button>
-            );
-          })}
+        <div className="absolute left-0 bottom-0 w-full">
+          {/* Ambulance - Top */}
+          <button
+            onClick={() => handleServiceSelect('ambulance')}
+            className={`absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full shadow-lg 
+              flex items-center justify-center
+              transition-all duration-700 ${emergencyServices.ambulance.color}
+              hover:scale-110 sos-button-animation ${emergencyServices.ambulance.animationDelay}
+              z-[60]`}
+            style={{
+              bottom: '45px', // Position above the SOS button
+            }}
+            disabled={isCallInProgress}
+            aria-label={emergencyServices.ambulance.name}
+          >
+            {emergencyServices.ambulance.icon}
+          </button>
+          
+          {/* Police - Left */}
+          <button
+            onClick={() => handleServiceSelect('police')}
+            className={`absolute left-1/2 w-10 h-10 rounded-full shadow-lg 
+              flex items-center justify-center
+              transition-all duration-700 ${emergencyServices.police.color}
+              hover:scale-110 sos-button-animation ${emergencyServices.police.animationDelay}
+              z-[60]`}
+            style={{
+              bottom: '25px',
+              transform: 'translateX(calc(-100% - 10px))', // Position to the left
+            }}
+            disabled={isCallInProgress}
+            aria-label={emergencyServices.police.name}
+          >
+            {emergencyServices.police.icon}
+          </button>
+          
+          {/* Fire - Right */}
+          <button
+            onClick={() => handleServiceSelect('fire')}
+            className={`absolute left-1/2 w-10 h-10 rounded-full shadow-lg 
+              flex items-center justify-center
+              transition-all duration-700 ${emergencyServices.fire.color}
+              hover:scale-110 sos-button-animation ${emergencyServices.fire.animationDelay}
+              z-[60]`}
+            style={{
+              bottom: '25px',
+              transform: 'translateX(calc(100% + 10px))', // Position to the right
+            }}
+            disabled={isCallInProgress}
+            aria-label={emergencyServices.fire.name}
+          >
+            {emergencyServices.fire.icon}
+          </button>
         </div>
       )}
 
@@ -285,43 +314,39 @@ export default function BottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 py-3 max-w-md mx-auto z-10">
-      <div className="flex justify-around items-end">
-        {/* Left Side Navigation Items */}
-        <div className="flex justify-around items-center space-x-4 ml-4">
-          {leftNavItems.map((item) => (
-            <button
-              key={item.path}
-              className={cn(
-                "flex flex-col items-center",
-                location === item.path ? "text-primary-500" : "text-neutral-500"
-              )}
-              onClick={() => navigate(item.path)}
-            >
-              <i className={`fas ${item.icon} text-lg`}></i>
-              <span className="text-xs mt-1">{item.label}</span>
-            </button>
-          ))}
-        </div>
+      <div className="flex justify-between items-center px-4">
+        {/* All navigation items evenly spaced in a row */}
+        {leftNavItems.map((item) => (
+          <button
+            key={item.path}
+            className={cn(
+              "flex flex-col items-center",
+              location === item.path ? "text-primary-500" : "text-neutral-500"
+            )}
+            onClick={() => navigate(item.path)}
+          >
+            <i className={`fas ${item.icon} text-lg`}></i>
+            <span className="text-xs mt-1">{item.label}</span>
+          </button>
+        ))}
 
         {/* Center SOS Button */}
         {renderSosButton()}
         
         {/* Right Side Navigation Items */}
-        <div className="flex justify-around items-center space-x-4 mr-4">
-          {rightNavItems.map((item) => (
-            <button
-              key={item.path}
-              className={cn(
-                "flex flex-col items-center",
-                location === item.path ? "text-primary-500" : "text-neutral-500"
-              )}
-              onClick={() => navigate(item.path)}
-            >
-              <i className={`fas ${item.icon} text-lg`}></i>
-              <span className="text-xs mt-1">{item.label}</span>
-            </button>
-          ))}
-        </div>
+        {rightNavItems.map((item) => (
+          <button
+            key={item.path}
+            className={cn(
+              "flex flex-col items-center",
+              location === item.path ? "text-primary-500" : "text-neutral-500"
+            )}
+            onClick={() => navigate(item.path)}
+          >
+            <i className={`fas ${item.icon} text-lg`}></i>
+            <span className="text-xs mt-1">{item.label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
