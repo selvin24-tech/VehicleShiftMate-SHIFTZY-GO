@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import ChatFloatingButton from "@/components/common/ChatFloatingButton";
 
 const faqItems = [
   {
@@ -159,6 +160,7 @@ export default function Help() {
         </div>
       </div>
       
+      <ChatFloatingButton />
       <BottomNav />
     </div>
   );

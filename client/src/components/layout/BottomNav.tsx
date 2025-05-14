@@ -321,18 +321,6 @@ export default function BottomNav() {
               <span className="text-xs mt-1">{item.label}</span>
             </button>
           ))}
-
-          {/* Add Chat button on the right side */}
-          <button
-            className={cn(
-              "flex flex-col items-center",
-              location === "/chat" ? "text-primary-500" : "text-neutral-500"
-            )}
-            onClick={() => navigate("/chat")}
-          >
-            <i className="fas fa-comment-dots text-lg"></i>
-            <span className="text-xs mt-1">Chat</span>
-          </button>
         </div>
       </div>
     </div>
