@@ -100,6 +100,16 @@ export class MemStorage implements IStorage {
       address: "Chennai"
     });
     
+    const user2 = this.createUser({
+      name: "Ananya Sharma",
+      email: "ananya@example.com",
+      password: "password456",
+      phone: "+91 91234 56789",
+      avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+      isVerified: true,
+      address: "Bangalore"
+    });
+    
     // Sample vehicles
     const vehicle1 = this.createVehicle({
       userId: user1.id,
@@ -169,6 +179,36 @@ export class MemStorage implements IStorage {
       tripId: 1,
       rating: "5",
       comment: "Excellent service! My car was transported safely and on time."
+    });
+    
+    // Sample chat conversation
+    const conversation = this.createChatConversation({
+      ownerId: user1.id,
+      travelerId: user2.id,
+      shiftRequestId: shiftRequest1.id,
+      status: "active"
+    });
+    
+    // Sample chat messages
+    this.sendChatMessage({
+      conversationId: conversation.id,
+      senderId: user1.id,
+      recipientId: user2.id,
+      message: "Hello! I'm interested in shifting my vehicle to Tiruvannamalai."
+    });
+    
+    this.sendChatMessage({
+      conversationId: conversation.id,
+      senderId: user2.id,
+      recipientId: user1.id,
+      message: "Hi there! Thanks for reaching out. I can help with that."
+    });
+    
+    this.sendChatMessage({
+      conversationId: conversation.id,
+      senderId: user1.id,
+      recipientId: user2.id,
+      message: "Great! When would you be available for pickup?"
     });
   }
   

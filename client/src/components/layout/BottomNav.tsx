@@ -10,6 +10,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { path: "/", label: "Home", icon: "fa-home" },
   { path: "/plan", label: "Plan", icon: "fa-map-marked-alt" },
+  { path: "/chat", label: "Chat", icon: "fa-comment-dots" },
   { path: "/track", label: "Track", icon: "fa-location-arrow" },
   { path: "/help", label: "Help", icon: "fa-headset" },
 ];
