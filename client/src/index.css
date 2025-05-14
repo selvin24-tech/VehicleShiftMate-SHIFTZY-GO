@@ -402,19 +402,19 @@
 }
 
 .brand-name-shift {
-  color: white;
+  color: #3b82f6; /* Blue color */
   position: relative;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .brand-name-accent {
-  color: #60a5fa;
-  text-shadow: 0 0 10px rgba(96, 165, 250, 0.8);
+  color: white; /* White color */
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
 .brand-name-go {
-  color: #fbbf24;
-  text-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+  color: #3b82f6; /* Blue color */
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
   margin-left: 2px;
   position: relative;
   top: 1px;
@@ -518,21 +518,21 @@
 }
 
 .alt-brand-shift {
-  color: white;
+  color: #3b82f6; /* Blue color */
   letter-spacing: -1px;
   display: flex;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .alt-brand-accent {
-  color: #60a5fa;
-  text-shadow: 0 0 8px rgba(96, 165, 250, 0.8);
+  color: white; /* White color */
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
   display: flex;
 }
 
 .alt-brand-go {
   font-size: 16px;
-  color: #fbbf24;
+  color: #3b82f6; /* Blue color */
   margin-left: 2px;
   background: rgba(0, 0, 0, 0.3);
   padding: 2px 5px;
@@ -540,7 +540,7 @@
   position: relative;
   top: -1px;
   display: flex;
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
 }
 
 .alt-letter {
