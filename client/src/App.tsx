@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
@@ -30,12 +30,15 @@ function Router() {
 }
 
 function App() {
+  const [location] = useLocation();
+  const isHomePage = location === "/";
+  
   return (
     <TooltipProvider>
       <ChatProvider>
         <Toaster />
         <Router />
-        <SOSButton />
+        {isHomePage && <SOSButton />}
       </ChatProvider>
     </TooltipProvider>
   );

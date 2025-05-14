@@ -11,12 +11,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Import icons from Lucide
+import { Ambulance, ShieldAlert, Flame } from "lucide-react";
+
 // Emergency service type definition
 type EmergencyService = {
   name: string;
   number: string;
-  icon: string;
+  icon: React.ReactNode;
   color: string;
+  animationDelay: string;
 };
 
 // Services data
@@ -24,20 +28,23 @@ const emergencyServices: Record<string, EmergencyService> = {
   ambulance: {
     name: "Ambulance",
     number: "108",
-    icon: "fa-ambulance",
-    color: "bg-red-600 hover:bg-red-700 text-white"
+    icon: <Ambulance size={24} />,
+    color: "bg-red-600 hover:bg-red-700 text-white border-2 border-red-300",
+    animationDelay: "delay-0"
   },
   police: {
     name: "Police",
     number: "100",
-    icon: "fa-shield-alt",
-    color: "bg-blue-600 hover:bg-blue-700 text-white"
+    icon: <ShieldAlert size={24} />,
+    color: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-300",
+    animationDelay: "delay-100"
   },
   fire: {
     name: "Fire Dept",
     number: "101",
-    icon: "fa-fire",
-    color: "bg-orange-600 hover:bg-orange-700 text-white"
+    icon: <Flame size={24} />,
+    color: "bg-orange-600 hover:bg-orange-700 text-white border-2 border-orange-300",
+    animationDelay: "delay-200"
   }
 };
 
@@ -146,34 +153,51 @@ export default function SOSButton() {
   return (
     <>
       {/* Main SOS Button */}
-      <button 
-        onClick={handleSOSClick}
-        className={`fixed bottom-20 right-5 z-50 w-14 h-14 rounded-full bg-red-600 text-white 
-          flex items-center justify-center shadow-lg hover:bg-red-700 
-          focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
-          ${isBouncing ? 'animate-bounce' : ''}`}
-        aria-label="Emergency SOS Button"
-      >
-        <span className="font-bold text-sm">SOS</span>
-      </button>
-      
-      {/* Menu options that appear when SOS is clicked */}
-      {isOpen && (
-        <div className="fixed bottom-36 right-5 z-50 flex flex-col gap-3 items-end animate-in slide-in-from-bottom-5 duration-150">
-          {Object.entries(emergencyServices).map(([key, service]) => (
-            <button
-              key={key}
-              onClick={() => handleServiceSelect(key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg 
-                transition-transform hover:scale-105 ${service.color}`}
-              disabled={isCallInProgress}
-            >
-              <i className={`fas ${service.icon} text-lg`}></i>
-              <span className="font-medium">{service.name} ({service.number})</span>
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="fixed bottom-20 right-5 z-50">
+        <button 
+          onClick={handleSOSClick}
+          className={`w-16 h-16 rounded-full bg-red-600 text-white 
+            flex items-center justify-center shadow-lg hover:bg-red-700 
+            focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+            ${isBouncing ? 'animate-bounce' : ''}
+            relative z-50 transition-all duration-300 ease-in-out
+            border-2 border-red-300`}
+          aria-label="Emergency SOS Button"
+        >
+          <span className="font-bold text-sm">SOS</span>
+        </button>
+        
+        {/* Circular menu that appears when SOS is clicked */}
+        {isOpen && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            {Object.entries(emergencyServices).map(([key, service], index) => {
+              // Calculate position in a circle
+              const angle = (index * 120 - 90) * (Math.PI / 180); // 120 degrees apart, starting from top
+              const distance = 80; // Distance from center in pixels
+              const x = Math.cos(angle) * distance;
+              const y = Math.sin(angle) * distance;
+              
+              return (
+                <button
+                  key={key}
+                  onClick={() => handleServiceSelect(key)}
+                  className={`absolute w-14 h-14 rounded-full shadow-lg 
+                    flex items-center justify-center
+                    transition-all duration-300 ${service.color}
+                    hover:scale-110 animate-in zoom-in ${service.animationDelay}`}
+                  style={{
+                    transform: `translate(${x}px, ${y}px)`,
+                  }}
+                  disabled={isCallInProgress}
+                  aria-label={service.name}
+                >
+                  {service.icon}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
       
       {/* Confirmation Dialog */}
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
