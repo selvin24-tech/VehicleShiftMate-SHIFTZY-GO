@@ -319,35 +319,54 @@ export default function Travel() {
                 </SheetContent>
               </Sheet>
               
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                <Badge 
-                  variant="outline" 
-                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'car' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+              <div className="vehicle-type-options grid grid-cols-2 gap-3 pt-2">
+                <div 
+                  className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${activeFilter === 'car' ? 'selected-vehicle-option' : 'bg-white'}`}
                   onClick={() => handleFilterClick('car')}
                 >
-                  Car
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'bike' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  <div className="p-4 flex flex-col items-center text-center">
+                    <span className="text-3xl mb-2">🚗</span>
+                    <h3 className="font-semibold text-base mb-1">Car</h3>
+                    <p className="text-xs text-neutral-600">Sedans, Hatchbacks – Daily ride, easy to shift</p>
+                    {activeFilter === 'car' && <div className="option-tick">✓</div>}
+                  </div>
+                </div>
+                
+                <div 
+                  className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${activeFilter === 'bike' ? 'selected-vehicle-option' : 'bg-white'}`}
                   onClick={() => handleFilterClick('bike')}
                 >
-                  Bike
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'suv' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  <div className="p-4 flex flex-col items-center text-center">
+                    <span className="text-3xl mb-2">🏍️</span>
+                    <h3 className="font-semibold text-base mb-1">Bike</h3>
+                    <p className="text-xs text-neutral-600">Scooters, Motorbikes – Lightweight and quick move</p>
+                    {activeFilter === 'bike' && <div className="option-tick">✓</div>}
+                  </div>
+                </div>
+                
+                <div 
+                  className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${activeFilter === 'suv' ? 'selected-vehicle-option' : 'bg-white'}`}
                   onClick={() => handleFilterClick('suv')}
                 >
-                  SUV
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'luxury' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  <div className="p-4 flex flex-col items-center text-center">
+                    <span className="text-3xl mb-2">🚙</span>
+                    <h3 className="font-semibold text-base mb-1">SUV</h3>
+                    <p className="text-xs text-neutral-600">Big, Bold & Spacious – Great for road trips & families</p>
+                    {activeFilter === 'suv' && <div className="option-tick">✓</div>}
+                  </div>
+                </div>
+                
+                <div 
+                  className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${activeFilter === 'luxury' ? 'selected-vehicle-option' : 'bg-white'}`}
                   onClick={() => handleFilterClick('luxury')}
                 >
-                  Luxury
-                </Badge>
+                  <div className="p-4 flex flex-col items-center text-center">
+                    <span className="text-3xl mb-2">✨</span>
+                    <h3 className="font-semibold text-base mb-1">Premium</h3>
+                    <p className="text-xs text-neutral-600">Top-end vehicles for a signature travel experience</p>
+                    {activeFilter === 'luxury' && <div className="option-tick">✓</div>}
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -516,35 +535,54 @@ export default function Travel() {
                 </div>
               </div>
               
-              <div className="flex gap-2 overflow-x-auto py-1">
-                <Badge 
-                  variant="outline" 
-                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'car' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+              <div className="text-sm font-medium text-neutral-700 mb-2 flex items-center">
+                <span>Vehicle Type</span>
+              </div>
+              
+              <div className="vehicle-type-options-compact grid grid-cols-4 gap-2">
+                <div 
+                  className={`vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all ${activeFilter === 'car' ? 'selected-vehicle-option-compact' : 'bg-white'}`}
                   onClick={() => handleFilterClick('car')}
                 >
-                  Car
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'bike' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  <div className="p-2 flex flex-col items-center text-center">
+                    <span className="text-xl mb-1">🚗</span>
+                    <p className="text-xs font-medium">Car</p>
+                    {activeFilter === 'car' && <div className="option-tick-compact">✓</div>}
+                  </div>
+                </div>
+                
+                <div 
+                  className={`vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all ${activeFilter === 'bike' ? 'selected-vehicle-option-compact' : 'bg-white'}`}
                   onClick={() => handleFilterClick('bike')}
                 >
-                  Bike
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'suv' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  <div className="p-2 flex flex-col items-center text-center">
+                    <span className="text-xl mb-1">🏍️</span>
+                    <p className="text-xs font-medium">Bike</p>
+                    {activeFilter === 'bike' && <div className="option-tick-compact">✓</div>}
+                  </div>
+                </div>
+                
+                <div 
+                  className={`vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all ${activeFilter === 'suv' ? 'selected-vehicle-option-compact' : 'bg-white'}`}
                   onClick={() => handleFilterClick('suv')}
                 >
-                  SUV
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={`px-3 py-1 cursor-pointer whitespace-nowrap ${activeFilter === 'luxury' ? 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                  <div className="p-2 flex flex-col items-center text-center">
+                    <span className="text-xl mb-1">🚙</span>
+                    <p className="text-xs font-medium">SUV</p>
+                    {activeFilter === 'suv' && <div className="option-tick-compact">✓</div>}
+                  </div>
+                </div>
+                
+                <div 
+                  className={`vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all ${activeFilter === 'luxury' ? 'selected-vehicle-option-compact' : 'bg-white'}`}
                   onClick={() => handleFilterClick('luxury')}
                 >
-                  Luxury
-                </Badge>
+                  <div className="p-2 flex flex-col items-center text-center">
+                    <span className="text-xl mb-1">✨</span>
+                    <p className="text-xs font-medium">Premium</p>
+                    {activeFilter === 'luxury' && <div className="option-tick-compact">✓</div>}
+                  </div>
+                </div>
               </div>
             </div>
             
