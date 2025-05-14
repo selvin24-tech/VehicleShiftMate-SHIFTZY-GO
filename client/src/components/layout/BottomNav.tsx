@@ -194,7 +194,7 @@ export default function BottomNav() {
               hover:scale-110 sos-button-animation ${emergencyServices.ambulance.animationDelay}
               z-[60]`}
             style={{
-              bottom: '45px', // Position above the SOS button
+              bottom: '60px', // Position directly above the SOS button
             }}
             disabled={isCallInProgress}
             aria-label={emergencyServices.ambulance.name}
@@ -205,14 +205,14 @@ export default function BottomNav() {
           {/* Police - Left */}
           <button
             onClick={() => handleServiceSelect('police')}
-            className={`absolute left-1/2 w-10 h-10 rounded-full shadow-lg 
+            className={`absolute w-10 h-10 rounded-full shadow-lg 
               flex items-center justify-center
               transition-all duration-700 ${emergencyServices.police.color}
               hover:scale-110 sos-button-animation ${emergencyServices.police.animationDelay}
               z-[60]`}
             style={{
               bottom: '25px',
-              transform: 'translateX(calc(-100% - 10px))', // Position to the left
+              left: 'calc(50% - 60px)', // Position to the left of SOS
             }}
             disabled={isCallInProgress}
             aria-label={emergencyServices.police.name}
@@ -223,14 +223,14 @@ export default function BottomNav() {
           {/* Fire - Right */}
           <button
             onClick={() => handleServiceSelect('fire')}
-            className={`absolute left-1/2 w-10 h-10 rounded-full shadow-lg 
+            className={`absolute w-10 h-10 rounded-full shadow-lg 
               flex items-center justify-center
               transition-all duration-700 ${emergencyServices.fire.color}
               hover:scale-110 sos-button-animation ${emergencyServices.fire.animationDelay}
               z-[60]`}
             style={{
               bottom: '25px',
-              transform: 'translateX(calc(100% + 10px))', // Position to the right
+              left: 'calc(50% + 50px)', // Position to the right of SOS
             }}
             disabled={isCallInProgress}
             aria-label={emergencyServices.fire.name}
