@@ -8,7 +8,11 @@ import {
   Trip, 
   InsertTrip, 
   Testimonial, 
-  InsertTestimonial
+  InsertTestimonial,
+  ChatConversation,
+  InsertChatConversation,
+  ChatMessage,
+  InsertChatMessage
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -42,6 +46,15 @@ export interface IStorage {
   getTestimonialsByUserId(userId: number): Promise<Testimonial[]>;
   getTestimonialsByTripId(tripId: number): Promise<Testimonial[]>;
   createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial>;
+  
+  // Chat operations
+  getChatConversation(id: number): Promise<ChatConversation | undefined>;
+  getChatConversationsByUserId(userId: number): Promise<ChatConversation[]>;
+  createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
+  
+  getChatMessages(conversationId: number): Promise<ChatMessage[]>;
+  sendChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  markMessagesAsRead(conversationId: number, userId: number): Promise<void>;
 }
 
 // In-memory storage implementation
@@ -51,6 +64,8 @@ export class MemStorage implements IStorage {
   private shiftRequests: Map<number, ShiftRequest>;
   private trips: Map<number, Trip>;
   private testimonials: Map<number, Testimonial>;
+  private chatConversations: Map<number, ChatConversation>;
+  private chatMessages: Map<number, ChatMessage>;
   
   private userIdCounter: number = 1;
   private vehicleIdCounter: number = 1;

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, varchar, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, varchar, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -86,3 +86,46 @@ export type InsertTrip = z.infer<typeof insertTripSchema>;
 
 export type Testimonial = typeof testimonials.$inferSelect;
 export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
+
+// Chat related schemas
+export const chatConversations = pgTable("chat_conversations", {
+  id: serial("id").primaryKey(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  shiftRequestId: integer("shift_request_id").references(() => shiftRequests.id).notNull(),
+  tripId: integer("trip_id").references(() => trips.id),
+  ownerId: integer("owner_id").references(() => users.id).notNull(),
+  travelerId: integer("traveler_id").references(() => users.id).notNull(),
+  status: text("status").default("active"),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  createdAt: timestamp("created_at").defaultNow(),
+  conversationId: integer("conversation_id").references(() => chatConversations.id).notNull(),
+  senderId: integer("sender_id").references(() => users.id).notNull(),
+  recipientId: integer("recipient_id").references(() => users.id).notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+});
+
+export const insertChatConversationSchema = createInsertSchema(chatConversations, {
+  shiftRequestId: z.number(),
+  ownerId: z.number(),
+  travelerId: z.number(),
+  tripId: z.number().optional(),
+  status: z.string().optional()
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages, {
+  conversationId: z.number(),
+  senderId: z.number(),
+  recipientId: z.number(),
+  message: z.string(),
+  isRead: z.boolean().optional()
+});
+
+export type ChatConversation = typeof chatConversations.$inferSelect;
+export type InsertChatConversation = z.infer<typeof insertChatConversationSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
