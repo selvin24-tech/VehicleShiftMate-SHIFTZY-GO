@@ -52,47 +52,29 @@ export default function Header({
         >
           <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ paddingBottom: "20px" }}>
             <div style={{
-              background: "rgba(0, 0, 0, 0.9)",
+              background: "#000000",
               padding: "15px 35px",
               borderRadius: "16px",
-              boxShadow: "0 8px 25px rgba(0, 0, 0, 0.8), 0 0 40px rgba(59, 130, 246, 0.9), 0 0 80px rgba(245, 158, 11, 0.6)",
-              border: "3px solid rgba(59, 130, 246, 0.8)",
-              transform: "perspective(900px) rotateX(8deg)",
-              position: "relative",
-              overflow: "hidden"
+              border: "3px solid #3b82f6",
             }}>
-              <h1 className="brand-logo-text">
-                <span className="brand-name-shift" style={{
-                  color: "#0066ff",
-                  fontSize: "36px",
-                  fontWeight: "900",
-                  textShadow: "0 0 20px rgba(0, 102, 255, 0.9)"
-                }}>
-                  <span className="brand-letter">S</span>
-                  <span className="brand-letter">h</span>
-                  <span className="brand-letter">i</span>
-                  <span className="brand-letter">f</span>
-                  <span className="brand-letter">t</span>
-                  <span className="brand-name-accent" style={{
-                    color: "#ff8c00",
-                    fontSize: "20px",
-                    fontWeight: "900",
-                    textShadow: "0 0 15px #ff8c00"
-                  }}>
-                    <span className="brand-letter">z</span>
-                    <span className="brand-letter">y</span>
-                  </span>
-                </span>
-                <span className="brand-name-go" style={{
-                  color: "#0066ff",
-                  fontSize: "30px",
-                  fontWeight: "900",
-                  marginLeft: "15px",
-                  textShadow: "0 0 20px rgba(0, 102, 255, 0.9)"
-                }}>
-                  <span className="brand-letter">G</span>
-                  <span className="brand-letter">o</span>
-                </span>
+              <h1 style={{
+                fontFamily: "Arial, sans-serif",
+                fontSize: "36px",
+                fontWeight: "bold",
+                textAlign: "center",
+                lineHeight: "1",
+                margin: "0",
+              }}>
+                <span style={{
+                  color: "#3b82f6",
+                }}>Shift</span>
+                <span style={{
+                  color: "#ff8c00",
+                }}>zy</span>
+                <span style={{
+                  color: "#3b82f6",
+                  marginLeft: "10px"
+                }}>Go</span>
               </h1>
             </div>
           </div>
@@ -144,44 +126,20 @@ export default function Header({
           )}
           {title === "Shiftzy Go" ? (
             <div style={{
-              background: "rgba(0, 0, 0, 0.9)",
+              background: "#000000",
               padding: "6px 12px",
               borderRadius: "8px",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(59, 130, 246, 0.7), 0 0 40px rgba(245, 158, 11, 0.5)",
-              border: "2px solid rgba(59, 130, 246, 0.7)",
-              position: "relative",
-              overflow: "hidden"
+              border: "2px solid #3b82f6",
             }}>
               <span style={{
-                color: "#0066ff", 
+                fontFamily: "Arial, sans-serif",
+                fontSize: "20px",
                 fontWeight: "bold",
-                fontSize: "18px",
-                textShadow: "0 0 10px rgba(0, 102, 255, 0.9)"
+                lineHeight: "1",
               }}>
-                <span>S</span>
-                <span>h</span>
-                <span>i</span>
-                <span>f</span>
-                <span>t</span>
-              </span>
-              <span style={{
-                color: "#ff8c00",
-                fontWeight: "bold", 
-                fontSize: "16px",
-                textShadow: "0 0 10px rgba(255, 140, 0, 0.9)"
-              }}>
-                <span>z</span>
-                <span>y</span>
-              </span>
-              <span style={{
-                color: "#0066ff",
-                fontWeight: "bold",
-                fontSize: "18px",
-                marginLeft: "5px",
-                textShadow: "0 0 10px rgba(0, 102, 255, 0.9)"
-              }}>
-                <span>G</span>
-                <span>o</span>
+                <span style={{ color: "#3b82f6" }}>Shift</span>
+                <span style={{ color: "#ff8c00" }}>zy</span>
+                <span style={{ color: "#3b82f6", marginLeft: "5px" }}>Go</span>
               </span>
             </div>
           ) : (
