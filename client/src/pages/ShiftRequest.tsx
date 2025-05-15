@@ -73,27 +73,15 @@ export default function ShiftRequest() {
   // State to track the selected vehicle type for the detailed dropdown
   const [selectedVehicleType, setSelectedVehicleType] = useState<"car" | "bike" | "suv" | "luxury" | null>(null);
   
-  // State to track if vehicle type has been confirmed by user
-  const [vehicleTypeConfirmed, setVehicleTypeConfirmed] = useState(false);
-  
   // Get the vehicle models for the currently selected type
   const vehicleModels = selectedVehicleType ? DETAILED_VEHICLE_TYPES[selectedVehicleType] || [] : [];
   
-  // Function to confirm vehicle type selection
-  const confirmVehicleType = () => {
-    if (selectedVehicleType) {
-      form.setValue("vehicleType", selectedVehicleType);
-      setVehicleTypeConfirmed(true);
-    }
-  };
-  
-  // Function to change vehicle type (and reset confirmation)
+  // Function to change vehicle type
   const changeVehicleType = (type: "car" | "bike" | "suv" | "luxury") => {
     form.setValue("vehicleType", type);
     setShowLuxuryField(type === "luxury");
     setSelectedVehicleType(type);
     form.setValue("vehicleModel", "");
-    setVehicleTypeConfirmed(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,12 +159,12 @@ export default function ShiftRequest() {
                   <FormItem className="mb-5">
                     <div className="flex justify-between items-center mb-2">
                       <FormLabel className="block text-neutral-700 font-medium">Vehicle Type</FormLabel>
-                      {vehicleTypeConfirmed && (
+                      {selectedVehicleType && (
                         <Button 
                           type="button" 
                           variant="ghost" 
                           size="sm" 
-                          onClick={() => setVehicleTypeConfirmed(false)}
+                          onClick={() => setSelectedVehicleType(null)}
                           className="text-primary-600 hover:text-primary-700 text-sm font-medium p-0"
                         >
                           Change
@@ -184,7 +172,7 @@ export default function ShiftRequest() {
                       )}
                     </div>
                     <FormControl>
-                      {vehicleTypeConfirmed ? (
+                      {selectedVehicleType ? (
                         // Show only the selected option with enhanced graphics
                         <div className="bg-white rounded-xl shadow-md p-4 border-2 border-primary-200">
                           <div className="flex items-start">
@@ -241,111 +229,72 @@ export default function ShiftRequest() {
                           </div>
                         </div>
                       ) : (
-                        // Show selection grid when not confirmed
-                        <>
-                          <RadioGroup
-                            onValueChange={(value) => {
-                              const vehicleType = value as "car" | "bike" | "suv" | "luxury";
-                              field.onChange(vehicleType);
-                              setShowLuxuryField(vehicleType === "luxury");
-                              setSelectedVehicleType(vehicleType);
-                              
-                              // Reset the model field when changing the vehicle type
-                              form.setValue("vehicleModel", "");
+                        // Show selection grid when no option is selected
+                        <RadioGroup
+                          onValueChange={(value) => {
+                            const vehicleType = value as "car" | "bike" | "suv" | "luxury";
+                            changeVehicleType(vehicleType);
+                          }}
+                          value={selectedVehicleType || undefined}
+                          className="vehicle-type-options grid grid-cols-2 gap-3"
+                        >
+                          <div 
+                            className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white border border-neutral-200 hover:border-primary-300 hover:bg-primary-50"
+                            onClick={() => {
+                              changeVehicleType("car");
                             }}
-                            value={selectedVehicleType || undefined}
-                            className="vehicle-type-options grid grid-cols-2 gap-3"
                           >
-                            <div 
-                              className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${selectedVehicleType === "car" ? "border-2 border-primary-500 bg-primary-50" : "bg-white border border-neutral-200"}`}
-                              onClick={() => {
-                                changeVehicleType("car");
-                              }}
-                            >
-                              <div className="p-4 flex flex-col items-center text-center relative">
-                                <RadioGroupItem value="car" id="car" className="sr-only" />
-                                <span className="text-3xl mb-2">🚗</span>
-                                <h3 className="font-semibold text-base mb-1">Car</h3>
-                                <p className="text-xs text-neutral-600">Sedans, Hatchbacks – Daily ride, easy to shift</p>
-                                {selectedVehicleType === "car" && (
-                                  <div className="absolute top-2 right-2 bg-primary-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
-                                    ✓
-                                  </div>
-                                )}
-                              </div>
+                            <div className="p-4 flex flex-col items-center text-center">
+                              <RadioGroupItem value="car" id="car" className="sr-only" />
+                              <span className="text-3xl mb-2">🚗</span>
+                              <h3 className="font-semibold text-base mb-1">Car</h3>
+                              <p className="text-xs text-neutral-600">Sedans, Hatchbacks – Daily ride, easy to shift</p>
                             </div>
-                            
-                            <div 
-                              className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${selectedVehicleType === "bike" ? "border-2 border-primary-500 bg-primary-50" : "bg-white border border-neutral-200"}`}
-                              onClick={() => {
-                                changeVehicleType("bike");
-                              }}
-                            >
-                              <div className="p-4 flex flex-col items-center text-center relative">
-                                <RadioGroupItem value="bike" id="bike" className="sr-only" />
-                                <span className="text-3xl mb-2">🏍️</span>
-                                <h3 className="font-semibold text-base mb-1">Bike</h3>
-                                <p className="text-xs text-neutral-600">Scooters, Motorbikes – Lightweight and quick move</p>
-                                {selectedVehicleType === "bike" && (
-                                  <div className="absolute top-2 right-2 bg-primary-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
-                                    ✓
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div 
-                              className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${selectedVehicleType === "suv" ? "border-2 border-primary-500 bg-primary-50" : "bg-white border border-neutral-200"}`}
-                              onClick={() => {
-                                changeVehicleType("suv");
-                              }}
-                            >
-                              <div className="p-4 flex flex-col items-center text-center relative">
-                                <RadioGroupItem value="suv" id="suv" className="sr-only" />
-                                <span className="text-3xl mb-2">🚙</span>
-                                <h3 className="font-semibold text-base mb-1">SUV</h3>
-                                <p className="text-xs text-neutral-600">Big, Bold & Spacious – Great for road trips & families</p>
-                                {selectedVehicleType === "suv" && (
-                                  <div className="absolute top-2 right-2 bg-primary-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
-                                    ✓
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div 
-                              className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${selectedVehicleType === "luxury" ? "border-2 border-primary-500 bg-primary-50" : "bg-white border border-neutral-200"}`}
-                              onClick={() => {
-                                changeVehicleType("luxury");
-                              }}
-                            >
-                              <div className="p-4 flex flex-col items-center text-center relative">
-                                <RadioGroupItem value="luxury" id="luxury" className="sr-only" />
-                                <span className="text-3xl mb-2">✨</span>
-                                <h3 className="font-semibold text-base mb-1">Premium</h3>
-                                <p className="text-xs text-neutral-600">Top-end vehicles for a signature travel experience</p>
-                                {selectedVehicleType === "luxury" && (
-                                  <div className="absolute top-2 right-2 bg-primary-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
-                                    ✓
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </RadioGroup>
+                          </div>
                           
-                          <Button 
-                            type="button" 
-                            onClick={confirmVehicleType} 
-                            className="w-full mt-4 bg-primary-100 text-primary-700 hover:bg-primary-200"
-                            disabled={!selectedVehicleType}
+                          <div 
+                            className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white border border-neutral-200 hover:border-primary-300 hover:bg-primary-50"
+                            onClick={() => {
+                              changeVehicleType("bike");
+                            }}
                           >
-                            {selectedVehicleType 
-                              ? `Confirm ${selectedVehicleType.charAt(0).toUpperCase() + selectedVehicleType.slice(1)} Selection`
-                              : "Please select a vehicle type"
-                            }
-                          </Button>
-                        </>
-                      )}
+                            <div className="p-4 flex flex-col items-center text-center">
+                              <RadioGroupItem value="bike" id="bike" className="sr-only" />
+                              <span className="text-3xl mb-2">🏍️</span>
+                              <h3 className="font-semibold text-base mb-1">Bike</h3>
+                              <p className="text-xs text-neutral-600">Scooters, Motorbikes – Lightweight and quick move</p>
+                            </div>
+                          </div>
+                          
+                          <div 
+                            className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white border border-neutral-200 hover:border-primary-300 hover:bg-primary-50"
+                            onClick={() => {
+                              changeVehicleType("suv");
+                            }}
+                          >
+                            <div className="p-4 flex flex-col items-center text-center">
+                              <RadioGroupItem value="suv" id="suv" className="sr-only" />
+                              <span className="text-3xl mb-2">🚙</span>
+                              <h3 className="font-semibold text-base mb-1">SUV</h3>
+                              <p className="text-xs text-neutral-600">Big, Bold & Spacious – Great for road trips & families</p>
+                            </div>
+                          </div>
+                          
+                          <div 
+                            className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white border border-neutral-200 hover:border-primary-300 hover:bg-primary-50"
+                            onClick={() => {
+                              changeVehicleType("luxury");
+                            }}
+                          >
+                            <div className="p-4 flex flex-col items-center text-center">
+                              <RadioGroupItem value="luxury" id="luxury" className="sr-only" />
+                              <span className="text-3xl mb-2">✨</span>
+                              <h3 className="font-semibold text-base mb-1">Premium</h3>
+                              <p className="text-xs text-neutral-600">Top-end vehicles for a signature travel experience</p>
+                            </div>
+                          </div>
+                        </RadioGroup>
+                      )
                     </FormControl>
                     <FormMessage />
                   </FormItem>
