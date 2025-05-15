@@ -107,7 +107,11 @@ export default function Profile() {
           </div>
           
           {USER_PROFILE.vehicles?.map((vehicle) => (
-            <Card key={vehicle.id} className="bg-white rounded-lg border border-neutral-200 p-4 mb-3">
+            <Card 
+              key={vehicle.id} 
+              className="bg-white rounded-lg border border-neutral-200 p-4 mb-3 cursor-pointer hover:border-secondary-300 transition-all"
+              onClick={() => navigate(`/vehicle/${vehicle.id}`)}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="bg-primary-100 rounded-full p-2 mr-3">
@@ -121,9 +125,7 @@ export default function Profile() {
                     <p className="text-xs text-neutral-500">{vehicle.registrationNumber}</p>
                   </div>
                 </div>
-                <button className="text-neutral-500">
-                  <i className="fas fa-ellipsis-v"></i>
-                </button>
+                <ChevronRight className="text-neutral-400 h-5 w-5" />
               </div>
             </Card>
           ))}

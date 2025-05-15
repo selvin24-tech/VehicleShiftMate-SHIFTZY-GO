@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { 
@@ -36,6 +37,7 @@ import { TravelSearchFilters, Vehicle, ShiftRequest } from "@/lib/types";
 import { Search, Filter, Calendar, MapPin, Clock, IndianRupee, Navigation } from "lucide-react";
 
 export default function Travel() {
+  const [, navigate] = useLocation();
   const [activeFilter, setActiveFilter] = useState<string | null>("car");
   const [searchResults, setSearchResults] = useState<Vehicle[]>(AVAILABLE_VEHICLES);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -121,10 +123,8 @@ export default function Travel() {
   };
 
   const handleVehicleClick = (vehicleId: string) => {
-    toast({
-      title: "Vehicle Selected",
-      description: "You've selected this vehicle. Booking feature coming soon!",
-    });
+    // Navigate to the vehicle details page
+    navigate(`/vehicle/${vehicleId}`);
   };
 
   const filterLocalRequests = () => {
