@@ -4,7 +4,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { 
   insertShiftRequestSchema, 
-  insertTestimonialSchema, 
+  insertUserReviewSchema,
+  insertVehicleReviewSchema,
   insertUserSchema, 
   insertVehicleSchema,
   insertChatConversationSchema,
@@ -166,46 +167,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // --- Testimonial Routes ---
-  // Create a new testimonial
-  app.post("/api/testimonials", async (req, res) => {
+  // --- Review Routes ---
+  // Create a new user review
+  app.post("/api/user-reviews", async (req, res) => {
     try {
       // In a real app, we would get the user ID from the session
-      const userId = 1;
+      const reviewerId = 1;
       
-      const testimonialData = insertTestimonialSchema.parse({
+      const reviewData = insertUserReviewSchema.parse({
         ...req.body,
-        userId,
+        reviewerId,
+        reviewedUserId: parseInt(req.body.reviewedUserId),
+        tripId: parseInt(req.body.tripId),
+        rating: parseInt(req.body.rating)
       });
       
-      const newTestimonial = await storage.createTestimonial(testimonialData);
-      res.status(201).json(newTestimonial);
+      const newReview = await storage.createUserReview(reviewData);
+      res.status(201).json(newReview);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
-      console.error("Error creating testimonial:", error);
+      console.error("Error creating user review:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
 
-  // Get testimonials
-  app.get("/api/testimonials", async (req, res) => {
+  // Create a new vehicle review
+  app.post("/api/vehicle-reviews", async (req, res) => {
     try {
-      // In a real app, we would implement filtering
-      // For simplicity, we'll just return the first few testimonials
-      const allTestimonials = [];
+      // In a real app, we would get the user ID from the session
+      const reviewerId = 1;
       
-      for (let i = 1; i <= 3; i++) {
-        const testimonial = await storage.getTestimonial(i);
-        if (testimonial) {
-          allTestimonials.push(testimonial);
-        }
-      }
+      const reviewData = insertVehicleReviewSchema.parse({
+        ...req.body,
+        reviewerId,
+        vehicleId: parseInt(req.body.vehicleId),
+        tripId: parseInt(req.body.tripId),
+        rating: parseInt(req.body.rating),
+        comfort: parseInt(req.body.comfort || "0"),
+        cleanliness: parseInt(req.body.cleanliness || "0"),
+        performance: parseInt(req.body.performance || "0")
+      });
       
-      res.json(allTestimonials);
+      const newReview = await storage.createVehicleReview(reviewData);
+      res.status(201).json(newReview);
     } catch (error) {
-      console.error("Error fetching testimonials:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      console.error("Error creating vehicle review:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Get user reviews for a specific user
+  app.get("/api/user-reviews/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const userReviews = await storage.getUserReviewsByReviewedUserId(userId);
+      res.json(userReviews);
+    } catch (error) {
+      console.error("Error fetching user reviews:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  // Get vehicle reviews for a specific vehicle
+  app.get("/api/vehicle-reviews/:vehicleId", async (req, res) => {
+    try {
+      const vehicleId = parseInt(req.params.vehicleId);
+      const vehicleReviews = await storage.getVehicleReviewsByVehicleId(vehicleId);
+      res.json(vehicleReviews);
+    } catch (error) {
+      console.error("Error fetching vehicle reviews:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

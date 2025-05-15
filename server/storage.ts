@@ -7,8 +7,10 @@ import {
   InsertShiftRequest, 
   Trip, 
   InsertTrip, 
-  Testimonial, 
-  InsertTestimonial,
+  UserReview, 
+  InsertUserReview,
+  VehicleReview,
+  InsertVehicleReview,
   ChatConversation,
   InsertChatConversation,
   ChatMessage,
@@ -21,12 +23,14 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserRating(userId: number, newRating: number): Promise<User | undefined>;
   
   // Vehicle operations
   getVehicle(id: number): Promise<Vehicle | undefined>;
   getVehiclesByUserId(userId: number): Promise<Vehicle[]>;
   createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
   updateVehicle(id: number, vehicle: Partial<Vehicle>): Promise<Vehicle | undefined>;
+  updateVehicleRating(vehicleId: number, newRating: number): Promise<Vehicle | undefined>;
   
   // Shift request operations
   getShiftRequest(id: number): Promise<ShiftRequest | undefined>;
@@ -41,11 +45,19 @@ export interface IStorage {
   createTrip(trip: InsertTrip): Promise<Trip>;
   updateTripStatus(id: number, status: string): Promise<Trip | undefined>;
   
-  // Testimonial operations
-  getTestimonial(id: number): Promise<Testimonial | undefined>;
-  getTestimonialsByUserId(userId: number): Promise<Testimonial[]>;
-  getTestimonialsByTripId(tripId: number): Promise<Testimonial[]>;
-  createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial>;
+  // User Review operations
+  getUserReview(id: number): Promise<UserReview | undefined>;
+  getUserReviewsByReviewedUserId(userId: number): Promise<UserReview[]>;
+  getUserReviewsByReviewerId(reviewerId: number): Promise<UserReview[]>;
+  getUserReviewsByTripId(tripId: number): Promise<UserReview[]>;
+  createUserReview(review: InsertUserReview): Promise<UserReview>;
+  
+  // Vehicle Review operations
+  getVehicleReview(id: number): Promise<VehicleReview | undefined>;
+  getVehicleReviewsByVehicleId(vehicleId: number): Promise<VehicleReview[]>;
+  getVehicleReviewsByReviewerId(reviewerId: number): Promise<VehicleReview[]>;
+  getVehicleReviewsByTripId(tripId: number): Promise<VehicleReview[]>;
+  createVehicleReview(review: InsertVehicleReview): Promise<VehicleReview>;
   
   // Chat operations
   getChatConversation(id: number): Promise<ChatConversation | undefined>;
@@ -63,7 +75,8 @@ export class MemStorage implements IStorage {
   private vehicles: Map<number, Vehicle>;
   private shiftRequests: Map<number, ShiftRequest>;
   private trips: Map<number, Trip>;
-  private testimonials: Map<number, Testimonial>;
+  private userReviews: Map<number, UserReview>;
+  private vehicleReviews: Map<number, VehicleReview>;
   private chatConversations: Map<number, ChatConversation>;
   private chatMessages: Map<number, ChatMessage>;
   
@@ -71,7 +84,8 @@ export class MemStorage implements IStorage {
   private vehicleIdCounter: number = 1;
   private shiftRequestIdCounter: number = 1;
   private tripIdCounter: number = 1;
-  private testimonialIdCounter: number = 1;
+  private userReviewIdCounter: number = 1;
+  private vehicleReviewIdCounter: number = 1;
   private chatConversationIdCounter: number = 1;
   private chatMessageIdCounter: number = 1;
   
@@ -80,7 +94,8 @@ export class MemStorage implements IStorage {
     this.vehicles = new Map();
     this.shiftRequests = new Map();
     this.trips = new Map();
-    this.testimonials = new Map();
+    this.userReviews = new Map();
+    this.vehicleReviews = new Map();
     this.chatConversations = new Map();
     this.chatMessages = new Map();
     
@@ -173,12 +188,26 @@ export class MemStorage implements IStorage {
       status: "in-transit"
     });
     
-    // Sample testimonials
-    this.createTestimonial({
-      userId: user1.id,
+    // Sample user review
+    this.createUserReview({
+      reviewedUserId: user2.id,
+      reviewerId: user1.id,
       tripId: 1,
-      rating: "5",
-      comment: "Excellent service! My car was transported safely and on time."
+      rating: 5,
+      userType: "driver",
+      comment: "Excellent driver! On time and very professional."
+    });
+    
+    // Sample vehicle review
+    this.createVehicleReview({
+      vehicleId: 1,
+      reviewerId: user2.id,
+      tripId: 1,
+      rating: 5,
+      comfort: 4,
+      cleanliness: 5,
+      performance: 5,
+      comment: "Car was in great condition, very comfortable for the journey."
     });
     
     // Sample chat conversation
@@ -323,25 +352,110 @@ export class MemStorage implements IStorage {
     return updatedTrip;
   }
   
-  // Testimonial methods
-  async getTestimonial(id: number): Promise<Testimonial | undefined> {
-    return this.testimonials.get(id);
+  // User Review operations
+  async getUserReview(id: number): Promise<UserReview | undefined> {
+    return this.userReviews.get(id);
   }
-  
-  async getTestimonialsByUserId(userId: number): Promise<Testimonial[]> {
-    return Array.from(this.testimonials.values()).filter(testimonial => testimonial.userId === userId);
+
+  async getUserReviewsByReviewedUserId(userId: number): Promise<UserReview[]> {
+    return Array.from(this.userReviews.values()).filter(review => review.reviewedUserId === userId);
   }
-  
-  async getTestimonialsByTripId(tripId: number): Promise<Testimonial[]> {
-    return Array.from(this.testimonials.values()).filter(testimonial => testimonial.tripId === tripId);
+
+  async getUserReviewsByReviewerId(reviewerId: number): Promise<UserReview[]> {
+    return Array.from(this.userReviews.values()).filter(review => review.reviewerId === reviewerId);
   }
-  
-  async createTestimonial(testimonialData: InsertTestimonial): Promise<Testimonial> {
-    const id = this.testimonialIdCounter++;
+
+  async getUserReviewsByTripId(tripId: number): Promise<UserReview[]> {
+    return Array.from(this.userReviews.values()).filter(review => review.tripId === tripId);
+  }
+
+  async createUserReview(reviewData: InsertUserReview): Promise<UserReview> {
+    const id = this.userReviewIdCounter++;
     const now = new Date();
-    const testimonial: Testimonial = { ...testimonialData, id, createdAt: now };
-    this.testimonials.set(id, testimonial);
-    return testimonial;
+    
+    const review: UserReview = { ...reviewData, id, createdAt: now };
+    this.userReviews.set(id, review);
+    
+    // Update the user's average rating
+    await this.updateUserRating(reviewData.reviewedUserId, reviewData.rating);
+    
+    return review;
+  }
+
+  // Vehicle Review operations
+  async getVehicleReview(id: number): Promise<VehicleReview | undefined> {
+    return this.vehicleReviews.get(id);
+  }
+
+  async getVehicleReviewsByVehicleId(vehicleId: number): Promise<VehicleReview[]> {
+    return Array.from(this.vehicleReviews.values()).filter(review => review.vehicleId === vehicleId);
+  }
+
+  async getVehicleReviewsByReviewerId(reviewerId: number): Promise<VehicleReview[]> {
+    return Array.from(this.vehicleReviews.values()).filter(review => review.reviewerId === reviewerId);
+  }
+
+  async getVehicleReviewsByTripId(tripId: number): Promise<VehicleReview[]> {
+    return Array.from(this.vehicleReviews.values()).filter(review => review.tripId === tripId);
+  }
+
+  async createVehicleReview(reviewData: InsertVehicleReview): Promise<VehicleReview> {
+    const id = this.vehicleReviewIdCounter++;
+    const now = new Date();
+    
+    const review: VehicleReview = { ...reviewData, id, createdAt: now };
+    this.vehicleReviews.set(id, review);
+    
+    // Update the vehicle's average rating
+    await this.updateVehicleRating(reviewData.vehicleId, reviewData.rating);
+    
+    return review;
+  }
+
+  // User Rating Update
+  async updateUserRating(userId: number, newRating: number): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+    
+    // Calculate new average rating
+    const currentTotalRatings = user.totalRatings || 0;
+    const currentAverage = user.averageRating || 0;
+    
+    const newTotalRatings = currentTotalRatings + 1;
+    const newAverage = ((currentAverage * currentTotalRatings) + newRating) / newTotalRatings;
+    
+    // Update user's rating
+    const updatedUser = {
+      ...user,
+      averageRating: newAverage,
+      totalRatings: newTotalRatings
+    };
+    
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  // Vehicle Rating Update
+  async updateVehicleRating(vehicleId: number, newRating: number): Promise<Vehicle | undefined> {
+    const vehicle = this.vehicles.get(vehicleId);
+    if (!vehicle) return undefined;
+    
+    // Calculate new average rating
+    const currentTotalRatings = vehicle.totalRatings || 0;
+    const currentAverage = vehicle.averageRating || 0;
+    
+    const newTotalRatings = currentTotalRatings + 1;
+    const newAverage = ((currentAverage * currentTotalRatings) + newRating) / newTotalRatings;
+    
+    // Update vehicle's rating
+    const updatedVehicle = {
+      ...vehicle,
+      averageRating: newAverage,
+      totalRatings: newTotalRatings
+    };
+    
+    this.vehicles.set(vehicleId, updatedVehicle);
+    return updatedVehicle;
   }
 
   // Chat conversation operations

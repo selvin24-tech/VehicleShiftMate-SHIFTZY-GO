@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, varchar, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, varchar, boolean, integer, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -11,6 +11,9 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   isVerified: boolean("is_verified").default(false),
   address: text("address"),
+  // Rating fields for the user
+  averageRating: real("average_rating").default(0),
+  totalRatings: integer("total_ratings").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -27,6 +30,9 @@ export const vehicles = pgTable("vehicles", {
   image: text("image"),
   forRent: boolean("for_rent").default(false),
   pricePerDay: text("price_per_day"),
+  // Rating fields for the vehicle
+  averageRating: real("average_rating").default(0),
+  totalRatings: integer("total_ratings").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -55,21 +61,39 @@ export const trips = pgTable("trips", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const testimonials = pgTable("testimonials", {
+// Renamed from testimonials to userReviews to better reflect purpose
+export const userReviews = pgTable("user_reviews", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => users.id),
-  tripId: serial("trip_id").references(() => trips.id),
-  rating: text("rating").notNull(),
+  reviewedUserId: integer("reviewed_user_id").references(() => users.id).notNull(),
+  reviewerId: integer("reviewer_id").references(() => users.id).notNull(),
+  tripId: integer("trip_id").references(() => trips.id).notNull(),
+  rating: integer("rating").notNull(), // 1-5 star rating
+  comment: text("comment"),
+  userType: text("user_type").notNull(), // 'driver' or 'owner'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// New table for vehicle reviews
+export const vehicleReviews = pgTable("vehicle_reviews", {
+  id: serial("id").primaryKey(),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
+  reviewerId: integer("reviewer_id").references(() => users.id).notNull(),
+  tripId: integer("trip_id").references(() => trips.id).notNull(),
+  rating: integer("rating").notNull(), // 1-5 star rating
+  comfort: integer("comfort").notNull(), // 1-5 rating for comfort
+  cleanliness: integer("cleanliness").notNull(), // 1-5 rating for cleanliness
+  performance: integer("performance").notNull(), // 1-5 rating for performance
   comment: text("comment"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
-export const insertVehicleSchema = createInsertSchema(vehicles).omit({ id: true, createdAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, averageRating: true, totalRatings: true });
+export const insertVehicleSchema = createInsertSchema(vehicles).omit({ id: true, createdAt: true, averageRating: true, totalRatings: true });
 export const insertShiftRequestSchema = createInsertSchema(shiftRequests).omit({ id: true, createdAt: true });
 export const insertTripSchema = createInsertSchema(trips).omit({ id: true, createdAt: true });
-export const insertTestimonialSchema = createInsertSchema(testimonials).omit({ id: true, createdAt: true });
+export const insertUserReviewSchema = createInsertSchema(userReviews).omit({ id: true, createdAt: true });
+export const insertVehicleReviewSchema = createInsertSchema(vehicleReviews).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -84,8 +108,11 @@ export type InsertShiftRequest = z.infer<typeof insertShiftRequestSchema>;
 export type Trip = typeof trips.$inferSelect;
 export type InsertTrip = z.infer<typeof insertTripSchema>;
 
-export type Testimonial = typeof testimonials.$inferSelect;
-export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
+export type UserReview = typeof userReviews.$inferSelect;
+export type InsertUserReview = z.infer<typeof insertUserReviewSchema>;
+
+export type VehicleReview = typeof vehicleReviews.$inferSelect;
+export type InsertVehicleReview = z.infer<typeof insertVehicleReviewSchema>;
 
 // Chat related schemas
 export const chatConversations = pgTable("chat_conversations", {
