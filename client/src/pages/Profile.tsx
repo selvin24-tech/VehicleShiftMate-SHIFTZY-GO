@@ -2,12 +2,13 @@ import { useLocation } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import TripCard from "@/components/common/TripCard";
+import ReviewsSection from "@/components/reviews/ReviewsSection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { USER_PROFILE } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, HelpCircle, Shield, LogOut, Car, Bike, ChevronRight } from "lucide-react";
+import { Settings, HelpCircle, Shield, LogOut, Car, Bike, ChevronRight, Star } from "lucide-react";
 
 export default function Profile() {
   const [, navigate] = useLocation();

@@ -39,12 +39,24 @@ export interface Vehicle {
   pricePerDay?: number;
 }
 
-export interface Testimonial {
+export type ReviewType = 'user' | 'vehicle';
+
+export interface Review {
   id: string;
   userName: string;
-  userAvatar: string;
+  userAvatar?: string;
   rating: number;
   comment: string;
+  date: string;
+  vehicleDetails?: {
+    make: string;
+    model: string;
+  };
+  metrics?: {
+    comfort: number;
+    cleanliness: number;
+    performance: number;
+  };
 }
 
 export interface User {
