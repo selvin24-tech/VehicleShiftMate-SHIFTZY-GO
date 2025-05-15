@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import ReviewsSection from "@/components/reviews/ReviewsSection";
@@ -10,19 +13,87 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Car, Bike, Star, User, Users, Calendar, Clock, MapPin, ChevronLeft } from "lucide-react";
-import { AVAILABLE_VEHICLES } from "@/lib/constants"; 
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { 
+  Car, 
+  Bike, 
+  Star, 
+  User, 
+  Users, 
+  Clock, 
+  MapPin, 
+  ChevronLeft, 
+  ChevronDown, 
+  Fuel, 
+  Banknote,
+  ShieldCheck,
+  Map,
+  ArrowRight,
+  CircleCheck
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { AVAILABLE_VEHICLES, LOCATIONS } from "@/lib/constants"; 
+import { useToast } from "@/hooks/use-toast";
+
+// Form schema for booking
+const bookingFormSchema = z.object({
+  pickupLocation: z.string().min(1, { message: "Please select a pickup location" }),
+  dropLocation: z.string().min(1, { message: "Please select a drop location" }),
+  pickupDate: z.date({ required_error: "Please select a date" }),
+});
 
 export default function VehicleDetails() {
   const [, navigate] = useLocation();
   const [match, params] = useRoute<{ id: string }>("/vehicle/:id");
   const [showReviews, setShowReviews] = useState(false);
+  const [showFeatures, setShowFeatures] = useState(true);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const { toast } = useToast();
   
   const vehicleId = params?.id;
   
   // For demo purposes, we'll use the vehicle data from constants
   // In a real app, this would be a fetch from the API
   const vehicle = AVAILABLE_VEHICLES.find(v => v.id === vehicleId);
+  
+  // Booking form
+  const form = useForm<z.infer<typeof bookingFormSchema>>({
+    resolver: zodResolver(bookingFormSchema),
+    defaultValues: {
+      pickupLocation: "",
+      dropLocation: "",
+    },
+  });
+
+  // Handle form submission
+  const onSubmit = (values: z.infer<typeof bookingFormSchema>) => {
+    console.log(values);
+    // In a real app, this would be an API call
+    setTimeout(() => {
+      setBookingSuccess(true);
+    }, 1000);
+  };
   
   // Handle back navigation
   const handleBack = () => {
@@ -73,7 +144,7 @@ export default function VehicleDetails() {
       </div>
       
       {/* Vehicle Images */}
-      <div className="relative rounded-lg overflow-hidden bg-neutral-100 h-52 mb-4">
+      <div className="relative rounded-xl overflow-hidden bg-neutral-100 h-64 mb-4">
         {vehicle.image ? (
           <img 
             src={vehicle.image} 
@@ -89,47 +160,83 @@ export default function VehicleDetails() {
           </div>
         )}
         
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 left-3">
           <Badge variant="secondary" className="bg-white/90 text-primary-700 font-semibold">
             {vehicle.type.charAt(0).toUpperCase() + vehicle.type.slice(1)}
           </Badge>
         </div>
         
-        {vehicle.averageRating && (
+        <div className="absolute top-3 right-3">
+          <Badge 
+            variant="secondary" 
+            className={`${
+              vehicle.availabilityStatus === 'available' 
+              ? 'bg-green-500/90 text-white' 
+              : 'bg-amber-500/90 text-white'
+            } font-semibold`}
+          >
+            {vehicle.availabilityStatus === 'available' 
+              ? 'Available Now' 
+              : 'Available Tomorrow'}
+          </Badge>
+        </div>
+        
+        {vehicle.rating && (
           <div className="absolute bottom-3 right-3">
             <Badge variant="secondary" className="bg-white/90 text-yellow-500 font-semibold flex items-center">
               <Star className="fill-yellow-500 w-4 h-4 mr-1" />
-              {vehicle.averageRating.toFixed(1)}
+              {vehicle.rating.toFixed(1)}
+              {vehicle.totalRatings && (
+                <span className="text-neutral-500 text-xs ml-1">
+                  ({vehicle.totalRatings})
+                </span>
+              )}
             </Badge>
           </div>
         )}
       </div>
       
       {/* Vehicle Info */}
-      <h2 className="text-2xl font-bold mb-1">{vehicle.make} {vehicle.model}</h2>
-      <p className="text-neutral-600 mb-4">{vehicle.registrationNumber}</p>
+      <div className="mb-4 flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold mb-1">{vehicle.make} {vehicle.model}</h2>
+          <p className="text-neutral-600">{vehicle.registrationNumber}</p>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-primary-600">₹{vehicle.pricePerDay}<span className="text-sm font-normal text-neutral-500">/day</span></div>
+          <p className="text-xs text-neutral-500">All inclusive price</p>
+        </div>
+      </div>
+      
+      {/* Owner Details */}
+      <Card className="p-4 border border-neutral-200 mb-6">
+        <div className="flex items-center">
+          <Avatar className="h-12 w-12 mr-3">
+            <AvatarImage src={`https://ui-avatars.com/api/?name=${vehicle.ownerName}&background=3B82F6&color=fff`} />
+            <AvatarFallback>
+              <User className="h-6 w-6" />
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-semibold">{vehicle.ownerName || "Vehicle Owner"}</div>
+            <div className="text-sm text-neutral-500">Vehicle Owner</div>
+          </div>
+          {vehicle.rating && (
+            <div className="ml-auto flex items-center">
+              <Star className="text-yellow-500 fill-yellow-500 w-4 h-4 mr-1" />
+              <span className="font-medium">{vehicle.rating.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+      </Card>
       
       {/* Vehicle Details Cards */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <Card className="p-3 border border-neutral-200">
           <div className="flex flex-col h-full">
-            <div className="text-neutral-500 mb-1 text-sm">Owner</div>
+            <div className="text-neutral-500 mb-1 text-sm">Seating</div>
             <div className="flex items-center">
-              <Avatar className="h-6 w-6 mr-2">
-                <AvatarFallback>
-                  <User className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-              <span className="font-medium">{vehicle.ownerName || "Vehicle Owner"}</span>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-3 border border-neutral-200">
-          <div className="flex flex-col h-full">
-            <div className="text-neutral-500 mb-1 text-sm">Capacity</div>
-            <div className="flex items-center">
-              <Users className="h-5 w-5 mr-2 text-neutral-500" />
+              <Users className="h-5 w-5 mr-2 text-primary-500" />
               <span className="font-medium">{vehicle.seatingCapacity || '4'} Persons</span>
             </div>
           </div>
@@ -140,7 +247,7 @@ export default function VehicleDetails() {
             <div className="text-neutral-500 mb-1 text-sm">Color</div>
             <div className="flex items-center">
               <div 
-                className="w-5 h-5 rounded-full mr-2" 
+                className="w-5 h-5 rounded-full mr-2 border border-neutral-200" 
                 style={{ backgroundColor: vehicle.color || "#3B82F6" }}
               ></div>
               <span className="font-medium capitalize">{vehicle.color || "Blue"}</span>
@@ -152,20 +259,79 @@ export default function VehicleDetails() {
           <div className="flex flex-col h-full">
             <div className="text-neutral-500 mb-1 text-sm">Fuel Type</div>
             <div className="flex items-center">
+              <Fuel className="h-5 w-5 mr-2 text-primary-500" />
               <span className="font-medium capitalize">{vehicle.fuelType || "Petrol"}</span>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-3 border border-neutral-200">
+          <div className="flex flex-col h-full">
+            <div className="text-neutral-500 mb-1 text-sm">Price Per Day</div>
+            <div className="flex items-center">
+              <Banknote className="h-5 w-5 mr-2 text-primary-500" />
+              <span className="font-medium">₹{vehicle.pricePerDay}</span>
             </div>
           </div>
         </Card>
       </div>
       
+      {/* Vehicle Features */}
+      <div className="mb-6">
+        <button 
+          className="flex items-center justify-between w-full py-3"
+          onClick={() => setShowFeatures(!showFeatures)}
+        >
+          <div className="flex items-center">
+            <ShieldCheck className="mr-2 h-5 w-5 text-primary-500" />
+            <span className="font-semibold text-lg">Features & Amenities</span>
+          </div>
+          <ChevronLeft className={`h-5 w-5 transition-transform ${showFeatures ? 'rotate-90' : '-rotate-90'}`} />
+        </button>
+        
+        <Separator className="mb-4" />
+        
+        {showFeatures && (
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            {vehicle.features ? (
+              vehicle.features.map((feature, index) => (
+                <div key={index} className="flex items-center">
+                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <span className="text-sm">{feature}</span>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="flex items-center">
+                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <span className="text-sm">Air Conditioning</span>
+                </div>
+                <div className="flex items-center">
+                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <span className="text-sm">Bluetooth</span>
+                </div>
+                <div className="flex items-center">
+                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <span className="text-sm">Power Steering</span>
+                </div>
+                <div className="flex items-center">
+                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <span className="text-sm">Well Maintained</span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+      
       {/* Reviews Section */}
-      <div>
+      <div className="mb-6">
         <button 
           className="flex items-center justify-between w-full py-3"
           onClick={() => setShowReviews(!showReviews)}
         >
           <div className="flex items-center">
-            <Star className="mr-2 h-5 w-5 text-neutral-500" />
+            <Star className="mr-2 h-5 w-5 text-primary-500" />
             <span className="font-semibold text-lg">Reviews & Ratings</span>
           </div>
           <ChevronLeft className={`h-5 w-5 transition-transform ${showReviews ? 'rotate-90' : '-rotate-90'}`} />
@@ -180,6 +346,206 @@ export default function VehicleDetails() {
             showForm={true}
           />
         )}
+      </div>
+      
+      {/* Booking Button */}
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-white border-t border-neutral-200">
+        <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full" size="lg">
+              Book This Vehicle
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            {!bookingSuccess ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Book {vehicle.make} {vehicle.model}</DialogTitle>
+                  <DialogDescription>
+                    Enter your trip details to book this vehicle.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+                    {/* Pickup Location */}
+                    <FormField
+                      control={form.control}
+                      name="pickupLocation"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Pickup Location</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  className={cn(
+                                    "w-full justify-between",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value
+                                    ? LOCATIONS.find(
+                                        (location) => location === field.value
+                                      )
+                                    : "Select pickup location"}
+                                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <div className="max-h-[200px] overflow-y-auto">
+                                {LOCATIONS.map((location) => (
+                                  <div
+                                    key={location}
+                                    className="cursor-pointer p-2 hover:bg-neutral-100"
+                                    onClick={() => {
+                                      form.setValue("pickupLocation", location);
+                                      form.clearErrors("pickupLocation");
+                                    }}
+                                  >
+                                    {location}
+                                  </div>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {/* Drop Location */}
+                    <FormField
+                      control={form.control}
+                      name="dropLocation"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Drop Location</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  className={cn(
+                                    "w-full justify-between",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value
+                                    ? LOCATIONS.find(
+                                        (location) => location === field.value
+                                      )
+                                    : "Select drop location"}
+                                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <div className="max-h-[200px] overflow-y-auto">
+                                {LOCATIONS.map((location) => (
+                                  <div
+                                    key={location}
+                                    className="cursor-pointer p-2 hover:bg-neutral-100"
+                                    onClick={() => {
+                                      form.setValue("dropLocation", location);
+                                      form.clearErrors("dropLocation");
+                                    }}
+                                  >
+                                    {location}
+                                  </div>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {/* Pickup Date */}
+                    <FormField
+                      control={form.control}
+                      name="pickupDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Pickup Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date < new Date() || date > new Date(2025, 12, 31)
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  
+                    <DialogFooter>
+                      <Button 
+                        type="submit" 
+                        className="w-full"
+                        disabled={form.formState.isSubmitting}
+                      >
+                        {form.formState.isSubmitting ? "Processing..." : "Confirm Booking"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </>
+            ) : (
+              <div className="py-6 flex flex-col items-center justify-center text-center">
+                <div className="bg-green-100 rounded-full p-3 mb-4">
+                  <CircleCheck className="h-8 w-8 text-green-600" />
+                </div>
+                <DialogTitle className="mb-2">Booking Confirmed!</DialogTitle>
+                <DialogDescription className="mb-6">
+                  Your booking for {vehicle.make} {vehicle.model} has been confirmed. 
+                  You'll receive a confirmation message shortly.
+                </DialogDescription>
+                <Button 
+                  onClick={() => {
+                    setIsBookingOpen(false);
+                    setBookingSuccess(false);
+                    toast({
+                      title: "Booking Confirmed",
+                      description: `You've successfully booked ${vehicle.make} ${vehicle.model}.`,
+                    });
+                  }}
+                >
+                  Close
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
       
       <BottomNav />
