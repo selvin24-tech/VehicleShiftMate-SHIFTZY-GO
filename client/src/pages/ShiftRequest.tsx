@@ -136,19 +136,30 @@ export default function ShiftRequest() {
                   <FormItem className="mb-5">
                     <FormLabel className="block text-neutral-700 mb-2 font-medium">Vehicle Type</FormLabel>
                     <FormControl>
-                      <div className="vehicle-type-options grid grid-cols-2 gap-3">
+                      <RadioGroup
+                        onValueChange={(value) => {
+                          const vehicleType = value as "car" | "bike" | "suv" | "luxury";
+                          field.onChange(vehicleType);
+                          setShowLuxuryField(vehicleType === "luxury");
+                          setSelectedVehicleType(vehicleType);
+                          
+                          // Reset the model field when changing the vehicle type
+                          form.setValue("vehicleModel", "");
+                        }}
+                        defaultValue={field.value}
+                        className="vehicle-type-options grid grid-cols-2 gap-3"
+                      >
                         <div 
                           className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${field.value === "car" ? "selected-vehicle-option" : "bg-white"}`}
                           onClick={() => {
-                            const vehicleType = "car";
-                            field.onChange(vehicleType);
+                            field.onChange("car");
                             setShowLuxuryField(false);
-                            setSelectedVehicleType(vehicleType);
+                            setSelectedVehicleType("car");
                             form.setValue("vehicleModel", "");
                           }}
                         >
-                          <RadioGroupItem value="car" id="car" className="sr-only" />
                           <div className="p-4 flex flex-col items-center text-center">
+                            <RadioGroupItem value="car" id="car" className="sr-only" />
                             <span className="text-3xl mb-2">🚗</span>
                             <h3 className="font-semibold text-base mb-1">Car</h3>
                             <p className="text-xs text-neutral-600">Sedans, Hatchbacks – Daily ride, easy to shift</p>
@@ -159,15 +170,14 @@ export default function ShiftRequest() {
                         <div 
                           className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${field.value === "bike" ? "selected-vehicle-option" : "bg-white"}`}
                           onClick={() => {
-                            const vehicleType = "bike";
-                            field.onChange(vehicleType);
+                            field.onChange("bike");
                             setShowLuxuryField(false);
-                            setSelectedVehicleType(vehicleType);
+                            setSelectedVehicleType("bike");
                             form.setValue("vehicleModel", "");
                           }}
                         >
-                          <RadioGroupItem value="bike" id="bike" className="sr-only" />
                           <div className="p-4 flex flex-col items-center text-center">
+                            <RadioGroupItem value="bike" id="bike" className="sr-only" />
                             <span className="text-3xl mb-2">🏍️</span>
                             <h3 className="font-semibold text-base mb-1">Bike</h3>
                             <p className="text-xs text-neutral-600">Scooters, Motorbikes – Lightweight and quick move</p>
@@ -178,15 +188,14 @@ export default function ShiftRequest() {
                         <div 
                           className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${field.value === "suv" ? "selected-vehicle-option" : "bg-white"}`}
                           onClick={() => {
-                            const vehicleType = "suv";
-                            field.onChange(vehicleType);
+                            field.onChange("suv");
                             setShowLuxuryField(false);
-                            setSelectedVehicleType(vehicleType);
+                            setSelectedVehicleType("suv");
                             form.setValue("vehicleModel", "");
                           }}
                         >
-                          <RadioGroupItem value="suv" id="suv" className="sr-only" />
                           <div className="p-4 flex flex-col items-center text-center">
+                            <RadioGroupItem value="suv" id="suv" className="sr-only" />
                             <span className="text-3xl mb-2">🚙</span>
                             <h3 className="font-semibold text-base mb-1">SUV</h3>
                             <p className="text-xs text-neutral-600">Big, Bold & Spacious – Great for road trips & families</p>
@@ -197,22 +206,21 @@ export default function ShiftRequest() {
                         <div 
                           className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${field.value === "luxury" ? "selected-vehicle-option" : "bg-white"}`}
                           onClick={() => {
-                            const vehicleType = "luxury";
-                            field.onChange(vehicleType);
+                            field.onChange("luxury");
                             setShowLuxuryField(true);
-                            setSelectedVehicleType(vehicleType);
+                            setSelectedVehicleType("luxury");
                             form.setValue("vehicleModel", "");
                           }}
                         >
-                          <RadioGroupItem value="luxury" id="luxury" className="sr-only" />
                           <div className="p-4 flex flex-col items-center text-center">
+                            <RadioGroupItem value="luxury" id="luxury" className="sr-only" />
                             <span className="text-3xl mb-2">✨</span>
                             <h3 className="font-semibold text-base mb-1">Premium</h3>
                             <p className="text-xs text-neutral-600">Top-end vehicles for a signature travel experience</p>
                             {field.value === "luxury" && <div className="option-tick">✓</div>}
                           </div>
                         </div>
-                      </div>
+                      </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
