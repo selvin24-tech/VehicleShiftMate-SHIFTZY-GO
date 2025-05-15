@@ -16,11 +16,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { LOCATIONS, DETAILED_VEHICLE_TYPES } from "@/lib/constants";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { CircleCheck } from "lucide-react";
 
 const formSchema = z.object({
   vehicleType: z.enum(["car", "bike", "suv", "luxury"]),
@@ -41,6 +50,7 @@ export default function ShiftRequest() {
   const [isUploading, setIsUploading] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -96,16 +106,13 @@ export default function ShiftRequest() {
       // For now, simulate a request
       await apiRequest("POST", "/api/shift-requests", submissionData);
 
-      toast({
-        title: "Request Submitted",
-        description: "Your Shiftzy request has been submitted successfully.",
-      });
+      // Show success dialog instead of toast
+      setShowSuccessDialog(true);
 
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ["/api/shift-requests"] });
       
-      // Navigate back to home
-      navigate("/");
+      // Don't navigate immediately, let the user see the success message
     } catch (error) {
       console.error("Error submitting request:", error);
       toast({
@@ -117,14 +124,20 @@ export default function ShiftRequest() {
       setIsUploading(false);
     }
   };
+  
+  // Handle navigation after success
+  const handleSuccessClose = () => {
+    setShowSuccessDialog(false);
+    navigate("/");
+  };
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-16">
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
       <Header title="Shift Your Vehicle" showBackButton variant="primary" showAnimation={true} />
 
       <div className="px-4 py-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-20">
             <div className="mb-6">
               <h2 className="font-bold text-lg mb-4">Vehicle Details</h2>
 
@@ -419,17 +432,56 @@ export default function ShiftRequest() {
               </div>
 
               {/* Submit Button */}
-              <Button
-                type="submit"
-                className="w-full bg-primary-500 text-white py-3 rounded-lg font-medium mt-6 hover:bg-primary-600"
-                disabled={isUploading}
-              >
-                {isUploading ? "Submitting..." : "Submit Request"}
-              </Button>
+              <div className="sticky bottom-6 left-0 right-0 bg-white pt-4 pb-2 px-4 mt-6 shadow-lg rounded-t-2xl">
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-6 rounded-lg font-medium text-lg hover:from-primary-700 hover:to-primary-600 transition-all"
+                  disabled={isUploading}
+                >
+                  {isUploading ? "Submitting..." : "Submit Vehicle Shift Request"}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>
       </div>
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <div className="mx-auto bg-green-100 rounded-full p-3 mb-4">
+              <CircleCheck className="h-8 w-8 text-green-600" />
+            </div>
+            <DialogTitle className="text-center text-xl">Request Submitted Successfully!</DialogTitle>
+            <DialogDescription className="text-center">
+              Your vehicle shift request has been submitted. We'll notify you when someone accepts your request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4 bg-neutral-50 rounded-lg mb-4">
+            <h4 className="font-medium mb-2">What happens next?</h4>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-start">
+                <span className="inline-block bg-primary-100 text-primary-700 rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">1</span>
+                <span>Travelers will browse available vehicles and may select yours</span>
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block bg-primary-100 text-primary-700 rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">2</span>
+                <span>You'll get notified when someone accepts your request</span>
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block bg-primary-100 text-primary-700 rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">3</span>
+                <span>Connect with the traveler to arrange the pickup</span>
+              </li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSuccessClose} className="w-full">
+              Return to Home
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
