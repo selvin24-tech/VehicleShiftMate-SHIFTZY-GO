@@ -137,6 +137,16 @@ export default function Profile() {
           ))}
         </div>
         
+        {/* Reviews Section */}
+        <div className="mb-6">
+          <ReviewsSection 
+            type="user" 
+            id={parseInt(USER_PROFILE.id)}
+            title="My Reviews"
+            showForm={false}
+          />
+        </div>
+        
         {/* Settings & Help Section */}
         <Card className="bg-white rounded-lg border border-neutral-200 divide-y divide-neutral-100">
           <button className="w-full p-4 flex items-center justify-between text-left">

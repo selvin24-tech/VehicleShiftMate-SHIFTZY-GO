@@ -10,6 +10,7 @@ import Plan from "@/pages/Plan";
 import Track from "@/pages/Track";
 import Help from "@/pages/Help";
 import Chat from "@/pages/Chat";
+import VehicleDetails from "@/pages/VehicleDetails";
 import { ChatProvider } from "@/contexts/ChatContext";
 
 function Router() {
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/track" component={Track} />
       <Route path="/help" component={Help} />
       <Route path="/chat" component={Chat} />
+      <Route path="/vehicle/:id" component={VehicleDetails} />
       <Route component={NotFound} />
     </Switch>
   );
