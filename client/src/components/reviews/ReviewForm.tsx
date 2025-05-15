@@ -1,326 +1,183 @@
 import { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Card } from "@/components/ui/card";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Star } from "lucide-react";
+import { Star, X } from "lucide-react";
+import { ReviewType } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
-// Define form schemas based on review type
-const userReviewSchema = z.object({
-  reviewedUserId: z.number(),
-  tripId: z.number(),
+// Review form schema
+const reviewFormSchema = z.object({
   rating: z.number().min(1).max(5),
-  comment: z.string().min(10, "Please provide a comment with at least 10 characters").max(500),
-  userType: z.string()
+  comment: z.string().min(10, "Comment must be at least 10 characters").max(500, "Comment must be less than 500 characters"),
+  // Only for vehicle reviews
+  comfortRating: z.number().min(1).max(5).optional(),
+  cleanlinessRating: z.number().min(1).max(5).optional(),
+  performanceRating: z.number().min(1).max(5).optional(),
 });
 
-const vehicleReviewSchema = z.object({
-  vehicleId: z.number(),
-  tripId: z.number(),
-  rating: z.number().min(1).max(5),
-  comfort: z.number().min(1).max(5),
-  cleanliness: z.number().min(1).max(5),
-  performance: z.number().min(1).max(5),
-  comment: z.string().min(10, "Please provide a comment with at least 10 characters").max(500)
-});
-
-type UserReviewValues = z.infer<typeof userReviewSchema>;
-type VehicleReviewValues = z.infer<typeof vehicleReviewSchema>;
+type ReviewFormValues = z.infer<typeof reviewFormSchema>;
 
 interface ReviewFormProps {
-  type: 'user' | 'vehicle';
-  subjectId: number; // either user ID or vehicle ID
+  type: ReviewType;
+  subjectId: number;
   tripId: number;
-  userType?: string; // "driver" or "owner", only needed for user reviews
+  userType?: string;
   onReviewSubmitted: () => void;
 }
 
-export default function ReviewForm({ type, subjectId, tripId, userType = "driver", onReviewSubmitted }: ReviewFormProps) {
+export default function ReviewForm({ 
+  type, 
+  subjectId, 
+  tripId,
+  userType = "driver",
+  onReviewSubmitted 
+}: ReviewFormProps) {
+  const [hoveredRating, setHoveredRating] = useState<number | null>(null);
   const { toast } = useToast();
-  const [submitting, setSubmitting] = useState(false);
-  const [ratingValue, setRatingValue] = useState(0);
+  const queryClient = useQueryClient();
   
-  // Create form based on review type
-  const userForm = useForm<UserReviewValues>({
-    resolver: zodResolver(userReviewSchema),
+  // Form with validation
+  const form = useForm<ReviewFormValues>({
+    resolver: zodResolver(reviewFormSchema),
     defaultValues: {
-      reviewedUserId: subjectId,
-      tripId: tripId,
       rating: 0,
       comment: "",
-      userType: userType
-    }
+      comfortRating: type === 'vehicle' ? 3 : undefined,
+      cleanlinessRating: type === 'vehicle' ? 3 : undefined,
+      performanceRating: type === 'vehicle' ? 3 : undefined,
+    },
   });
   
-  const vehicleForm = useForm<VehicleReviewValues>({
-    resolver: zodResolver(vehicleReviewSchema),
-    defaultValues: {
-      vehicleId: subjectId,
-      tripId: tripId,
-      rating: 0,
-      comfort: 3,
-      cleanliness: 3,
-      performance: 3,
-      comment: ""
-    }
+  // Submit mutation
+  const mutation = useMutation({
+    mutationFn: async (values: ReviewFormValues) => {
+      // In a real implementation, this would be:
+      // return await apiRequest(`/api/${type}-reviews`, {
+      //   method: "POST",
+      //   body: JSON.stringify({
+      //     ...values,
+      //     [`${type}Id`]: subjectId,
+      //     tripId,
+      //   }),
+      // });
+      
+      // For now, return a fake success response
+      return { success: true };
+    },
+    onSuccess: () => {
+      // Invalidate queries to refetch reviews
+      const queryKey = type === 'user' ? 'user-reviews' : 'vehicle-reviews';
+      queryClient.invalidateQueries({ queryKey: [queryKey, subjectId] });
+      
+      // Show success toast
+      toast({
+        title: "Review submitted",
+        description: "Thank you for your feedback!",
+      });
+      
+      // Call the callback
+      onReviewSubmitted();
+    },
+    onError: () => {
+      toast({
+        title: "Error submitting review",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    },
   });
   
-  // Handle rating star click
-  const handleRatingClick = (rating: number) => {
-    setRatingValue(rating);
-    if (type === 'user') {
-      userForm.setValue('rating', rating);
-    } else {
-      vehicleForm.setValue('rating', rating);
-    }
+  // Form submission handler
+  const onSubmit = (values: ReviewFormValues) => {
+    mutation.mutate(values);
   };
   
-  // Render rating stars
-  const renderRatingStars = () => {
-    return Array(5).fill(0).map((_, index) => {
-      const ratingNumber = index + 1;
-      return (
-        <button
-          type="button"
-          key={index}
-          onClick={() => handleRatingClick(ratingNumber)}
-          className="focus:outline-none"
-        >
-          <Star
-            className={`w-8 h-8 cursor-pointer ${
-              ratingNumber <= ratingValue ? 'text-yellow-500 fill-yellow-500' : 'text-neutral-300'
-            }`}
-          />
-        </button>
-      );
-    });
-  };
-  
-  // Handle form submission
-  const onSubmitUserReview = async (data: UserReviewValues) => {
-    if (data.rating === 0) {
-      toast({
-        title: "Rating Required",
-        description: "Please provide a rating from 1 to 5 stars",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setSubmitting(true);
-    try {
-      await apiRequest('/api/user-reviews', 'POST', data);
-      
-      toast({
-        title: "Review Submitted",
-        description: "Your review has been submitted successfully",
-      });
-      
-      userForm.reset();
-      setRatingValue(0);
-      onReviewSubmitted();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was an error submitting your review. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  
-  const onSubmitVehicleReview = async (data: VehicleReviewValues) => {
-    if (data.rating === 0) {
-      toast({
-        title: "Rating Required",
-        description: "Please provide a rating from 1 to 5 stars",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setSubmitting(true);
-    try {
-      await apiRequest('/api/vehicle-reviews', 'POST', data);
-      
-      toast({
-        title: "Review Submitted",
-        description: "Your review has been submitted successfully",
-      });
-      
-      vehicleForm.reset();
-      setRatingValue(0);
-      onReviewSubmitted();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was an error submitting your review. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  
-  // Render the specific form based on type
-  if (type === 'user') {
+  // Star rating component
+  const StarRating = ({ field }: { field: any }) => {
     return (
-      <Card className="p-5 border border-neutral-200">
-        <h3 className="text-lg font-semibold mb-4">Rate Your Experience</h3>
-        <Form {...userForm}>
-          <form onSubmit={userForm.handleSubmit(onSubmitUserReview)} className="space-y-4">
-            <FormField
-              control={userForm.control}
-              name="rating"
-              render={() => (
-                <FormItem>
-                  <FormLabel>Rating</FormLabel>
-                  <div className="flex space-x-1 mb-2">
-                    {renderRatingStars()}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
+      <div className="flex mb-3">
+        {[1, 2, 3, 4, 5].map((rating) => (
+          <button
+            key={rating}
+            type="button"
+            onClick={() => field.onChange(rating)}
+            onMouseEnter={() => setHoveredRating(rating)}
+            onMouseLeave={() => setHoveredRating(null)}
+            className="p-1"
+          >
+            <Star
+              className={`w-8 h-8 ${
+                (hoveredRating !== null 
+                  ? rating <= hoveredRating 
+                  : rating <= field.value)
+                  ? "fill-yellow-400 text-yellow-400" 
+                  : "text-neutral-300"
+              }`}
             />
-            
-            <FormField
-              control={userForm.control}
-              name="comment"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your Review</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Share your experience with this driver" 
-                      className="resize-none" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={submitting}
-            >
-              {submitting ? "Submitting..." : "Submit Review"}
-            </Button>
-          </form>
-        </Form>
-      </Card>
+          </button>
+        ))}
+      </div>
     );
-  }
+  };
   
-  // Vehicle review form
   return (
-    <Card className="p-5 border border-neutral-200">
-      <h3 className="text-lg font-semibold mb-4">Rate This Vehicle</h3>
-      <Form {...vehicleForm}>
-        <form onSubmit={vehicleForm.handleSubmit(onSubmitVehicleReview)} className="space-y-4">
+    <Card className="p-5 border border-neutral-200 mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-semibold text-lg">
+          {type === 'user' 
+            ? `Rate this ${userType}` 
+            : "Rate this vehicle"}
+        </h3>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8" 
+          onClick={onReviewSubmitted}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Overall Rating */}
           <FormField
-            control={vehicleForm.control}
+            control={form.control}
             name="rating"
-            render={() => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Overall Rating</FormLabel>
-                <div className="flex space-x-1 mb-2">
-                  {renderRatingStars()}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={vehicleForm.control}
-            name="comfort"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex justify-between items-center">
-                  <FormLabel>Comfort</FormLabel>
-                  <span className="text-sm font-medium">{field.value}/5</span>
-                </div>
                 <FormControl>
-                  <Slider
-                    defaultValue={[field.value]}
-                    min={1}
-                    max={5}
-                    step={1}
-                    onValueChange={(vals) => field.onChange(vals[0])}
-                  />
+                  <StarRating field={field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           
+          {/* Comment */}
           <FormField
-            control={vehicleForm.control}
-            name="cleanliness"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex justify-between items-center">
-                  <FormLabel>Cleanliness</FormLabel>
-                  <span className="text-sm font-medium">{field.value}/5</span>
-                </div>
-                <FormControl>
-                  <Slider
-                    defaultValue={[field.value]}
-                    min={1}
-                    max={5}
-                    step={1}
-                    onValueChange={(vals) => field.onChange(vals[0])}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={vehicleForm.control}
-            name="performance"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex justify-between items-center">
-                  <FormLabel>Performance</FormLabel>
-                  <span className="text-sm font-medium">{field.value}/5</span>
-                </div>
-                <FormControl>
-                  <Slider
-                    defaultValue={[field.value]}
-                    min={1}
-                    max={5}
-                    step={1}
-                    onValueChange={(vals) => field.onChange(vals[0])}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={vehicleForm.control}
+            control={form.control}
             name="comment"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Your Review</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder="Share your experience with this vehicle" 
-                    className="resize-none" 
-                    {...field} 
+                  <Textarea
+                    placeholder={`Tell us about your experience with this ${
+                      type === 'user' ? userType : 'vehicle'
+                    }`}
+                    className="resize-none"
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -328,13 +185,95 @@ export default function ReviewForm({ type, subjectId, tripId, userType = "driver
             )}
           />
           
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={submitting}
-          >
-            {submitting ? "Submitting..." : "Submit Review"}
-          </Button>
+          {/* Additional metrics for vehicle reviews */}
+          {type === 'vehicle' && (
+            <div className="space-y-4 pt-2">
+              <h4 className="font-medium text-sm text-neutral-700">Additional Ratings</h4>
+              
+              {/* Comfort Rating */}
+              <FormField
+                control={form.control}
+                name="comfortRating"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex justify-between">
+                      <FormLabel className="text-sm font-normal">Comfort</FormLabel>
+                      <span className="text-sm font-medium">{field.value}/5</span>
+                    </div>
+                    <FormControl>
+                      <Slider
+                        min={1}
+                        max={5}
+                        step={1}
+                        value={[field.value || 3]}
+                        onValueChange={(value) => field.onChange(value[0])}
+                        className="py-4"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              {/* Cleanliness Rating */}
+              <FormField
+                control={form.control}
+                name="cleanlinessRating"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex justify-between">
+                      <FormLabel className="text-sm font-normal">Cleanliness</FormLabel>
+                      <span className="text-sm font-medium">{field.value}/5</span>
+                    </div>
+                    <FormControl>
+                      <Slider
+                        min={1}
+                        max={5}
+                        step={1}
+                        value={[field.value || 3]}
+                        onValueChange={(value) => field.onChange(value[0])}
+                        className="py-4"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              {/* Performance Rating */}
+              <FormField
+                control={form.control}
+                name="performanceRating"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex justify-between">
+                      <FormLabel className="text-sm font-normal">Performance</FormLabel>
+                      <span className="text-sm font-medium">{field.value}/5</span>
+                    </div>
+                    <FormControl>
+                      <Slider
+                        min={1}
+                        max={5}
+                        step={1}
+                        value={[field.value || 3]}
+                        onValueChange={(value) => field.onChange(value[0])}
+                        className="py-4"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+          
+          {/* Submit Button */}
+          <div className="pt-2">
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? "Submitting..." : "Submit Review"}
+            </Button>
+          </div>
         </form>
       </Form>
     </Card>

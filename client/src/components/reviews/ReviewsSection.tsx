@@ -1,11 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Review, ReviewType } from "@/lib/types";
 import ReviewCard from "./ReviewCard";
-import { Button } from "@/components/ui/button";
 import ReviewForm from "./ReviewForm";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Star, MessageSquarePlus } from "lucide-react";
+import { Review, ReviewType } from "@/lib/types";
+import { SAMPLE_REVIEWS } from "@/lib/constants";
+
+// When we implement the API, we'll use the following line
+// import { apiRequest } from "@/lib/queryClient";
 
 interface ReviewsSectionProps {
   type: ReviewType;
@@ -19,206 +24,140 @@ interface ReviewsSectionProps {
 export default function ReviewsSection({ 
   type, 
   id, 
-  title = type === 'user' ? 'Driver Reviews' : 'Vehicle Reviews',
-  showForm = true,
-  tripId = 1, // default for demo
+  title = "Reviews", 
+  showForm = false,
+  tripId,
   userType = "driver" 
 }: ReviewsSectionProps) {
-  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isWritingReview, setIsWritingReview] = useState(false);
   
-  // Get the appropriate API endpoint based on type
-  const endpoint = type === 'user' 
-    ? `/api/user-reviews/${id}` 
-    : `/api/vehicle-reviews/${id}`;
-  
-  // Fetch reviews data
-  const { 
-    data: reviews, 
-    isLoading, 
-    isError, 
-    refetch 
-  } = useQuery({
-    queryKey: [endpoint],
-    enabled: !!id
+  // In a real implementation, this would fetch from the API
+  // For now, we'll use sample data
+  const { data: reviews, isLoading } = useQuery<Review[]>({
+    queryKey: [type === 'user' ? 'user-reviews' : 'vehicle-reviews', id],
+    queryFn: async () => {
+      // In a real implementation, this would be:
+      // return await apiRequest(`/api/${type}-reviews?${type}Id=${id}`);
+      
+      // For now, return sample data
+      return SAMPLE_REVIEWS.filter((review) => Math.random() > 0.3);
+    },
   });
   
-  // Handle new review submission
+  // Calculate average rating
+  const averageRating = reviews?.length 
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+    : 0;
+  
   const handleReviewSubmitted = () => {
-    setShowReviewForm(false);
-    refetch();
+    setIsWritingReview(false);
   };
-  
-  // Calculate average ratings and metrics
-  const getAverageRating = () => {
-    if (!reviews || reviews.length === 0) return 0;
-    
-    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return Math.round((sum / reviews.length) * 10) / 10; // Round to 1 decimal place
-  };
-  
-  const getAverageMetrics = () => {
-    if (!reviews || reviews.length === 0 || type !== 'vehicle') {
-      return { comfort: 0, cleanliness: 0, performance: 0 };
-    }
-    
-    const metrics = reviews.reduce((acc, review) => {
-      return {
-        comfort: acc.comfort + review.comfort,
-        cleanliness: acc.cleanliness + review.cleanliness,
-        performance: acc.performance + review.performance
-      };
-    }, { comfort: 0, cleanliness: 0, performance: 0 });
-    
-    return {
-      comfort: Math.round((metrics.comfort / reviews.length) * 10) / 10,
-      cleanliness: Math.round((metrics.cleanliness / reviews.length) * 10) / 10,
-      performance: Math.round((metrics.performance / reviews.length) * 10) / 10
-    };
-  };
-  
-  const renderMetricBar = (value: number, label: string) => {
-    return (
-      <div className="mb-3">
-        <div className="flex justify-between text-sm mb-1">
-          <span className="font-medium">{label}</span>
-          <span>{value.toFixed(1)}/5</span>
-        </div>
-        <div className="w-full bg-neutral-200 rounded-full h-2">
-          <div 
-            className="bg-primary-500 h-2 rounded-full" 
-            style={{ width: `${(value / 5) * 100}%` }}
-          ></div>
-        </div>
-      </div>
-    );
-  };
-  
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold">{title}</h3>
-        </div>
-        
-        <div className="flex items-center justify-between mb-4">
-          <Skeleton className="h-8 w-28" />
-          <Skeleton className="h-8 w-24" />
-        </div>
-        
-        {Array(3).fill(0).map((_, i) => (
-          <div key={i} className="mb-4">
-            <div className="flex items-start mb-2">
-              <Skeleton className="h-10 w-10 rounded-full mr-3" />
-              <div className="w-full">
-                <Skeleton className="h-4 w-32 mb-2" />
-                <Skeleton className="h-3 w-20 mb-2" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="p-4 border border-red-200 rounded-lg bg-red-50 text-red-700">
-        Failed to load reviews. Please try again later.
-      </div>
-    );
-  }
-  
-  const averageRating = getAverageRating();
-  const metrics = getAverageMetrics();
-  
-  // For demo purposes, creating sample reviews if none exist
-  const demoReviews: Review[] = [
-    {
-      id: "1",
-      userName: "Ravi Kumar",
-      userAvatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36",
-      rating: 5,
-      comment: "Excellent driver! Very professional and punctual. The vehicle was in great condition and the journey was comfortable.",
-      date: "2023-05-10",
-      vehicleDetails: type === 'vehicle' ? { make: "Honda", model: "City" } : undefined,
-      metrics: type === 'vehicle' ? { comfort: 5, cleanliness: 5, performance: 4 } : undefined
-    },
-    {
-      id: "2",
-      userName: "Priya Sharma",
-      userAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-      rating: 4,
-      comment: "Good experience overall. Driver was courteous and the ride was smooth. Would recommend.",
-      date: "2023-04-22",
-      vehicleDetails: type === 'vehicle' ? { make: "Honda", model: "City" } : undefined,
-      metrics: type === 'vehicle' ? { comfort: 4, cleanliness: 4, performance: 4 } : undefined
-    }
-  ];
-  
-  const reviewsToDisplay = reviews?.length > 0 ? reviews : demoReviews;
   
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold">{title}</h3>
-        {showForm && !showReviewForm && (
+    <div className="review-section">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-lg flex items-center">
+          <Star className="w-5 h-5 text-yellow-500 mr-2" />
+          {title}
+        </h3>
+        
+        {showForm && !isWritingReview && (
           <Button 
             variant="outline" 
-            onClick={() => setShowReviewForm(true)}
-            className="text-sm"
+            size="sm"
+            className="text-xs flex items-center"
+            onClick={() => setIsWritingReview(true)}
           >
-            Write a Review
+            <MessageSquarePlus className="w-4 h-4 mr-1" />
+            Write Review
           </Button>
         )}
       </div>
       
-      {showReviewForm && (
+      {isWritingReview && (
         <div className="mb-6">
           <ReviewForm 
             type={type}
             subjectId={id}
-            tripId={tripId}
+            tripId={tripId || 1} // Default to 1 for demo
             userType={userType}
             onReviewSubmitted={handleReviewSubmitted}
           />
         </div>
       )}
       
-      <div className="mb-6">
-        <div className="flex items-center mb-4">
-          <div className="text-3xl font-bold text-primary-600 mr-2">
-            {averageRating.toFixed(1)}
+      {/* Rating Summary */}
+      {reviews?.length ? (
+        <Card className="p-4 border border-neutral-200 mb-4">
+          <div className="flex items-center">
+            <div className="bg-yellow-50 p-3 rounded-full mr-3">
+              <Star className="w-8 h-8 text-yellow-500 fill-yellow-500" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold">
+                {averageRating.toFixed(1)}/5.0
+              </div>
+              <div className="text-neutral-500 text-sm">
+                Based on {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+              </div>
+            </div>
           </div>
-          <div className="text-sm text-neutral-500">
-            based on {reviewsToDisplay.length} {reviewsToDisplay.length === 1 ? 'review' : 'reviews'}
-          </div>
+        </Card>
+      ) : !isLoading ? (
+        <div className="text-center py-6 text-neutral-500">
+          No reviews yet.
         </div>
-        
-        {type === 'vehicle' && (
-          <div className="mb-4">
-            {renderMetricBar(metrics.comfort, 'Comfort')}
-            {renderMetricBar(metrics.cleanliness, 'Cleanliness')}
-            {renderMetricBar(metrics.performance, 'Performance')}
-          </div>
+      ) : null}
+      
+      {/* Reviews List */}
+      <div className="reviews-list">
+        {isLoading ? (
+          // Loading skeleton
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="p-4 border border-neutral-200 mb-4">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center">
+                  <Skeleton className="h-10 w-10 rounded-full mr-3" />
+                  <div>
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+                <div className="flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-4 w-4 mr-1 rounded-full" />
+                  ))}
+                </div>
+              </div>
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-4/5 mb-2" />
+              <Skeleton className="h-4 w-3/5" />
+            </Card>
+          ))
+        ) : (
+          reviews?.map((review) => (
+            <ReviewCard 
+              key={review.id} 
+              review={review} 
+              type={type} 
+            />
+          ))
         )}
       </div>
       
-      <div>
-        {reviewsToDisplay.map((review) => (
-          <ReviewCard 
-            key={review.id} 
-            review={review} 
-            type={type}
-          />
-        ))}
-        
-        {reviewsToDisplay.length === 0 && (
-          <div className="text-center p-6 bg-neutral-50 rounded-lg border border-neutral-200">
-            <p className="text-neutral-500">No reviews yet</p>
-          </div>
-        )}
-      </div>
+      {!isWritingReview && showForm && reviews?.length > 0 && (
+        <div className="text-center">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="mt-2"
+            onClick={() => setIsWritingReview(true)}
+          >
+            <MessageSquarePlus className="w-4 h-4 mr-1" />
+            Add Your Review
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Testimonial, Vehicle, Trip, ShiftRequest } from "./types";
+import { Testimonial, Vehicle, Trip, ShiftRequest, Review } from "./types";
 
 export const VEHICLE_TYPES = [
   {
@@ -581,6 +581,76 @@ export const CHENNAI_LOCALITIES = [
   "Mylapore",
   "OMR",
   "ECR"
+];
+
+export const SAMPLE_REVIEWS: Review[] = [
+  {
+    id: "r1",
+    userName: "Aditya Singh",
+    userAvatar: "https://ui-avatars.com/api/?name=Aditya+Singh&background=0D8ABC&color=fff",
+    rating: 5,
+    comment: "Very smooth ride! The vehicle was clean and well-maintained. Would definitely book again!",
+    date: "2023-06-20",
+    metrics: {
+      comfort: 5,
+      cleanliness: 5,
+      performance: 4
+    }
+  },
+  {
+    id: "r2",
+    userName: "Priya Patel",
+    userAvatar: "https://ui-avatars.com/api/?name=Priya+Patel&background=FF6B6B&color=fff",
+    rating: 4,
+    comment: "Great experience overall. The car was comfortable and the process was hassle-free.",
+    date: "2023-07-12",
+    metrics: {
+      comfort: 4,
+      cleanliness: 4,
+      performance: 5
+    }
+  },
+  {
+    id: "r3",
+    userName: "Raj Malhotra",
+    rating: 3,
+    comment: "Decent ride, but the vehicle had some minor issues with the air conditioning.",
+    date: "2023-08-05",
+    vehicleDetails: {
+      make: "Honda",
+      model: "City"
+    },
+    metrics: {
+      comfort: 3,
+      cleanliness: 4,
+      performance: 3
+    }
+  },
+  {
+    id: "r4",
+    userName: "Sunita Kapoor",
+    userAvatar: "https://ui-avatars.com/api/?name=Sunita+Kapoor&background=F39C12&color=fff",
+    rating: 5,
+    comment: "Amazing service! The owner was very accommodating with the pickup and drop-off times.",
+    date: "2023-07-25",
+    vehicleDetails: {
+      make: "Toyota",
+      model: "Fortuner"
+    }
+  },
+  {
+    id: "r5",
+    userName: "Karthik Raman",
+    userAvatar: "https://ui-avatars.com/api/?name=Karthik+Raman&background=2ECC71&color=fff",
+    rating: 4,
+    comment: "Good vehicle condition, enjoyed driving it. Just a bit of delay in handover.",
+    date: "2023-08-15",
+    metrics: {
+      comfort: 4,
+      cleanliness: 3,
+      performance: 5
+    }
+  }
 ];
 
 export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [

@@ -34,9 +34,19 @@ export interface Vehicle {
   ownerId?: string;
   ownerName?: string;
   rating?: number;
+  averageRating?: number;
+  totalRatings?: number;
   availabilityStatus?: 'available' | 'unavailable' | 'available-tomorrow';
   features?: string[];
   pricePerDay?: number;
+}
+
+export interface Testimonial {
+  id: string;
+  userName: string;
+  userAvatar?: string;
+  rating: number;
+  comment: string;
 }
 
 export type ReviewType = 'user' | 'vehicle';
