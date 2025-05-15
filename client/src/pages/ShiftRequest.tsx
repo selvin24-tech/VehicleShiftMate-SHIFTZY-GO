@@ -294,7 +294,7 @@ export default function ShiftRequest() {
                             </div>
                           </div>
                         </RadioGroup>
-                      )
+                      )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -445,9 +445,6 @@ export default function ShiftRequest() {
                   </FormItem>
                 )}
               />
-
-              {/* Additional Details */}
-              <h2 className="font-bold text-lg mb-4 mt-8">Additional Details</h2>
 
               {/* Insurance Expiry Date */}
               <FormField
