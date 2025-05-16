@@ -492,6 +492,48 @@ export default function ShiftRequest() {
                 </div>
               </div>
 
+              {/* Preview Section */}
+              {selectedVehicleType && form.getValues('vehicleModel') && form.getValues('pickupLocation') && form.getValues('dropLocation') && (
+                <div className="mt-8 mb-4">
+                  <h2 className="font-bold text-lg mb-4">Preview</h2>
+                  <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
+                    <div className="flex items-center mb-3">
+                      <div className="bg-white rounded-full p-2 mr-3">
+                        {selectedVehicleType === "car" && <span className="text-2xl">🚗</span>}
+                        {selectedVehicleType === "bike" && <span className="text-2xl">🏍️</span>}
+                        {selectedVehicleType === "suv" && <span className="text-2xl">🚙</span>}
+                        {selectedVehicleType === "luxury" && <span className="text-2xl">✨</span>}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-base">
+                          {selectedVehicleType === "car" && "Car"}
+                          {selectedVehicleType === "bike" && "Bike"}
+                          {selectedVehicleType === "suv" && "SUV"}
+                          {selectedVehicleType === "luxury" && "Premium"}
+                          {" - "}{form.getValues('vehicleModel')}
+                        </h3>
+                        <p className="text-xs text-neutral-600">{form.getValues('registrationNumber')}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col space-y-2 text-sm border-t border-primary-100 pt-3">
+                      <div className="flex">
+                        <span className="font-medium w-28">Pickup:</span>
+                        <span>{form.getValues('pickupLocation')}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium w-28">Drop:</span>
+                        <span>{form.getValues('dropLocation')}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium w-28">Insurance:</span>
+                        <span>{form.getValues('insuranceExpiryDate')}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Submit Button */}
               <div className="sticky bottom-6 left-0 right-0 bg-white pt-4 pb-2 px-4 mt-6 shadow-lg rounded-t-2xl">
                 <Button
