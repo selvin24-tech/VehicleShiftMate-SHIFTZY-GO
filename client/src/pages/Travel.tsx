@@ -324,56 +324,133 @@ export default function Travel() {
             
             {/* Vehicle Type Selection */}
             <div className="mb-4">
-              
-              <div className="vehicle-type-options grid grid-cols-2 gap-3 pt-2">
-                <div 
-                  className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${activeFilter === 'car' ? 'selected-vehicle-option' : 'bg-white'}`}
-                  onClick={() => handleFilterClick('car')}
-                >
-                  <div className="p-4 flex flex-col items-center text-center">
-                    <span className="text-3xl mb-2">🚗</span>
-                    <h3 className="font-semibold text-base mb-1">Car</h3>
-                    <p className="text-xs text-neutral-600">Sedans, Hatchbacks – Daily ride, easy to shift</p>
-                    {activeFilter === 'car' && <div className="option-tick">✓</div>}
+              {!activeFilter ? (
+                // Show all options when no vehicle is selected
+                <div className="vehicle-type-options grid grid-cols-2 gap-3 pt-2">
+                  <div 
+                    className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white hover:bg-gray-50"
+                    onClick={() => handleFilterClick('car')}
+                  >
+                    <div className="p-4 flex flex-col items-center text-center">
+                      <span className="text-3xl mb-2">🚗</span>
+                      <h3 className="font-semibold text-base mb-1">Car</h3>
+                      <p className="text-xs text-neutral-600">Sedans, Hatchbacks – Daily ride, easy to shift</p>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white hover:bg-gray-50"
+                    onClick={() => handleFilterClick('bike')}
+                  >
+                    <div className="p-4 flex flex-col items-center text-center">
+                      <span className="text-3xl mb-2">🏍️</span>
+                      <h3 className="font-semibold text-base mb-1">Bike</h3>
+                      <p className="text-xs text-neutral-600">Scooters, Motorbikes – Lightweight and quick move</p>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white hover:bg-gray-50"
+                    onClick={() => handleFilterClick('suv')}
+                  >
+                    <div className="p-4 flex flex-col items-center text-center">
+                      <span className="text-3xl mb-2">🚙</span>
+                      <h3 className="font-semibold text-base mb-1">SUV</h3>
+                      <p className="text-xs text-neutral-600">Big, Bold & Spacious – Great for road trips & families</p>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white hover:bg-gray-50"
+                    onClick={() => handleFilterClick('luxury')}
+                  >
+                    <div className="p-4 flex flex-col items-center text-center">
+                      <span className="text-3xl mb-2">✨</span>
+                      <h3 className="font-semibold text-base mb-1">Premium</h3>
+                      <p className="text-xs text-neutral-600">Top-end vehicles for a signature travel experience</p>
+                    </div>
                   </div>
                 </div>
-                
-                <div 
-                  className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${activeFilter === 'bike' ? 'selected-vehicle-option' : 'bg-white'}`}
-                  onClick={() => handleFilterClick('bike')}
-                >
-                  <div className="p-4 flex flex-col items-center text-center">
-                    <span className="text-3xl mb-2">🏍️</span>
-                    <h3 className="font-semibold text-base mb-1">Bike</h3>
-                    <p className="text-xs text-neutral-600">Scooters, Motorbikes – Lightweight and quick move</p>
-                    {activeFilter === 'bike' && <div className="option-tick">✓</div>}
-                  </div>
+              ) : (
+                // Show only the selected vehicle with enhanced details
+                <div className="pt-2">
+                  {activeFilter === 'car' && (
+                    <div className="vehicle-option selected-vehicle-option rounded-xl overflow-hidden shadow-md">
+                      <div className="p-6 flex flex-col items-center text-center">
+                        <span className="text-5xl mb-3">🚗</span>
+                        <h3 className="font-bold text-xl mb-2">Car</h3>
+                        <p className="text-sm text-neutral-700">Sedans, Hatchbacks – Daily ride, easy to shift</p>
+                        <div className="option-tick">✓</div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-4" 
+                          onClick={() => setActiveFilter(null)}
+                        >
+                          Change Selection
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {activeFilter === 'bike' && (
+                    <div className="vehicle-option selected-vehicle-option rounded-xl overflow-hidden shadow-md">
+                      <div className="p-6 flex flex-col items-center text-center">
+                        <span className="text-5xl mb-3">🏍️</span>
+                        <h3 className="font-bold text-xl mb-2">Bike</h3>
+                        <p className="text-sm text-neutral-700">Scooters, Motorbikes – Lightweight and quick move</p>
+                        <div className="option-tick">✓</div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-4" 
+                          onClick={() => setActiveFilter(null)}
+                        >
+                          Change Selection
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {activeFilter === 'suv' && (
+                    <div className="vehicle-option selected-vehicle-option rounded-xl overflow-hidden shadow-md">
+                      <div className="p-6 flex flex-col items-center text-center">
+                        <span className="text-5xl mb-3">🚙</span>
+                        <h3 className="font-bold text-xl mb-2">SUV</h3>
+                        <p className="text-sm text-neutral-700">Big, Bold & Spacious – Great for road trips & families</p>
+                        <div className="option-tick">✓</div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-4" 
+                          onClick={() => setActiveFilter(null)}
+                        >
+                          Change Selection
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {activeFilter === 'luxury' && (
+                    <div className="vehicle-option selected-vehicle-option rounded-xl overflow-hidden shadow-md">
+                      <div className="p-6 flex flex-col items-center text-center">
+                        <span className="text-5xl mb-3">✨</span>
+                        <h3 className="font-bold text-xl mb-2">Premium</h3>
+                        <p className="text-sm text-neutral-700">Top-end vehicles for a signature travel experience</p>
+                        <div className="option-tick">✓</div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-4" 
+                          onClick={() => setActiveFilter(null)}
+                        >
+                          Change Selection
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                
-                <div 
-                  className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${activeFilter === 'suv' ? 'selected-vehicle-option' : 'bg-white'}`}
-                  onClick={() => handleFilterClick('suv')}
-                >
-                  <div className="p-4 flex flex-col items-center text-center">
-                    <span className="text-3xl mb-2">🚙</span>
-                    <h3 className="font-semibold text-base mb-1">SUV</h3>
-                    <p className="text-xs text-neutral-600">Big, Bold & Spacious – Great for road trips & families</p>
-                    {activeFilter === 'suv' && <div className="option-tick">✓</div>}
-                  </div>
-                </div>
-                
-                <div 
-                  className={`vehicle-option rounded-xl overflow-hidden shadow transition-all ${activeFilter === 'luxury' ? 'selected-vehicle-option' : 'bg-white'}`}
-                  onClick={() => handleFilterClick('luxury')}
-                >
-                  <div className="p-4 flex flex-col items-center text-center">
-                    <span className="text-3xl mb-2">✨</span>
-                    <h3 className="font-semibold text-base mb-1">Premium</h3>
-                    <p className="text-xs text-neutral-600">Top-end vehicles for a signature travel experience</p>
-                    {activeFilter === 'luxury' && <div className="option-tick">✓</div>}
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
             
             {/* Location Inputs */}
@@ -545,51 +622,88 @@ export default function Travel() {
                 <span>Vehicle Type</span>
               </div>
               
-              <div className="vehicle-type-options-compact grid grid-cols-4 gap-2">
-                <div 
-                  className={`vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all ${activeFilter === 'car' ? 'selected-vehicle-option-compact' : 'bg-white'}`}
-                  onClick={() => handleFilterClick('car')}
-                >
-                  <div className="p-2 flex flex-col items-center text-center">
-                    <span className="text-xl mb-1">🚗</span>
-                    <p className="text-xs font-medium">Car</p>
-                    {activeFilter === 'car' && <div className="option-tick-compact">✓</div>}
+              {!activeFilter ? (
+                // Show all options when no vehicle is selected
+                <div className="vehicle-type-options-compact grid grid-cols-4 gap-2">
+                  <div 
+                    className="vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all bg-white hover:bg-gray-50"
+                    onClick={() => handleFilterClick('car')}
+                  >
+                    <div className="p-2 flex flex-col items-center text-center">
+                      <span className="text-xl mb-1">🚗</span>
+                      <p className="text-xs font-medium">Car</p>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all bg-white hover:bg-gray-50"
+                    onClick={() => handleFilterClick('bike')}
+                  >
+                    <div className="p-2 flex flex-col items-center text-center">
+                      <span className="text-xl mb-1">🏍️</span>
+                      <p className="text-xs font-medium">Bike</p>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all bg-white hover:bg-gray-50"
+                    onClick={() => handleFilterClick('suv')}
+                  >
+                    <div className="p-2 flex flex-col items-center text-center">
+                      <span className="text-xl mb-1">🚙</span>
+                      <p className="text-xs font-medium">SUV</p>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all bg-white hover:bg-gray-50"
+                    onClick={() => handleFilterClick('luxury')}
+                  >
+                    <div className="p-2 flex flex-col items-center text-center">
+                      <span className="text-xl mb-1">✨</span>
+                      <p className="text-xs font-medium">Premium</p>
+                    </div>
                   </div>
                 </div>
-                
-                <div 
-                  className={`vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all ${activeFilter === 'bike' ? 'selected-vehicle-option-compact' : 'bg-white'}`}
-                  onClick={() => handleFilterClick('bike')}
-                >
-                  <div className="p-2 flex flex-col items-center text-center">
-                    <span className="text-xl mb-1">🏍️</span>
-                    <p className="text-xs font-medium">Bike</p>
-                    {activeFilter === 'bike' && <div className="option-tick-compact">✓</div>}
+              ) : (
+                // Show only the selected vehicle
+                <div className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm">
+                  <div className="flex items-center gap-2">
+                    {activeFilter === 'car' && (
+                      <>
+                        <span className="text-xl">🚗</span>
+                        <p className="font-medium">Car</p>
+                      </>
+                    )}
+                    {activeFilter === 'bike' && (
+                      <>
+                        <span className="text-xl">🏍️</span>
+                        <p className="font-medium">Bike</p>
+                      </>
+                    )}
+                    {activeFilter === 'suv' && (
+                      <>
+                        <span className="text-xl">🚙</span>
+                        <p className="font-medium">SUV</p>
+                      </>
+                    )}
+                    {activeFilter === 'luxury' && (
+                      <>
+                        <span className="text-xl">✨</span>
+                        <p className="font-medium">Premium</p>
+                      </>
+                    )}
+                    <div className="selected-badge ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Selected</div>
                   </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setActiveFilter(null)}
+                  >
+                    Change
+                  </Button>
                 </div>
-                
-                <div 
-                  className={`vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all ${activeFilter === 'suv' ? 'selected-vehicle-option-compact' : 'bg-white'}`}
-                  onClick={() => handleFilterClick('suv')}
-                >
-                  <div className="p-2 flex flex-col items-center text-center">
-                    <span className="text-xl mb-1">🚙</span>
-                    <p className="text-xs font-medium">SUV</p>
-                    {activeFilter === 'suv' && <div className="option-tick-compact">✓</div>}
-                  </div>
-                </div>
-                
-                <div 
-                  className={`vehicle-option-compact rounded-lg overflow-hidden shadow-sm transition-all ${activeFilter === 'luxury' ? 'selected-vehicle-option-compact' : 'bg-white'}`}
-                  onClick={() => handleFilterClick('luxury')}
-                >
-                  <div className="p-2 flex flex-col items-center text-center">
-                    <span className="text-xl mb-1">✨</span>
-                    <p className="text-xs font-medium">Premium</p>
-                    {activeFilter === 'luxury' && <div className="option-tick-compact">✓</div>}
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
             
             {/* Local Shift Requests */}
