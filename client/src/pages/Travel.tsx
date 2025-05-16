@@ -496,13 +496,6 @@ export default function Travel() {
                 )}
               />
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-secondary-500 text-white"
-            >
-              Search Vehicles
-            </Button>
           </form>
         </Form>
       </div>
