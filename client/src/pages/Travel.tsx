@@ -175,7 +175,7 @@ export default function Travel() {
       <Header title="Find a Vehicle to Drive" showBackButton variant="secondary" showAnimation={true} />
       
       {/* Search Section - Always Visible */}
-      <div className="p-4 bg-white shadow-md sticky top-0 z-10">
+      <div className="p-4 bg-white">
         <h2 className="font-bold text-lg mb-3">Find Your Ride</h2>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSearch)}>
@@ -191,7 +191,7 @@ export default function Travel() {
                         <Input
                           {...field}
                           placeholder="Search for car, bike models..."
-                          className="w-full p-3 pl-10 text-base border-2 border-primary-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
+                          className="w-full p-3 pl-10 text-base border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
                       <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
@@ -199,7 +199,7 @@ export default function Travel() {
                           <Button
                             type="button"
                             variant="outline"
-                            className="flex shrink-0 items-center gap-1 text-neutral-700 h-[46px] px-3 border-2 border-primary-100"
+                            className="flex shrink-0 items-center gap-1 text-neutral-700 h-[42px] px-3"
                           >
                             <Filter className="w-4 h-4" />
                             <span>Filter</span>
