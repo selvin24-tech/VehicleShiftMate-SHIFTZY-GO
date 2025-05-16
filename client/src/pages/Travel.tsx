@@ -341,63 +341,33 @@ export default function Travel() {
                 
               {selectedVehicleType ? (
                 // Show only the selected vehicle with enhanced details - EXACTLY like Shift page
-                <div className="bg-white rounded-xl shadow-md p-4 border-2 border-primary-200">
-                  <div className="flex items-start">
-                    <div className="bg-primary-50 rounded-full p-4 mr-4">
-                      {selectedVehicleType === "car" && <span className="text-4xl">🚗</span>}
-                      {selectedVehicleType === "bike" && <span className="text-4xl">🏍️</span>}
-                      {selectedVehicleType === "suv" && <span className="text-4xl">🚙</span>}
-                      {selectedVehicleType === "luxury" && <span className="text-4xl">✨</span>}
+                <div className="bg-white rounded-xl shadow-md p-2 border-2 border-primary-200 mb-3">
+                  <div className="flex items-center">
+                    <div className="bg-primary-50 rounded-full p-2 mr-3">
+                      {selectedVehicleType === "car" && <span className="text-3xl">🚗</span>}
+                      {selectedVehicleType === "bike" && <span className="text-3xl">🏍️</span>}
+                      {selectedVehicleType === "suv" && <span className="text-3xl">🚙</span>}
+                      {selectedVehicleType === "luxury" && <span className="text-3xl">✨</span>}
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg mb-1">
+                      <h3 className="font-bold text-lg">
                         {selectedVehicleType === "car" && "Car"}
                         {selectedVehicleType === "bike" && "Bike"}
                         {selectedVehicleType === "suv" && "SUV"}
                         {selectedVehicleType === "luxury" && "Premium"}
                       </h3>
-                      <p className="text-sm text-neutral-600 mb-2">
-                        {selectedVehicleType === "car" && "Sedans, Hatchbacks – Daily ride, easy to shift"}
-                        {selectedVehicleType === "bike" && "Scooters, Motorbikes – Lightweight and quick move"}
-                        {selectedVehicleType === "suv" && "Big, Bold & Spacious – Great for road trips & families"}
-                        {selectedVehicleType === "luxury" && "Top-end vehicles for a signature travel experience"}
+                      <p className="text-xs text-neutral-600">
+                        {selectedVehicleType === "car" && "Sedans, Hatchbacks"}
+                        {selectedVehicleType === "bike" && "Scooters, Motorbikes"}
+                        {selectedVehicleType === "suv" && "Spacious, Family-friendly"}
+                        {selectedVehicleType === "luxury" && "Premium comfort"}
                       </p>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {selectedVehicleType === "car" && (
-                          <>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">5 Seater</span>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Compact</span>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Fuel Efficient</span>
-                          </>
-                        )}
-                        {selectedVehicleType === "bike" && (
-                          <>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">1-2 Seater</span>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Low Cost</span>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Fast Delivery</span>
-                          </>
-                        )}
-                        {selectedVehicleType === "suv" && (
-                          <>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">7 Seater</span>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Spacious</span>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Road Trip</span>
-                          </>
-                        )}
-                        {selectedVehicleType === "luxury" && (
-                          <>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Premium</span>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Comfort</span>
-                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">High-End</span>
-                          </>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
               ) : (
                 // Show all options when no vehicle is selected
-                <div className="vehicle-type-options grid grid-cols-2 gap-3 pt-2">
+                <div className="vehicle-type-options grid grid-cols-2 gap-3 pt-2 mb-3">
                   <div 
                     className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white border border-neutral-200 hover:border-primary-300 hover:bg-primary-50"
                     onClick={() => handleFilterClick("car")}
@@ -668,8 +638,8 @@ export default function Travel() {
                   </div>
                 </div>
               ) : (
-                // Show only the selected vehicle
-                <div className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm border border-primary-200">
+                // Show only the selected vehicle in a compact way
+                <div className="flex items-center justify-between bg-white p-2 rounded-lg shadow-sm border border-primary-200 mb-3">
                   <div className="flex items-center gap-2">
                     {selectedVehicleType === "car" && (
                       <>
