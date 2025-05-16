@@ -135,8 +135,8 @@ export default function Travel() {
     let filtered = [...LOCAL_SHIFT_REQUESTS];
     
     // Filter by vehicle type if active
-    if (activeFilter) {
-      filtered = filtered.filter(request => request.vehicle.type === activeFilter);
+    if (selectedVehicleType) {
+      filtered = filtered.filter(request => request.vehicle.type === selectedVehicleType);
     }
     
     // Filter by pickup locality if selected
@@ -168,7 +168,7 @@ export default function Travel() {
   // Apply local filtering when any filter changes
   useEffect(() => {
     filterLocalRequests();
-  }, [activeFilter, selectedPickupLocality, selectedDropLocality]);
+  }, [selectedVehicleType, selectedPickupLocality, selectedDropLocality]);
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-16">
