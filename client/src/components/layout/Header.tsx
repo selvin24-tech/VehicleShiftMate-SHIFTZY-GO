@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Car, Bike } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Car, Bike, ChevronLeft } from "lucide-react";
 import { USER_PROFILE } from "@/lib/constants";
 
 interface HeaderProps {
@@ -123,21 +124,29 @@ export default function Header({
           </div>
           
           {showBackButton && (
-            <button 
-              className="absolute top-4 left-4 z-30 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center shadow-md" 
-              aria-label="Back" 
-              onClick={() => setLocation("/")}
-            >
-              <i className="fas fa-arrow-left text-primary-500"></i>
-            </button>
+            <div className="absolute top-4 left-4 z-30">
+              <Button 
+                variant="default" 
+                size="lg"
+                onClick={() => setLocation("/")}
+                className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 p-0 flex items-center justify-center"
+              >
+                <ChevronLeft className="h-7 w-7" />
+              </Button>
+            </div>
           )}
         </div>
       ) : (
         <div className={`${bgColorClass} text-white p-4 flex items-center`}>
           {showBackButton && (
-            <button className="mr-3" aria-label="Back" onClick={() => setLocation("/")}>
-              <i className="fas fa-arrow-left"></i>
-            </button>
+            <Button 
+              variant="default" 
+              size="lg"
+              onClick={() => setLocation("/")}
+              className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-10 h-10 p-0 mr-3 flex items-center justify-center"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
           )}
           {title === "Shiftzy Go" ? (
             <div>
