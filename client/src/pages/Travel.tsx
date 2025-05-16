@@ -34,7 +34,7 @@ import VehicleCard from "@/components/common/VehicleCard";
 import ShiftRequestCard from "@/components/common/ShiftRequestCard";
 import { AVAILABLE_VEHICLES, LOCATIONS, NEARBY_SHIFT_REQUESTS, LOCAL_SHIFT_REQUESTS, CHENNAI_LOCALITIES } from "@/lib/constants";
 import { TravelSearchFilters, Vehicle, ShiftRequest } from "@/lib/types";
-import { Search, Filter, Calendar, MapPin, Clock, IndianRupee, Navigation } from "lucide-react";
+import { Search, Filter, Calendar, MapPin, Clock, IndianRupee, Navigation, ChevronLeft } from "lucide-react";
 
 export default function Travel() {
   const [, navigate] = useLocation();
