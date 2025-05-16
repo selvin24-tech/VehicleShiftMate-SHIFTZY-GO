@@ -61,19 +61,23 @@ export default function Travel() {
   });
 
   const handleFilterClick = (filter: string) => {
-    setActiveFilter(activeFilter === filter ? null : filter);
+    // If the same filter is clicked again, keep the selection
+    if (activeFilter === filter) {
+      return;
+    }
+    
+    // Set the new active filter
+    setActiveFilter(filter);
     
     // Apply filters
     let filtered = AVAILABLE_VEHICLES;
-    if (filter !== null && filter !== activeFilter) {
-      if (filter === "car" || filter === "bike") {
-        filtered = AVAILABLE_VEHICLES.filter(vehicle => vehicle.type === filter);
-      } else if (filter === "luxury") {
-        filtered = AVAILABLE_VEHICLES.filter(vehicle => 
-          (vehicle.pricePerDay && vehicle.pricePerDay > 2500) || 
-          (vehicle.features && vehicle.features.includes("Premium"))
-        );
-      }
+    if (filter === "car" || filter === "bike" || filter === "suv") {
+      filtered = AVAILABLE_VEHICLES.filter(vehicle => vehicle.type === filter);
+    } else if (filter === "luxury") {
+      filtered = AVAILABLE_VEHICLES.filter(vehicle => 
+        (vehicle.pricePerDay && vehicle.pricePerDay > 2500) || 
+        (vehicle.features && vehicle.features.includes("Premium"))
+      );
     }
     
     setSearchResults(filtered);
