@@ -46,7 +46,7 @@ export default function Travel() {
   const [filteredLocalRequests, setFilteredLocalRequests] = useState<ShiftRequest[]>(LOCAL_SHIFT_REQUESTS);
   const [selectedPickupLocality, setSelectedPickupLocality] = useState<string>("");
   const [selectedDropLocality, setSelectedDropLocality] = useState<string>("");
-  const [selectedVehicleType, setSelectedVehicleType] = useState<"car" | "bike" | "suv" | "luxury" | null>("car");
+  const [selectedVehicleType, setSelectedVehicleType] = useState<"car" | "bike" | "suv" | "luxury" | null>(null);
   const { toast } = useToast();
 
   const form = useForm<TravelSearchFilters>({
@@ -170,9 +170,27 @@ export default function Travel() {
     filterLocalRequests();
   }, [selectedVehicleType, selectedPickupLocality, selectedDropLocality]);
 
+  // Reset vehicle selection when navigating away
+  useEffect(() => {
+    return () => {
+      // This will run when component unmounts
+      setSelectedVehicleType(null);
+    };
+  }, []);
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-16">
-      <Header title="Find a Vehicle to Drive" showBackButton variant="secondary" showAnimation={true} />
+      <Header title="Find a Vehicle to Drive" variant="secondary" showAnimation={true} />
+      <div className="fixed top-4 left-4 z-50">
+        <Button 
+          variant="default" 
+          size="lg"
+          onClick={() => navigate("/")}
+          className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 p-0 flex items-center justify-center"
+        >
+          <ChevronLeft className="h-7 w-7" />
+        </Button>
+      </div>
       
       {/* Search Section - Always Visible */}
       <div className="p-4 bg-white">
