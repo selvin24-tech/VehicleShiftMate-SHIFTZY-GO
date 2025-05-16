@@ -136,11 +136,20 @@ export default function VehicleDetails() {
     <div className="max-w-lg mx-auto px-4 pb-24">
       <Header />
       
-      <div className="flex items-center mb-4 mt-2">
-        <Button variant="ghost" size="icon" onClick={handleBack} className="mr-2">
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
+      <div className="flex items-center justify-between mb-4 mt-2">
         <h1 className="text-xl font-bold">Vehicle Details</h1>
+      </div>
+      
+      <div className="absolute top-4 left-4 z-10">
+        <Button 
+          variant="secondary" 
+          size="sm"
+          onClick={handleBack}
+          className="bg-white shadow-md hover:bg-neutral-100 flex items-center gap-1"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back
+        </Button>
       </div>
       
       {/* Vehicle Images */}

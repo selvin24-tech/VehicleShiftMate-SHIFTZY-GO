@@ -29,7 +29,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { LOCATIONS, DETAILED_VEHICLE_TYPES } from "@/lib/constants";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, ChevronLeft } from "lucide-react";
 
 const formSchema = z.object({
   vehicleType: z.enum(["car", "bike", "suv", "luxury"]).optional().refine(val => val !== undefined, {
@@ -143,7 +143,18 @@ export default function ShiftRequest() {
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
-      <Header title="Shift Your Vehicle" showBackButton variant="primary" showAnimation={true} />
+      <Header title="Shift Your Vehicle" showAnimation={true} />
+      <div className="absolute top-4 left-4 z-10">
+        <Button 
+          variant="secondary" 
+          size="sm"
+          onClick={() => navigate("/")}
+          className="bg-white shadow-md hover:bg-neutral-100 flex items-center gap-1"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
 
       <div className="px-4 py-6">
         <Form {...form}>
