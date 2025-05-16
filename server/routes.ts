@@ -3,6 +3,10 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import Stripe from "stripe";
+
+// Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+
 import { 
   insertShiftRequestSchema, 
   insertUserReviewSchema,
@@ -430,6 +434,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // WebSocket server for real-time chat
+  // --- Payment Routes ---
+  // Create a payment intent for vehicle booking
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { vehicleId, totalDays, totalAmount } = req.body;
+      
+      if (!vehicleId || !totalDays || !totalAmount) {
+        return res.status(400).json({ message: "Missing required booking information" });
+      }
+      
+      // Create a payment intent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(totalAmount * 100), // Convert to cents
+        currency: "inr",
+        metadata: {
+          vehicleId: vehicleId.toString(),
+          totalDays: totalDays.toString()
+        }
+      });
+      
+      // Send the client secret to the client
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Error creating payment intent" });
+    }
+  });
+  
+  // Confirm a booking after successful payment
+  app.post("/api/confirm-booking", async (req, res) => {
+    try {
+      const { paymentIntentId, vehicleId, pickupDate, returnDate, totalDays, totalAmount } = req.body;
+      
+      // In a real app, we would get the user ID from the session
+      const userId = 1;
+      
+      // Verify payment was successful
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status !== "succeeded") {
+        return res.status(400).json({ message: "Payment not completed" });
+      }
+      
+      // Create a new trip/booking record
+      const tripData = {
+        userId,
+        vehicleId: parseInt(vehicleId),
+        driverId: userId, // In a real app, this could be different from userId
+        pickupDate: new Date(pickupDate).toISOString(),
+        returnDate: new Date(returnDate).toISOString(),
+        totalDays: parseInt(totalDays),
+        totalAmount: parseFloat(totalAmount),
+        paymentId: paymentIntentId,
+        status: "confirmed"
+      };
+      
+      // Create the trip in database - Using a mock response for now
+      // const newTrip = await storage.createTrip(tripData);
+      const mockTrip = {
+        id: Math.floor(Math.random() * 10000),
+        ...tripData,
+        createdAt: new Date().toISOString()
+      };
+      
+      res.status(201).json(mockTrip);
+    } catch (error) {
+      console.error("Error confirming booking:", error);
+      res.status(500).json({ message: "Error confirming booking" });
+    }
+  });
+
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   

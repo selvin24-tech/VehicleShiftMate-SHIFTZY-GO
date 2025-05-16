@@ -11,6 +11,7 @@ import Track from "@/pages/Track";
 import Help from "@/pages/Help";
 import Chat from "@/pages/Chat";
 import VehicleDetails from "@/pages/VehicleDetails";
+import Checkout from "@/pages/Checkout";
 import { ChatProvider } from "@/contexts/ChatContext";
 
 function Router() {
@@ -25,6 +26,8 @@ function Router() {
       <Route path="/help" component={Help} />
       <Route path="/chat" component={Chat} />
       <Route path="/vehicle/:id" component={VehicleDetails} />
+      <Route path="/checkout/:vehicleId" component={Checkout} />
+      <Route path="/payment-success" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );
