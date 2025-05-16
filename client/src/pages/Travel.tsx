@@ -341,6 +341,14 @@ export default function Travel() {
               </div>
             </div>
             
+            {/* Search Button moved here - below Available Shift Request and Local options */}
+            <Button 
+              type="submit" 
+              className="w-full bg-secondary-500 text-white mb-4"
+            >
+              Search Vehicles
+            </Button>
+            
             {/* Vehicle Type Selection */}
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
