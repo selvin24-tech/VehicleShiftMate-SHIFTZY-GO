@@ -349,6 +349,61 @@ export default function Travel() {
               Search Vehicles
             </Button>
             
+            {/* Pickup & Drop Location Inputs - Moved after search button */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <FormField
+                control={form.control}
+                name="pickupLocation"
+                render={({ field }) => (
+                  <FormItem className="relative">
+                    <FormControl>
+                      <div>
+                        <label htmlFor="travel-pickup" className="block form-label text-neutral-500 mb-1">Pickup</label>
+                        <select
+                          id="travel-pickup"
+                          {...field}
+                          className="w-full p-2 form-input border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                        >
+                          <option value="">Any location</option>
+                          {LOCATIONS.map((location) => (
+                            <option key={location} value={location}>
+                              {location}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="destination"
+                render={({ field }) => (
+                  <FormItem className="relative">
+                    <FormControl>
+                      <div>
+                        <label htmlFor="travel-destination" className="block form-label text-neutral-500 mb-1">Destination</label>
+                        <select
+                          id="travel-destination"
+                          {...field}
+                          className="w-full p-2 form-input border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                        >
+                          <option value="">Any destination</option>
+                          {LOCATIONS.map((location) => (
+                            <option key={location} value={location}>
+                              {location}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            
             {/* Vehicle Type Selection */}
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
@@ -442,60 +497,7 @@ export default function Travel() {
               )}
             </div>
             
-            {/* Location Inputs */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <FormField
-                control={form.control}
-                name="pickupLocation"
-                render={({ field }) => (
-                  <FormItem className="relative">
-                    <FormControl>
-                      <div>
-                        <label htmlFor="travel-pickup" className="block form-label text-neutral-500 mb-1">Pickup</label>
-                        <select
-                          id="travel-pickup"
-                          {...field}
-                          className="w-full p-2 form-input border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
-                        >
-                          <option value="">Any location</option>
-                          {LOCATIONS.map((location) => (
-                            <option key={location} value={location}>
-                              {location}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="destination"
-                render={({ field }) => (
-                  <FormItem className="relative">
-                    <FormControl>
-                      <div>
-                        <label htmlFor="travel-destination" className="block form-label text-neutral-500 mb-1">Destination</label>
-                        <select
-                          id="travel-destination"
-                          {...field}
-                          className="w-full p-2 form-input border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
-                        >
-                          <option value="">Any destination</option>
-                          {LOCATIONS.map((location) => (
-                            <option key={location} value={location}>
-                              {location}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+
           </form>
         </Form>
       </div>
