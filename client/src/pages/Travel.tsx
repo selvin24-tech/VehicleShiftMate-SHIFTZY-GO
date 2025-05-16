@@ -317,26 +317,41 @@ export default function Travel() {
               )}
             />
             
-            {/* View Type Toggle */}
+            {/* View Type Toggle - Enhanced to be more attractive */}
             <div className="flex justify-center items-center mb-4">
-              <div className="bg-neutral-100 rounded-lg p-1 flex w-full text-xs sm:text-sm">
+              <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg p-2 flex w-full text-sm sm:text-base shadow-md">
                 <button
-                  className={`flex-1 px-2 py-1 rounded-md font-medium transition-colors ${viewMode === 'vehicles' ? 'bg-white shadow-sm' : 'text-neutral-600'}`}
+                  className={`flex-1 py-2 rounded-md font-medium transition-all duration-300 ${viewMode === 'vehicles' 
+                    ? 'bg-white shadow-lg border-b-2 border-primary-500 text-primary-700' 
+                    : 'text-neutral-700 hover:bg-white/50'}`}
                   onClick={() => setViewMode('vehicles')}
                 >
-                  Available Vehicles
+                  <div className="flex flex-col items-center">
+                    <span className="text-xl mb-1">🚗</span>
+                    <span>Available Vehicles</span>
+                  </div>
                 </button>
                 <button
-                  className={`flex-1 px-2 py-1 rounded-md font-medium transition-colors ${viewMode === 'requests' ? 'bg-white shadow-sm' : 'text-neutral-600'}`}
+                  className={`flex-1 py-2 rounded-md font-medium transition-all duration-300 ${viewMode === 'requests' 
+                    ? 'bg-white shadow-lg border-b-2 border-secondary-500 text-secondary-700' 
+                    : 'text-neutral-700 hover:bg-white/50'}`}
                   onClick={() => setViewMode('requests')}
                 >
-                  Shift Requests
+                  <div className="flex flex-col items-center">
+                    <span className="text-xl mb-1">📝</span>
+                    <span>Shift Requests</span>
+                  </div>
                 </button>
                 <button
-                  className={`flex-1 px-2 py-1 rounded-md font-medium transition-colors ${viewMode === 'local' ? 'bg-white shadow-sm' : 'text-neutral-600'}`}
+                  className={`flex-1 py-2 rounded-md font-medium transition-all duration-300 ${viewMode === 'local' 
+                    ? 'bg-white shadow-lg border-b-2 border-primary-500 text-primary-700' 
+                    : 'text-neutral-700 hover:bg-white/50'}`}
                   onClick={() => setViewMode('local')}
                 >
-                  Local
+                  <div className="flex flex-col items-center">
+                    <span className="text-xl mb-1">📍</span>
+                    <span>Local</span>
+                  </div>
                 </button>
               </div>
             </div>
