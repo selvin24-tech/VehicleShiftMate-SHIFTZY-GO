@@ -174,23 +174,24 @@ export default function Travel() {
     <div className="max-w-md mx-auto bg-white min-h-screen pb-16">
       <Header title="Find a Vehicle to Drive" showBackButton variant="secondary" showAnimation={true} />
       
-      {/* Search Section */}
-      <div className="p-4 bg-white shadow-sm">
+      {/* Search Section - Always Visible */}
+      <div className="p-4 bg-white shadow-md sticky top-0 z-10">
+        <h2 className="font-bold text-lg mb-3">Find Your Ride</h2>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSearch)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSearch)}>
             <FormField
               control={form.control}
               name="searchQuery"
               render={({ field }) => (
-                <FormItem className="relative mb-4">
+                <FormItem className="mb-3">
                   <FormControl>
                     <div className="flex gap-2 items-center">
                       <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 w-4 h-4" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 w-5 h-5" />
                         <Input
                           {...field}
                           placeholder="Search for car, bike models..."
-                          className="w-full p-3 pl-10 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                          className="w-full p-3 pl-10 text-base border-2 border-primary-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
                         />
                       </div>
                       <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
@@ -198,7 +199,7 @@ export default function Travel() {
                           <Button
                             type="button"
                             variant="outline"
-                            className="flex shrink-0 items-center gap-1 text-neutral-700 h-[42px] px-3"
+                            className="flex shrink-0 items-center gap-1 text-neutral-700 h-[46px] px-3 border-2 border-primary-100"
                           >
                             <Filter className="w-4 h-4" />
                             <span>Filter</span>
