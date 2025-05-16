@@ -140,15 +140,15 @@ export default function VehicleDetails() {
         <h1 className="text-xl font-bold">Vehicle Details</h1>
       </div>
       
-      <div className="absolute top-4 left-4 z-10">
+      <div className="fixed top-4 left-4 z-50">
         <Button 
-          variant="secondary" 
-          size="sm"
+          variant="default" 
+          size="default"
           onClick={handleBack}
-          className="bg-white shadow-md hover:bg-neutral-100 flex items-center gap-1"
+          className="bg-primary-600 text-white shadow-lg hover:bg-primary-700 flex items-center gap-2 px-4 py-2 rounded-lg"
         >
-          <ChevronLeft className="h-4 w-4" />
-          Back
+          <ChevronLeft className="h-5 w-5" />
+          <span className="font-medium text-base">Back</span>
         </Button>
       </div>
       
