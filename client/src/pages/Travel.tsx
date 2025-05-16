@@ -176,7 +176,7 @@ export default function Travel() {
       
       {/* Search Section - Always Visible */}
       <div className="p-4 bg-white">
-        <h2 className="font-bold text-lg mb-3">Find Your Ride</h2>
+        <h2 className="heading-3 mb-3">Find Your Ride</h2>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSearch)}>
             <FormField
@@ -191,7 +191,7 @@ export default function Travel() {
                         <Input
                           {...field}
                           placeholder="Search for car, bike models..."
-                          className="w-full p-3 pl-10 text-base border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full p-3 pl-10 form-input border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
                       <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
@@ -326,14 +326,14 @@ export default function Travel() {
             {/* Vehicle Type Selection */}
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold text-neutral-700">Vehicle Type</h3>
+                <h3 className="heading-4 text-neutral-700">Vehicle Type</h3>
                 {selectedVehicleType && (
                   <Button 
                     type="button" 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => setSelectedVehicleType(null)}
-                    className="text-primary hover:text-primary-700 text-sm font-medium p-0"
+                    className="text-primary hover:text-primary-700 button-text-small p-0"
                   >
                     Change
                   </Button>
@@ -351,13 +351,13 @@ export default function Travel() {
                       {selectedVehicleType === "luxury" && <span className="text-3xl">✨</span>}
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg">
+                      <h3 className="card-title">
                         {selectedVehicleType === "car" && "Car"}
                         {selectedVehicleType === "bike" && "Bike"}
                         {selectedVehicleType === "suv" && "SUV"}
                         {selectedVehicleType === "luxury" && "Premium"}
                       </h3>
-                      <p className="text-xs text-neutral-600">
+                      <p className="paragraph-small text-neutral-600">
                         {selectedVehicleType === "car" && "Sedans, Hatchbacks"}
                         {selectedVehicleType === "bike" && "Scooters, Motorbikes"}
                         {selectedVehicleType === "suv" && "Spacious, Family-friendly"}
@@ -375,8 +375,8 @@ export default function Travel() {
                   >
                     <div className="p-4 flex flex-col items-center text-center">
                       <span className="text-3xl mb-2">🚗</span>
-                      <h3 className="font-semibold text-base mb-1">Car</h3>
-                      <p className="text-xs text-neutral-600">Sedans, Hatchbacks – Daily ride, easy to shift</p>
+                      <h3 className="text-responsive-lg font-semibold mb-1">Car</h3>
+                      <p className="text-responsive-xs text-neutral-600">Sedans, Hatchbacks – Daily ride, easy to shift</p>
                     </div>
                   </div>
                   
