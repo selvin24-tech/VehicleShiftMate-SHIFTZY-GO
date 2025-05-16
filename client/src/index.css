@@ -1,9 +1,8 @@
+@import './styles/responsive-typography.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import responsive typography styles */
-@import './styles/responsive-typography.css';
 
 /* Custom animation for SOS buttons */
 @keyframes slideInUpSlow {

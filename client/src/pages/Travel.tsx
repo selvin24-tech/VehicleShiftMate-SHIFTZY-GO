@@ -386,8 +386,8 @@ export default function Travel() {
                   >
                     <div className="p-4 flex flex-col items-center text-center">
                       <span className="text-3xl mb-2">🏍️</span>
-                      <h3 className="font-semibold text-base mb-1">Bike</h3>
-                      <p className="text-xs text-neutral-600">Scooters, Motorbikes – Lightweight and quick move</p>
+                      <h3 className="text-responsive-lg font-semibold mb-1">Bike</h3>
+                      <p className="text-responsive-xs text-neutral-600">Scooters, Motorbikes – Lightweight and quick move</p>
                     </div>
                   </div>
                   
@@ -397,8 +397,8 @@ export default function Travel() {
                   >
                     <div className="p-4 flex flex-col items-center text-center">
                       <span className="text-3xl mb-2">🚙</span>
-                      <h3 className="font-semibold text-base mb-1">SUV</h3>
-                      <p className="text-xs text-neutral-600">Big, Bold & Spacious – Great for road trips & families</p>
+                      <h3 className="text-responsive-lg font-semibold mb-1">SUV</h3>
+                      <p className="text-responsive-xs text-neutral-600">Big, Bold & Spacious – Great for road trips & families</p>
                     </div>
                   </div>
                   
@@ -408,8 +408,8 @@ export default function Travel() {
                   >
                     <div className="p-4 flex flex-col items-center text-center">
                       <span className="text-3xl mb-2">✨</span>
-                      <h3 className="font-semibold text-base mb-1">Premium</h3>
-                      <p className="text-xs text-neutral-600">Top-end vehicles for a signature travel experience</p>
+                      <h3 className="text-responsive-lg font-semibold mb-1">Premium</h3>
+                      <p className="text-responsive-xs text-neutral-600">Top-end vehicles for a signature travel experience</p>
                     </div>
                   </div>
                 </div>
@@ -425,11 +425,11 @@ export default function Travel() {
                   <FormItem className="relative">
                     <FormControl>
                       <div>
-                        <label htmlFor="travel-pickup" className="block text-xs text-neutral-500 mb-1">Pickup</label>
+                        <label htmlFor="travel-pickup" className="block form-label text-neutral-500 mb-1">Pickup</label>
                         <select
                           id="travel-pickup"
                           {...field}
-                          className="w-full p-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                          className="w-full p-2 form-input border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                         >
                           <option value="">Any location</option>
                           {LOCATIONS.map((location) => (
@@ -451,11 +451,11 @@ export default function Travel() {
                   <FormItem className="relative">
                     <FormControl>
                       <div>
-                        <label htmlFor="travel-destination" className="block text-xs text-neutral-500 mb-1">Destination</label>
+                        <label htmlFor="travel-destination" className="block form-label text-neutral-500 mb-1">Destination</label>
                         <select
                           id="travel-destination"
                           {...field}
-                          className="w-full p-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                          className="w-full p-2 form-input border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                         >
                           <option value="">Any destination</option>
                           {LOCATIONS.map((location) => (
