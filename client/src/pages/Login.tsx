@@ -62,12 +62,22 @@ export default function Login() {
         console.log("Admin login successful:", data);
         setIsLoading(false);
         
-        // Admin login - skip verification and go directly to home
+        // Admin login - skip verification and go directly to admin dashboard
         localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("userType", "admin");
         localStorage.setItem("isFirstLogin", "true");
         
         // Force page reload to trigger authentication check
         window.location.href = "/";
+      }, 1500);
+    } else if (data.username === "selvin_1991" && data.password === "selvin_1991") {
+      setTimeout(() => {
+        console.log("Customer login successful:", data);
+        setIsLoading(false);
+        
+        // Customer login - proceed to RC verification
+        localStorage.setItem("userType", "customer");
+        setStep("verification");
       }, 1500);
     } else {
       setTimeout(() => {
@@ -85,11 +95,12 @@ export default function Login() {
     
     // Accept any input as valid verification
     setTimeout(() => {
-      console.log("Verification successful:", data);
+      console.log("Customer verification successful:", data);
       setIsLoading(false);
       
-      // Set authentication status and first login flag for tour
+      // Set authentication status and user type for customer
       localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("userType", "customer");
       localStorage.setItem("isFirstLogin", "true");
       
       // Force page reload to trigger authentication check

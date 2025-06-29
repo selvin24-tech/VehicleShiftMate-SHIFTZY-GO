@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
+import AdminDashboard from "@/pages/AdminDashboard";
 import ShiftRequest from "@/pages/ShiftRequest";
 import Travel from "@/pages/Travel";
 import Profile from "@/pages/Profile";
@@ -18,13 +19,16 @@ import { ChatProvider } from "@/contexts/ChatContext";
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userType, setUserType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check authentication status on app load
     const checkAuth = () => {
       const authStatus = localStorage.getItem("isAuthenticated");
+      const storedUserType = localStorage.getItem("userType");
       setIsAuthenticated(authStatus === "true");
+      setUserType(storedUserType);
       setIsLoading(false);
     };
 
@@ -48,7 +52,7 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={() => userType === "admin" ? <AdminDashboard /> : <Home />} />
       <Route path="/shift-request" component={ShiftRequest} />
       <Route path="/travel" component={Travel} />
       <Route path="/profile" component={Profile} />
