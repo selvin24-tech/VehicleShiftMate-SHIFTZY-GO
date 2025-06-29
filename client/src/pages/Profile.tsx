@@ -22,11 +22,18 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
+    // Clear authentication and tour status
+    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("hasSeenTour");
+    localStorage.removeItem("isFirstLogin");
+    
     toast({
       title: "Logged Out",
       description: "You have been logged out successfully.",
     });
-    navigate("/");
+    
+    // Force page reload to trigger authentication check
+    window.location.href = "/";
   };
 
   return (
