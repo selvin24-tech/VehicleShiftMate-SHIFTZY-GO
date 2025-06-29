@@ -38,28 +38,20 @@ export default function Home() {
       {/* Onboarding Tour */}
       <OnboardingTour isVisible={showTour} onComplete={handleTourComplete} />
 
-      {/* Platform Statistics */}
+      {/* Trust Indicator */}
       <div className="px-resp pt-4">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100 mb-6">
-          <h2 className="font-bold text-lg text-blue-900 mb-4 text-center">Platform Overview</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">2,847</div>
-              <div className="text-sm text-blue-700">Shift Customers</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">1,523</div>
-              <div className="text-sm text-green-700">Go Travelers</div>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <div className="text-xl font-bold text-orange-600">156</div>
-              <div className="text-xs text-orange-700">Local Shifts</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-bold text-purple-600">89</div>
-              <div className="text-xs text-purple-700">Interstate Shifts</div>
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100 mb-6">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600 mb-1">4,370+</div>
+            <div className="text-sm text-green-700">People have trusted Shiftzy Go for vehicle shifting</div>
+            <div className="flex items-center justify-center mt-2">
+              <div className="flex -space-x-1">
+                <div className="w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+                <div className="w-6 h-6 bg-blue-500 rounded-full border-2 border-white"></div>
+                <div className="w-6 h-6 bg-orange-500 rounded-full border-2 border-white"></div>
+                <div className="w-6 h-6 bg-purple-500 rounded-full border-2 border-white"></div>
+              </div>
+              <span className="text-xs text-green-600 ml-2 font-medium">Safe & Trusted</span>
             </div>
           </div>
         </div>
@@ -83,10 +75,6 @@ export default function Home() {
                   <span className="option-brand-shift">Shift</span>
                 </h2>
                 <p className="body-text text-neutral-600">Transport your vehicle to another location</p>
-                <div className="flex gap-4 mt-2 text-xs">
-                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Local: 156</span>
-                  <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">Interstate: 89</span>
-                </div>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>
@@ -110,10 +98,6 @@ export default function Home() {
                   <span className="option-brand-go">Go</span>
                 </h2>
                 <p className="body-text text-neutral-600">Find vehicles to drive and earn while traveling</p>
-                <div className="flex gap-4 mt-2 text-xs">
-                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Available: 245</span>
-                  <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">On Trip: 78</span>
-                </div>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>

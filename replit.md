@@ -124,6 +124,13 @@ Shiftzy Go is a modern vehicle shifting platform that connects vehicle owners wh
 └── attached_assets/ # Design specifications
 ```
 
+## Recent Changes
+- June 29, 2025: Simplified login system - accepts any credentials for development
+- June 29, 2025: Created role-based authentication (admin_2025 vs customer users)
+- June 29, 2025: Built comprehensive admin dashboard with operational metrics
+- June 29, 2025: Replaced platform overview with simple trust indicator showing 4,370+ trusted users
+- June 29, 2025: Removed detailed statistics from customer home page for cleaner UX
+
 ## Changelog
 - June 29, 2025. Initial setup
 
