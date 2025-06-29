@@ -18,8 +18,10 @@ export default function Home() {
     // Check if user is first-time login
     const isFirstLogin = localStorage.getItem("isFirstLogin");
     const hasSeenTour = localStorage.getItem("hasSeenTour");
+    const username = localStorage.getItem("username");
     
-    if (isFirstLogin && !hasSeenTour) {
+    // Show tour only for new users (not existing users like selvin_1991)
+    if (isFirstLogin && !hasSeenTour && username !== "selvin_1991") {
       setShowTour(true);
       localStorage.removeItem("isFirstLogin");
     }

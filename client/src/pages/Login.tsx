@@ -17,14 +17,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Eye, EyeOff, Lock, User, CreditCard, FileText } from "lucide-react";
 
 const loginSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  username: z.string().optional(),
+  password: z.string().optional(),
 });
 
 const verificationSchema = z.object({
-  aadharNumber: z.string().min(12, "Aadhar number must be 12 digits").max(12, "Aadhar number must be 12 digits"),
-  rcNumber: z.string().min(8, "RC number must be at least 8 characters"),
-  city: z.string().min(2, "Please enter your city"),
+  aadharNumber: z.string().optional(),
+  rcNumber: z.string().optional(),
+  city: z.string().optional(),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -56,56 +56,50 @@ export default function Login() {
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     
-    // Check for admin credentials
-    if (data.username === "admin_2025" && data.password === "admin_2025") {
-      setTimeout(() => {
-        console.log("Admin login successful:", data);
-        setIsLoading(false);
-        
+    // Accept any credentials for development
+    setTimeout(() => {
+      console.log("Login successful:", data);
+      setIsLoading(false);
+      
+      const username = data.username || "guest";
+      
+      // Check if admin credentials
+      if (username === "admin_2025") {
         // Admin login - skip verification and go directly to admin dashboard
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userType", "admin");
         localStorage.setItem("isFirstLogin", "true");
-        
-        // Force page reload to trigger authentication check
         window.location.href = "/";
-      }, 1500);
-    } else if (data.username === "selvin_1991" && data.password === "selvin_1991") {
-      setTimeout(() => {
-        console.log("Customer login successful:", data);
-        setIsLoading(false);
-        
-        // Customer login - proceed to RC verification
+      } else if (username === "selvin_1991") {
+        // Existing customer - proceed to verification but no tour
         localStorage.setItem("userType", "customer");
+        localStorage.setItem("username", username);
         setStep("verification");
-      }, 1500);
-    } else {
-      setTimeout(() => {
-        setIsLoading(false);
-        loginForm.setError("password", {
-          type: "manual",
-          message: "Invalid credentials. Please check your username and password."
-        });
-      }, 1500);
-    }
+      } else {
+        // New/dummy customer - proceed to verification with tour
+        localStorage.setItem("userType", "customer");
+        localStorage.setItem("username", username);
+        localStorage.setItem("isFirstLogin", "true");
+        setStep("verification");
+      }
+    }, 1000);
   };
 
   const handleVerification = async (data: VerificationFormData) => {
     setIsLoading(true);
     
-    // Accept any input as valid verification
+    // Accept any input (or no input) as valid verification
     setTimeout(() => {
-      console.log("Customer verification successful:", data);
+      console.log("Verification successful:", data);
       setIsLoading(false);
       
       // Set authentication status and user type for customer
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("userType", "customer");
-      localStorage.setItem("isFirstLogin", "true");
       
       // Force page reload to trigger authentication check
       window.location.href = "/";
-    }, 2000);
+    }, 1000);
   };
 
   return (
@@ -128,8 +122,8 @@ export default function Login() {
             </CardTitle>
             <CardDescription>
               {step === "login" 
-                ? "Sign in to your account to continue" 
-                : "Enter any values - all inputs will be accepted for demo"
+                ? "Enter any credentials or click Login to continue" 
+                : "Click Continue to proceed - all fields are optional"
               }
             </CardDescription>
           </CardHeader>
