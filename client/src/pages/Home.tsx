@@ -36,8 +36,35 @@ export default function Home() {
       {/* Onboarding Tour */}
       <OnboardingTour isVisible={showTour} onComplete={handleTourComplete} />
 
-      {/* Main Tabs - Shifting & Travel */}
-      <div className="px-resp py-resp">
+      {/* Platform Statistics */}
+      <div className="px-resp pt-4">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100 mb-6">
+          <h2 className="font-bold text-lg text-blue-900 mb-4 text-center">Platform Overview</h2>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">2,847</div>
+              <div className="text-sm text-blue-700">Shift Customers</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">1,523</div>
+              <div className="text-sm text-green-700">Go Travelers</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="text-xl font-bold text-orange-600">156</div>
+              <div className="text-xs text-orange-700">Local Shifts</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-purple-600">89</div>
+              <div className="text-xs text-purple-700">Interstate Shifts</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Options - Shift & Go */}
+      <div className="px-resp pb-resp">
         <div className="space-y-5">
           {/* Shiftzy Option - Styled as a car-like shape */}
           <div 
@@ -54,6 +81,10 @@ export default function Home() {
                   <span className="option-brand-shift">Shift</span>
                 </h2>
                 <p className="body-text text-neutral-600">Transport your vehicle to another location</p>
+                <div className="flex gap-4 mt-2 text-xs">
+                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Local: 156</span>
+                  <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">Interstate: 89</span>
+                </div>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>
@@ -76,7 +107,11 @@ export default function Home() {
                 <h2 className="option-brand-name">
                   <span className="option-brand-go">Go</span>
                 </h2>
-                <p className="body-text text-neutral-600">Rent and drive vehicles for your journey</p>
+                <p className="body-text text-neutral-600">Find vehicles to drive and earn while traveling</p>
+                <div className="flex gap-4 mt-2 text-xs">
+                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Available: 245</span>
+                  <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">On Trip: 78</span>
+                </div>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>

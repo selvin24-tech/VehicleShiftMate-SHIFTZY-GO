@@ -39,8 +39,8 @@ export default function Login() {
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "admin",
-      password: "admin",
+      username: "",
+      password: "",
     },
   });
 
@@ -57,18 +57,24 @@ export default function Login() {
     setIsLoading(true);
     
     // Check for admin credentials
-    if (data.username === "admin" && data.password === "admin") {
+    if (data.username === "admin_2025" && data.password === "admin_2025") {
       setTimeout(() => {
-        console.log("Login successful:", data);
+        console.log("Admin login successful:", data);
         setIsLoading(false);
-        setStep("verification");
+        
+        // Admin login - skip verification and go directly to home
+        localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("isFirstLogin", "true");
+        
+        // Force page reload to trigger authentication check
+        window.location.href = "/";
       }, 1500);
     } else {
       setTimeout(() => {
         setIsLoading(false);
         loginForm.setError("password", {
           type: "manual",
-          message: "Invalid username or password. Use 'admin' for both fields."
+          message: "Invalid credentials. Please check your username and password."
         });
       }, 1500);
     }
@@ -111,7 +117,7 @@ export default function Login() {
             </CardTitle>
             <CardDescription>
               {step === "login" 
-                ? "Use 'admin' for both username and password" 
+                ? "Sign in to your account to continue" 
                 : "Enter any values - all inputs will be accepted for demo"
               }
             </CardDescription>
