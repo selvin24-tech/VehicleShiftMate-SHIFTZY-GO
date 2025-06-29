@@ -15,42 +15,42 @@ const tourSteps: TourStep[] = [
   {
     id: "welcome",
     title: "Welcome to Shiftzy Go!",
-    description: "Let's take a quick tour to show you how our platform works.",
+    description: "Your complete vehicle transportation solution! Let's show you how to connect with drivers and vehicle owners in your area.",
     target: "body",
     position: "bottom"
   },
   {
     id: "shift-option",
-    title: "Shift Your Vehicle",
-    description: "Need to move your vehicle? Post a shift request here. Vehicle owners can list their cars or bikes for transportation to different locations.",
+    title: "🚗 Shift Your Vehicle",
+    description: "Need to transport your car or bike to another city? Click here to post a shift request and find trusted drivers who can move your vehicle safely.",
     target: "[data-tour='shift-option']",
     position: "bottom"
   },
   {
     id: "go-option",
-    title: "Find Vehicles to Drive",
-    description: "Want to travel and drive different vehicles? Browse available vehicles and shift requests from other users.",
+    title: "🛣️ Go & Drive",
+    description: "Love driving and want to earn while traveling? Browse available vehicles that need to be transported and choose your next driving adventure.",
     target: "[data-tour='go-option']",
     position: "bottom"
   },
   {
     id: "reviews",
-    title: "User Reviews",
-    description: "Check out what other users are saying about their experiences. Reviews help build trust in our community.",
+    title: "⭐ Customer Stories",
+    description: "Read real experiences from our community. These reviews help you make informed decisions and build trust with other users.",
     target: "[data-tour='reviews']",
     position: "top"
   },
   {
     id: "plan",
-    title: "Plan Your Journey",
-    description: "Need help planning your trip? Use our planning tools to organize your vehicle transportation needs.",
+    title: "🗺️ Plan Your Journey",
+    description: "Get route suggestions, cost estimates, and timing guidance for your vehicle transportation needs. Smart planning saves time and money.",
     target: "[data-tour='plan']",
     position: "top"
   },
   {
     id: "emergency",
-    title: "Emergency Support",
-    description: "In case of emergencies during your trip, our 24/7 support team is here to help you immediately.",
+    title: "🚨 24/7 Emergency Support",
+    description: "Your safety is our priority. Get immediate help during your trip with our round-the-clock emergency assistance team.",
     target: "[data-tour='emergency']",
     position: "top"
   }
@@ -181,10 +181,23 @@ export default function OnboardingTour({ isVisible, onComplete }: OnboardingTour
       {currentTourStep.target !== "body" && (
         <style>{`
           ${currentTourStep.target} {
-            position: relative;
-            z-index: 51;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2);
-            border-radius: 8px;
+            position: relative !important;
+            z-index: 51 !important;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.8), 0 0 0 8px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.5) !important;
+            border-radius: 12px !important;
+            animation: tourPulse 2s infinite;
+          }
+          
+          @keyframes tourPulse {
+            0% {
+              box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.8), 0 0 0 8px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.5);
+            }
+            50% {
+              box-shadow: 0 0 0 6px rgba(59, 130, 246, 1), 0 0 0 12px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.7);
+            }
+            100% {
+              box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.8), 0 0 0 8px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.5);
+            }
           }
         `}</style>
       )}

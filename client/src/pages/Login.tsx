@@ -39,8 +39,8 @@ export default function Login() {
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
-      password: "",
+      username: "admin",
+      password: "admin",
     },
   });
 
@@ -56,20 +56,30 @@ export default function Login() {
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Login data:", data);
-      setIsLoading(false);
-      setStep("verification");
-    }, 1500);
+    // Check for admin credentials
+    if (data.username === "admin" && data.password === "admin") {
+      setTimeout(() => {
+        console.log("Login successful:", data);
+        setIsLoading(false);
+        setStep("verification");
+      }, 1500);
+    } else {
+      setTimeout(() => {
+        setIsLoading(false);
+        loginForm.setError("password", {
+          type: "manual",
+          message: "Invalid username or password. Use 'admin' for both fields."
+        });
+      }, 1500);
+    }
   };
 
   const handleVerification = async (data: VerificationFormData) => {
     setIsLoading(true);
     
-    // Simulate verification API call
+    // Accept any input as valid verification
     setTimeout(() => {
-      console.log("Verification data:", data);
+      console.log("Verification successful:", data);
       setIsLoading(false);
       
       // Set authentication status and first login flag for tour
@@ -101,8 +111,8 @@ export default function Login() {
             </CardTitle>
             <CardDescription>
               {step === "login" 
-                ? "Sign in to your account to continue" 
-                : "Please provide your documents for verification"
+                ? "Use 'admin' for both username and password" 
+                : "Enter any values - all inputs will be accepted for demo"
               }
             </CardDescription>
           </CardHeader>
@@ -178,13 +188,13 @@ export default function Login() {
                     name="aadharNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Aadhar Number</FormLabel>
+                        <FormLabel>Aadhar Number (Demo: any 12 digits)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
                             <Input
                               {...field}
-                              placeholder="Enter 12-digit Aadhar number"
+                              placeholder="123456789012"
                               className="pl-10"
                               maxLength={12}
                             />
@@ -200,13 +210,13 @@ export default function Login() {
                     name="rcNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>RC Number</FormLabel>
+                        <FormLabel>RC Number (Demo: any text)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
                             <Input
                               {...field}
-                              placeholder="Enter vehicle RC number"
+                              placeholder="TN09AB1234"
                               className="pl-10"
                             />
                           </div>
@@ -221,11 +231,11 @@ export default function Login() {
                     name="city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>City</FormLabel>
+                        <FormLabel>City (Demo: any city name)</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="Enter your city"
+                            placeholder="Chennai"
                           />
                         </FormControl>
                         <FormMessage />
