@@ -411,49 +411,105 @@ export default function Travel() {
               </div>
                 
               {selectedVehicleType ? (
-                <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl shadow-md p-3 border border-primary-200 mb-3">
+                <div className="bg-white rounded-xl shadow-md p-2 border-2 border-primary-200 mb-3">
                   <div className="flex items-center">
-                    <div className="bg-white rounded-full p-3 mr-4 shadow-inner">
-                      {selectedVehicleType === "car" && <span className="text-4xl">🚗</span>}
-                      {selectedVehicleType === "bike" && <span className="text-4xl">🏍️</span>}
-                      {selectedVehicleType === "suv" && <span className="text-4xl">🚙</span>}
-                      {selectedVehicleType === "luxury" && <span className="text-4xl">✨</span>}
+                    <div className="bg-primary-50 rounded-full p-2 mr-3">
+                      {selectedVehicleType === "car" && <span className="text-3xl">🚗</span>}
+                      {selectedVehicleType === "bike" && <span className="text-3xl">🏍️</span>}
+                      {selectedVehicleType === "suv" && <span className="text-3xl">🚙</span>}
+                      {selectedVehicleType === "luxury" && <span className="text-3xl">✨</span>}
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold mb-1 text-neutral-800">
+                      <h3 className="card-title">
                         {selectedVehicleType === "car" && "Car"}
                         {selectedVehicleType === "bike" && "Bike"}
                         {selectedVehicleType === "suv" && "SUV"}
                         {selectedVehicleType === "luxury" && "Premium"}
                       </h3>
-                      <p className="text-sm text-neutral-600">
-                        {selectedVehicleType === "car" && "Comfortable, Reliable, Easy to drive"}
-                        {selectedVehicleType === "bike" && "Fast, Efficient, Nimble"}
-                        {selectedVehicleType === "suv" && "Spacious, Powerful, Off-road capable"}
-                        {selectedVehicleType === "luxury" && "Top-end, Premium features, Status symbol"}
+                      <p className="text-sm text-neutral-600 mb-2">
+                        {selectedVehicleType === "car" && "Sedans, Hatchbacks – Daily ride, easy to shift"}
+                        {selectedVehicleType === "bike" && "Scooters, Motorbikes – Lightweight and quick move"}
+                        {selectedVehicleType === "suv" && "Big, Bold & Spacious – Great for road trips & families"}
+                        {selectedVehicleType === "luxury" && "Top-end vehicles for a signature travel experience"}
                       </p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {selectedVehicleType === "car" && (
+                          <>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">5 Seater</span>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Compact</span>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Fuel Efficient</span>
+                          </>
+                        )}
+                        {selectedVehicleType === "bike" && (
+                          <>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">1-2 Seater</span>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Low Cost</span>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Fast Delivery</span>
+                          </>
+                        )}
+                        {selectedVehicleType === "suv" && (
+                          <>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">7 Seater</span>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Spacious</span>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Road Trip</span>
+                          </>
+                        )}
+                        {selectedVehicleType === "luxury" && (
+                          <>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Premium</span>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">Comfort</span>
+                            <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full">High-End</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-4 gap-3">
-                  {VEHICLE_TYPES.map((type) => (
-                    <div 
-                      key={type.id}
-                      onClick={() => setSelectedVehicleType(type.id as any)}
-                      className="relative rounded-lg border p-3 cursor-pointer transition-all hover:shadow-md border-neutral-200 hover:border-primary-300 bg-white"
-                    >
-                      <div className="flex flex-col items-center">
-                        <div className="text-3xl mb-2">{type.icon}</div>
-                        <div className="text-xs font-medium text-center">{type.name}</div>
-                      </div>
-                      {selectedVehicleType === type.id && (
-                        <div className="absolute -top-2 -right-2 bg-secondary-500 text-white rounded-full p-1 shadow-md">
-                          <Check className="w-4 h-4" />
-                        </div>
-                      )}
+                <div className="vehicle-type-options grid grid-cols-2 gap-3 pt-2 mb-3">
+                  <div 
+                    className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white border border-neutral-200 hover:border-primary-300 hover:bg-primary-50"
+                    onClick={() => handleFilterClick("car")}
+                  >
+                    <div className="p-4 flex flex-col items-center text-center">
+                      <span className="text-3xl mb-2">🚗</span>
+                      <h3 className="text-responsive-lg font-semibold mb-1">Car</h3>
+                      <p className="text-responsive-xs text-neutral-600">Sedans, Hatchbacks – Comfortable daily travel</p>
                     </div>
-                  ))}
+                  </div>
+                  
+                  <div 
+                    className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white border border-neutral-200 hover:border-primary-300 hover:bg-primary-50"
+                    onClick={() => handleFilterClick("bike")}
+                  >
+                    <div className="p-4 flex flex-col items-center text-center">
+                      <span className="text-3xl mb-2">🏍️</span>
+                      <h3 className="text-responsive-lg font-semibold mb-1">Bike</h3>
+                      <p className="text-responsive-xs text-neutral-600">Scooters, Motorbikes – Lightweight and quick move</p>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white border border-neutral-200 hover:border-primary-300 hover:bg-primary-50"
+                    onClick={() => handleFilterClick("suv")}
+                  >
+                    <div className="p-4 flex flex-col items-center text-center">
+                      <span className="text-3xl mb-2">🚙</span>
+                      <h3 className="text-responsive-lg font-semibold mb-1">SUV</h3>
+                      <p className="text-responsive-xs text-neutral-600">Big, Bold & Spacious – Great for road trips & families</p>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="vehicle-option rounded-xl overflow-hidden shadow transition-all bg-white border border-neutral-200 hover:border-primary-300 hover:bg-primary-50"
+                    onClick={() => handleFilterClick("luxury")}
+                  >
+                    <div className="p-4 flex flex-col items-center text-center">
+                      <span className="text-3xl mb-2">✨</span>
+                      <h3 className="text-responsive-lg font-semibold mb-1">Premium</h3>
+                      <p className="text-responsive-xs text-neutral-600">Top-end vehicles for a signature travel experience</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
