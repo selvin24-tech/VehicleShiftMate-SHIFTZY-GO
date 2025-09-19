@@ -40,7 +40,7 @@ export default function Travel() {
   const [, navigate] = useLocation();
   const [searchResults, setSearchResults] = useState<Vehicle[]>(AVAILABLE_VEHICLES);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"vehicles" | "requests" | "local">("vehicles");
+  const [viewMode, setViewMode] = useState<"outstation" | "local">("outstation");
   const [distance, setDistance] = useState([0, 500]);
   const [reward, setReward] = useState([500, 5000]);
   const [filteredLocalRequests, setFilteredLocalRequests] = useState<ShiftRequest[]>(LOCAL_SHIFT_REQUESTS);
@@ -298,25 +298,14 @@ export default function Travel() {
             <div className="flex justify-center items-center mb-4">
               <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg p-2 flex w-full text-sm sm:text-base shadow-md">
                 <button
-                  className={`flex-1 py-2 rounded-md font-medium transition-all duration-300 ${viewMode === 'vehicles' 
+                  className={`flex-1 py-2 rounded-md font-medium transition-all duration-300 ${viewMode === 'outstation' 
                     ? 'bg-white shadow-lg border-b-2 border-primary-500 text-primary-700' 
                     : 'text-neutral-700 hover:bg-white/50'}`}
-                  onClick={() => setViewMode('vehicles')}
+                  onClick={() => setViewMode('outstation')}
                 >
                   <div className="flex flex-col items-center">
-                    <span className="text-xl mb-1">🚗</span>
-                    <span>Available Vehicles</span>
-                  </div>
-                </button>
-                <button
-                  className={`flex-1 py-2 rounded-md font-medium transition-all duration-300 ${viewMode === 'requests' 
-                    ? 'bg-white shadow-lg border-b-2 border-secondary-500 text-secondary-700' 
-                    : 'text-neutral-700 hover:bg-white/50'}`}
-                  onClick={() => setViewMode('requests')}
-                >
-                  <div className="flex flex-col items-center">
-                    <span className="text-xl mb-1">📝</span>
-                    <span>Shift Requests</span>
+                    <span className="text-xl mb-1">🛣️</span>
+                    <span>Outstation</span>
                   </div>
                 </button>
                 <button
@@ -332,13 +321,6 @@ export default function Travel() {
                 </button>
               </div>
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-secondary-500 text-white mb-4"
-            >
-              Search Vehicles
-            </Button>
             
             <div className="grid grid-cols-2 gap-3 mb-4">
               <FormField
@@ -514,6 +496,13 @@ export default function Travel() {
               )}
             </div>
 
+            <Button 
+              type="submit" 
+              className="w-full bg-secondary-500 text-white mb-4"
+            >
+              Search Vehicles
+            </Button>
+
             {viewMode === 'local' && (
               <div className="mb-4">
                 <div className="flex flex-col space-y-3">
@@ -555,11 +544,11 @@ export default function Travel() {
       </div>
       
       <div className="px-4 py-5">
-        {viewMode === "vehicles" ? (
+        {viewMode === "outstation" ? (
           <>
             <h2 className="font-bold text-lg mb-4">Available Vehicles</h2>
             {searchResults.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-4 mb-8">
                 {searchResults.map((vehicle) => (
                   <VehicleCard
                     key={vehicle.id}
@@ -569,13 +558,11 @@ export default function Travel() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
+              <div className="text-center py-4 mb-8">
                 <p className="text-neutral-600">No vehicles found matching your criteria.</p>
               </div>
             )}
-          </>
-        ) : viewMode === "requests" ? (
-          <>
+            
             <h2 className="font-bold text-lg mb-4">Nearby Shift Requests</h2>
             {NEARBY_SHIFT_REQUESTS.length > 0 ? (
               <div className="space-y-4">
