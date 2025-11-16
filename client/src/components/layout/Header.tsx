@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Car, Bike, ChevronLeft } from "lucide-react";
 import { USER_PROFILE } from "@/lib/constants";
+import AnimatedLogo from "@/components/branding/AnimatedLogo";
 
 interface HeaderProps {
   title?: string;
@@ -52,47 +53,7 @@ export default function Header({
           }}
         >
           <div className="absolute inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center" style={{ paddingBottom: "20px" }}>
-            <div>
-              <h1 style={{
-                fontFamily: "Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif",
-                fontSize: "clamp(40px, 8vw, 72px)", // Responsive font size
-                fontWeight: "bold",
-                textAlign: "center",
-                lineHeight: "1",
-                margin: "0",
-                letterSpacing: "1px",
-                textTransform: "uppercase",
-                WebkitTextStroke: "1px #000",
-                textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexWrap: "wrap" // Allow wrapping on very small screens
-              }}>
-                <span style={{
-                  color: "#3b82f6",
-                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  display: "inline-block"
-                }}>SHIFT</span>
-                <span style={{
-                  color: "#ff8c00",
-                  background: "linear-gradient(135deg, #ff8c00, #f59e0b)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  display: "inline-block"
-                }}>ZY</span>
-                <span style={{
-                  color: "#3b82f6",
-                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  display: "inline-block",
-                  marginLeft: "20px"
-                }}>GO</span>
-              </h1>
-            </div>
+            <AnimatedLogo />
           </div>
           
           <div className="animated-car">
