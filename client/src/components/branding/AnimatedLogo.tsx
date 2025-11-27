@@ -1,16 +1,6 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 
 export default function AnimatedLogo() {
-  const [animationComplete, setAnimationComplete] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimationComplete(true);
-    }, 5500);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <div style={{
       fontFamily: "Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif",
@@ -145,31 +135,31 @@ export default function AnimatedLogo() {
         zy
       </motion.span>
 
-      {/* GO - Zooms off and returns */}
-      <motion.span
-        initial={{ x: 0, opacity: 1 }}
-        animate={animationComplete ? { x: 0, opacity: 1 } : {
-          x: [0, 0, 1200, 1200, 0],
-          opacity: [1, 1, 1, 1, 1],
-          scale: [1, 1, 1.2, 1.2, 1]
-        }}
-        transition={{
-          duration: 5,
-          delay: 2.5,
-          times: [0, 0.1, 0.4, 0.6, 1],
-          ease: [0.34, 1.56, 0.64, 1]
-        }}
-        style={{
-          color: "#3b82f6",
-          background: "linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          display: "inline-block",
-          marginLeft: "20px",
-          position: "relative",
-          filter: "drop-shadow(0 4px 8px rgba(59, 130, 246, 0.5))"
-        }}
-      >
+      {/* GO - Zooms off and returns - wrapped for proper spacing */}
+      <div style={{ display: "inline-block", marginLeft: "15px" }}>
+        <motion.span
+          initial={{ x: 0, opacity: 1 }}
+          animate={{
+            x: [0, 0, 800, 800, 0],
+            opacity: [1, 1, 1, 1, 1],
+            scale: [1, 1, 1.1, 1.1, 1]
+          }}
+          transition={{
+            duration: 4,
+            delay: 2.5,
+            times: [0, 0.1, 0.35, 0.6, 1],
+            ease: "easeInOut"
+          }}
+          style={{
+            color: "#3b82f6",
+            background: "linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            display: "inline-block",
+            position: "relative",
+            filter: "drop-shadow(0 4px 8px rgba(59, 130, 246, 0.5))"
+          }}
+        >
         GO
         
         {/* Smoke puff effect */}
@@ -255,7 +245,8 @@ export default function AnimatedLogo() {
             }}
           />
         ))}
-      </motion.span>
+        </motion.span>
+      </div>
     </div>
   );
 }
