@@ -136,19 +136,17 @@ export default function AnimatedLogo() {
       </motion.span>
 
       {/* GO - Zooms off and returns - wrapped for proper spacing */}
-      <div style={{ display: "inline-block", marginLeft: "15px" }}>
+      <div style={{ display: "inline-flex", alignItems: "center", marginLeft: "10px" }}>
         <motion.span
-          initial={{ x: 0, opacity: 1 }}
+          initial={{ x: 0 }}
           animate={{
-            x: [0, 0, 800, 800, 0],
-            opacity: [1, 1, 1, 1, 1],
-            scale: [1, 1, 1.1, 1.1, 1]
+            x: [0, 500, 500, 0]
           }}
           transition={{
-            duration: 4,
+            duration: 2.2,
             delay: 2.5,
-            times: [0, 0.1, 0.35, 0.6, 1],
-            ease: "easeInOut"
+            times: [0, 0.3, 0.5, 1],
+            ease: [0.25, 0.1, 0.25, 1]
           }}
           style={{
             color: "#3b82f6",
@@ -166,13 +164,13 @@ export default function AnimatedLogo() {
         <motion.div
           initial={{ scale: 0, x: 0, opacity: 0 }}
           animate={{ 
-            scale: [0, 0, 2, 3],
-            x: [0, 0, -80, -120],
-            opacity: [0, 0, 0.7, 0]
+            scale: [0, 2, 2.5],
+            x: [0, -60, -100],
+            opacity: [0, 0.7, 0]
           }}
           transition={{
-            duration: 1.2,
-            delay: 2.7,
+            duration: 0.6,
+            delay: 2.5,
             ease: "easeOut"
           }}
           style={{
@@ -194,14 +192,14 @@ export default function AnimatedLogo() {
             key={i}
             initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
             animate={{ 
-              scale: [0, 0, 1.5 + i * 0.3, 2 + i * 0.4],
-              x: [0, 0, -60 - i * 20, -100 - i * 30],
-              y: [0, 0, (i - 1) * 15, (i - 1) * 25],
-              opacity: [0, 0, 0.5, 0]
+              scale: [0, 1.5 + i * 0.3, 2 + i * 0.4],
+              x: [0, -50 - i * 15, -80 - i * 20],
+              y: [0, (i - 1) * 12, (i - 1) * 20],
+              opacity: [0, 0.5, 0]
             }}
             transition={{
-              duration: 1.4,
-              delay: 2.7 + i * 0.1,
+              duration: 0.7,
+              delay: 2.5 + i * 0.05,
               ease: "easeOut"
             }}
             style={{
@@ -224,13 +222,13 @@ export default function AnimatedLogo() {
             key={`speed-${i}`}
             initial={{ scaleX: 0, opacity: 0 }}
             animate={{ 
-              scaleX: [0, 0, 1, 0],
-              x: [0, 0, -100, -150],
-              opacity: [0, 0, 0.8, 0]
+              scaleX: [0, 1, 0],
+              x: [0, -80, -120],
+              opacity: [0, 0.8, 0]
             }}
             transition={{
-              duration: 0.6,
-              delay: 2.7 + i * 0.08,
+              duration: 0.4,
+              delay: 2.5 + i * 0.05,
               ease: "easeOut"
             }}
             style={{
