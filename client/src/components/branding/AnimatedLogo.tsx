@@ -106,39 +106,73 @@ export default function AnimatedLogo() {
         ))}
       </motion.span>
 
-      {/* zy - Snake bend effect when SHIFT lands */}
-      <motion.span
-        initial={{ scale: 1, y: 0, skewX: 0 }}
-        animate={{
-          scale: [1, 0.85, 0.75, 0.85, 0.95, 1],
-          y: [0, 6, 10, 6, 2, 0],
-          scaleY: [1, 0.7, 0.55, 0.7, 0.9, 1],
-          skewX: [0, 8, -6, 4, -2, 0]
-        }}
-        transition={{
-          duration: 0.7,
-          delay: 1.1,
-          times: [0, 0.2, 0.4, 0.6, 0.8, 1],
-          ease: "easeInOut"
-        }}
-        style={{
-          color: "#ff8c00",
-          background: "linear-gradient(135deg, #ff8c00, #f59e0b, #fbbf24)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          display: "inline-block",
-          fontSize: "0.6em",
-          position: "relative",
-          top: "0.15em",
-          margin: "0 5px",
-          transformOrigin: "center bottom",
-          filter: "drop-shadow(0 2px 4px rgba(255, 140, 0, 0.4))"
-        }}
-      >
-        zy
-      </motion.span>
+      {/* zy - Snake wave effect: starts from z tip, travels to y edge */}
+      <span style={{ display: "inline-flex", alignItems: "baseline", margin: "0 5px" }}>
+        {/* z - starts the bend first */}
+        <motion.span
+          initial={{ scale: 1, y: 0, skewX: 0, rotate: 0 }}
+          animate={{
+            scale: [1, 0.8, 0.7, 0.8, 0.9, 1],
+            y: [0, 8, 14, 8, 3, 0],
+            scaleY: [1, 0.6, 0.45, 0.6, 0.85, 1],
+            skewX: [0, 15, -10, 8, -3, 0],
+            rotate: [0, -5, 3, -2, 1, 0]
+          }}
+          transition={{
+            duration: 1.2,
+            delay: 1.1,
+            times: [0, 0.15, 0.35, 0.55, 0.8, 1],
+            ease: "easeInOut"
+          }}
+          style={{
+            color: "#ff8c00",
+            background: "linear-gradient(135deg, #ff8c00, #f59e0b, #fbbf24)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            display: "inline-block",
+            fontSize: "0.6em",
+            position: "relative",
+            top: "0.15em",
+            transformOrigin: "left bottom",
+            filter: "drop-shadow(0 2px 4px rgba(255, 140, 0, 0.4))"
+          }}
+        >
+          z
+        </motion.span>
+        {/* y - receives the wave with delay, ends slowly */}
+        <motion.span
+          initial={{ scale: 1, y: 0, skewX: 0, rotate: 0 }}
+          animate={{
+            scale: [1, 1, 0.85, 0.75, 0.85, 0.95, 1],
+            y: [0, 0, 6, 12, 6, 2, 0],
+            scaleY: [1, 1, 0.7, 0.5, 0.7, 0.9, 1],
+            skewX: [0, 0, 12, -8, 5, -2, 0],
+            rotate: [0, 0, -4, 3, -1, 0, 0]
+          }}
+          transition={{
+            duration: 1.4,
+            delay: 1.1,
+            times: [0, 0.1, 0.25, 0.45, 0.65, 0.85, 1],
+            ease: "easeOut"
+          }}
+          style={{
+            color: "#ff8c00",
+            background: "linear-gradient(135deg, #ff8c00, #f59e0b, #fbbf24)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            display: "inline-block",
+            fontSize: "0.6em",
+            position: "relative",
+            top: "0.15em",
+            transformOrigin: "right bottom",
+            filter: "drop-shadow(0 2px 4px rgba(255, 140, 0, 0.4))"
+          }}
+        >
+          y
+        </motion.span>
+      </span>
 
-      {/* GO - Reacts after zy bends, zooms off and returns */}
+      {/* GO - Reacts after zy snake wave completes */}
       <div style={{ display: "inline-flex", alignItems: "center", marginLeft: "10px" }}>
         <motion.span
           initial={{ x: 0 }}
@@ -147,7 +181,7 @@ export default function AnimatedLogo() {
           }}
           transition={{
             duration: 1.8,
-            delay: 1.8,
+            delay: 2.5,
             times: [0, 0.3, 0.5, 1],
             ease: [0.25, 0.1, 0.25, 1]
           }}
@@ -173,7 +207,7 @@ export default function AnimatedLogo() {
           }}
           transition={{
             duration: 0.5,
-            delay: 1.8,
+            delay: 2.5,
             ease: "easeOut"
           }}
           style={{
@@ -202,7 +236,7 @@ export default function AnimatedLogo() {
             }}
             transition={{
               duration: 0.5,
-              delay: 1.8 + i * 0.03,
+              delay: 2.5 + i * 0.03,
               ease: "easeOut"
             }}
             style={{
@@ -231,7 +265,7 @@ export default function AnimatedLogo() {
             }}
             transition={{
               duration: 0.3,
-              delay: 1.8 + i * 0.03,
+              delay: 2.5 + i * 0.03,
               ease: "easeOut"
             }}
             style={{
