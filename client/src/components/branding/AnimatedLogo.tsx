@@ -23,20 +23,20 @@ export default function AnimatedLogo() {
       
       {/* SHIFT - Container drop effect */}
       <motion.span
-        initial={{ x: -200, y: -300, rotate: -45, opacity: 0 }}
+        initial={{ x: -200, y: -200, rotate: -30, opacity: 0 }}
         animate={{ 
           x: 0, 
           y: 0, 
-          rotate: [0, 5, -3, 2, 0],
+          rotate: [0, 3, -2, 1, 0],
           opacity: 1 
         }}
         transition={{
-          duration: 1.2,
+          duration: 1,
           delay: 0.5,
-          ease: [0.34, 1.56, 0.64, 1],
+          ease: [0.22, 1, 0.36, 1],
           rotate: {
-            duration: 0.8,
-            delay: 1.7,
+            duration: 0.5,
+            delay: 1.5,
             times: [0, 0.3, 0.6, 0.8, 1]
           }
         }}
@@ -47,7 +47,8 @@ export default function AnimatedLogo() {
           WebkitTextFillColor: "transparent",
           display: "inline-block",
           position: "relative",
-          filter: "drop-shadow(0 4px 8px rgba(59, 130, 246, 0.5))"
+          filter: "drop-shadow(0 4px 8px rgba(59, 130, 246, 0.5))",
+          verticalAlign: "baseline"
         }}
       >
         SHIFT
@@ -55,10 +56,10 @@ export default function AnimatedLogo() {
         {/* Impact effect - shockwave */}
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: [0, 3, 4], opacity: [0, 0.8, 0] }}
+          animate={{ scale: [0, 2.5, 3], opacity: [0, 0.7, 0] }}
           transition={{
-            duration: 0.8,
-            delay: 1.7,
+            duration: 0.5,
+            delay: 1.5,
             ease: "easeOut"
           }}
           style={{
@@ -81,13 +82,13 @@ export default function AnimatedLogo() {
             initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
             animate={{ 
               scale: [0, 1, 0],
-              x: [0, (i - 3) * 30],
-              y: [0, -20 - i * 10],
-              opacity: [0, 0.6, 0]
+              x: [0, (i - 3) * 25],
+              y: [0, -15 - i * 8],
+              opacity: [0, 0.5, 0]
             }}
             transition={{
-              duration: 0.8,
-              delay: 1.7 + i * 0.05,
+              duration: 0.5,
+              delay: 1.5 + i * 0.03,
               ease: "easeOut"
             }}
             style={{
@@ -108,13 +109,13 @@ export default function AnimatedLogo() {
       <motion.span
         initial={{ scale: 1, y: 0 }}
         animate={{
-          scale: [1, 0.9, 0.85, 0.9, 1],
-          y: [0, 5, 8, 5, 0],
-          scaleY: [1, 0.8, 0.7, 0.85, 1]
+          scale: [1, 0.92, 0.88, 0.92, 1],
+          y: [0, 3, 5, 3, 0],
+          scaleY: [1, 0.85, 0.8, 0.88, 1]
         }}
         transition={{
-          duration: 0.8,
-          delay: 1.7,
+          duration: 0.6,
+          delay: 1.5,
           times: [0, 0.3, 0.5, 0.7, 1],
           ease: "easeInOut"
         }}
@@ -143,8 +144,8 @@ export default function AnimatedLogo() {
             x: [0, 500, 500, 0]
           }}
           transition={{
-            duration: 2.2,
-            delay: 2.5,
+            duration: 1.8,
+            delay: 2.1,
             times: [0, 0.3, 0.5, 1],
             ease: [0.25, 0.1, 0.25, 1]
           }}
@@ -169,8 +170,8 @@ export default function AnimatedLogo() {
             opacity: [0, 0.7, 0]
           }}
           transition={{
-            duration: 0.6,
-            delay: 2.5,
+            duration: 0.5,
+            delay: 2.1,
             ease: "easeOut"
           }}
           style={{
@@ -198,8 +199,8 @@ export default function AnimatedLogo() {
               opacity: [0, 0.5, 0]
             }}
             transition={{
-              duration: 0.7,
-              delay: 2.5 + i * 0.05,
+              duration: 0.5,
+              delay: 2.1 + i * 0.03,
               ease: "easeOut"
             }}
             style={{
@@ -227,8 +228,8 @@ export default function AnimatedLogo() {
               opacity: [0, 0.8, 0]
             }}
             transition={{
-              duration: 0.4,
-              delay: 2.5 + i * 0.05,
+              duration: 0.3,
+              delay: 2.1 + i * 0.03,
               ease: "easeOut"
             }}
             style={{
