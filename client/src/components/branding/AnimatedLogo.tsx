@@ -21,23 +21,24 @@ export default function AnimatedLogo() {
       minHeight: "120px"
     }}>
       
-      {/* SHIFT - Container drop effect */}
+      {/* SHIFT - Heavy container DROP effect */}
       <motion.span
-        initial={{ x: -200, y: -200, rotate: -30, opacity: 0 }}
+        initial={{ x: -150, y: -250, rotate: -25, opacity: 0 }}
         animate={{ 
           x: 0, 
-          y: 0, 
-          rotate: [0, 3, -2, 1, 0],
+          y: [0, -8, 0],
+          rotate: 0,
           opacity: 1 
         }}
         transition={{
-          duration: 1,
+          duration: 0.6,
           delay: 0.5,
-          ease: [0.22, 1, 0.36, 1],
-          rotate: {
-            duration: 0.5,
-            delay: 1.5,
-            times: [0, 0.3, 0.6, 0.8, 1]
+          ease: [0.55, 0, 1, 0.45],
+          y: {
+            duration: 0.25,
+            delay: 1.1,
+            times: [0, 0.4, 1],
+            ease: "easeOut"
           }
         }}
         style={{
@@ -53,13 +54,13 @@ export default function AnimatedLogo() {
       >
         SHIFT
         
-        {/* Impact effect - shockwave */}
+        {/* Impact effect - shockwave BANG */}
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: [0, 2.5, 3], opacity: [0, 0.7, 0] }}
+          animate={{ scale: [0, 3, 4], opacity: [0, 0.9, 0] }}
           transition={{
-            duration: 0.5,
-            delay: 1.5,
+            duration: 0.4,
+            delay: 1.1,
             ease: "easeOut"
           }}
           style={{
@@ -75,20 +76,20 @@ export default function AnimatedLogo() {
           }}
         />
         
-        {/* Dust particles */}
+        {/* Dust particles - explode on impact */}
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
             initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
             animate={{ 
-              scale: [0, 1, 0],
-              x: [0, (i - 3) * 25],
-              y: [0, -15 - i * 8],
-              opacity: [0, 0.5, 0]
+              scale: [0, 1.2, 0],
+              x: [0, (i - 3) * 35],
+              y: [0, -25 - i * 10],
+              opacity: [0, 0.7, 0]
             }}
             transition={{
               duration: 0.5,
-              delay: 1.5 + i * 0.03,
+              delay: 1.1 + i * 0.02,
               ease: "easeOut"
             }}
             style={{
@@ -105,18 +106,19 @@ export default function AnimatedLogo() {
         ))}
       </motion.span>
 
-      {/* zy - Small, orange, bending support */}
+      {/* zy - Snake bend effect when SHIFT lands */}
       <motion.span
-        initial={{ scale: 1, y: 0 }}
+        initial={{ scale: 1, y: 0, skewX: 0 }}
         animate={{
-          scale: [1, 0.92, 0.88, 0.92, 1],
-          y: [0, 3, 5, 3, 0],
-          scaleY: [1, 0.85, 0.8, 0.88, 1]
+          scale: [1, 0.85, 0.75, 0.85, 0.95, 1],
+          y: [0, 6, 10, 6, 2, 0],
+          scaleY: [1, 0.7, 0.55, 0.7, 0.9, 1],
+          skewX: [0, 8, -6, 4, -2, 0]
         }}
         transition={{
-          duration: 0.6,
-          delay: 1.5,
-          times: [0, 0.3, 0.5, 0.7, 1],
+          duration: 0.7,
+          delay: 1.1,
+          times: [0, 0.2, 0.4, 0.6, 0.8, 1],
           ease: "easeInOut"
         }}
         style={{
@@ -136,7 +138,7 @@ export default function AnimatedLogo() {
         zy
       </motion.span>
 
-      {/* GO - Zooms off and returns - wrapped for proper spacing */}
+      {/* GO - Reacts after zy bends, zooms off and returns */}
       <div style={{ display: "inline-flex", alignItems: "center", marginLeft: "10px" }}>
         <motion.span
           initial={{ x: 0 }}
@@ -145,7 +147,7 @@ export default function AnimatedLogo() {
           }}
           transition={{
             duration: 1.8,
-            delay: 2.1,
+            delay: 1.8,
             times: [0, 0.3, 0.5, 1],
             ease: [0.25, 0.1, 0.25, 1]
           }}
@@ -171,7 +173,7 @@ export default function AnimatedLogo() {
           }}
           transition={{
             duration: 0.5,
-            delay: 2.1,
+            delay: 1.8,
             ease: "easeOut"
           }}
           style={{
@@ -200,7 +202,7 @@ export default function AnimatedLogo() {
             }}
             transition={{
               duration: 0.5,
-              delay: 2.1 + i * 0.03,
+              delay: 1.8 + i * 0.03,
               ease: "easeOut"
             }}
             style={{
@@ -229,7 +231,7 @@ export default function AnimatedLogo() {
             }}
             transition={{
               duration: 0.3,
-              delay: 2.1 + i * 0.03,
+              delay: 1.8 + i * 0.03,
               ease: "easeOut"
             }}
             style={{
