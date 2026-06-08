@@ -233,78 +233,158 @@ export default function Travel() {
         {/* STEP 3: Pickup & Drop — only shown after vehicle type is selected */}
         {selectedVehicleType && (
           <div>
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Step 3 — Enter Pickup & Drop</p>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Step 3 — Plan Your Route</p>
 
-            {viewMode === "outstation" ? (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">Pickup Location</label>
-                  <select
-                    value={pickupLocation}
-                    onChange={(e) => setPickupLocation(e.target.value)}
-                    className="w-full p-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
-                  >
-                    <option value="">Select city</option>
-                    {LOCATIONS.map((loc) => (
-                      <option key={loc} value={loc}>{loc}</option>
+            {/* Creative Route Card */}
+            <div className="relative rounded-2xl overflow-hidden shadow-lg border border-neutral-100"
+              style={{ background: "linear-gradient(135deg, #f0f4ff 0%, #fff7ed 100%)" }}>
+
+              {/* Top tagline banner */}
+              <div className="px-4 pt-4 pb-2 flex items-center gap-2">
+                <span className="text-base">🗺️</span>
+                <p className="text-sm font-bold text-neutral-700">
+                  {viewMode === "outstation"
+                    ? "Where are you picking up & dropping off?"
+                    : "Which areas are you connecting?"}
+                </p>
+              </div>
+
+              <div className="px-4 pb-4 flex gap-3">
+                {/* Route line column */}
+                <div className="flex flex-col items-center pt-1" style={{ width: 28, minWidth: 28 }}>
+                  {/* Green start pin */}
+                  <div className="w-6 h-6 rounded-full bg-green-500 border-2 border-white shadow-md flex items-center justify-center" style={{ boxShadow: "0 0 0 3px rgba(34,197,94,0.2)" }}>
+                    <div className="w-2 h-2 rounded-full bg-white" />
+                  </div>
+                  {/* Dashed line */}
+                  <div className="flex flex-col gap-1 my-1.5">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="w-0.5 h-2 bg-neutral-300 rounded-full mx-auto" />
                     ))}
-                  </select>
+                  </div>
+                  {/* Red drop pin */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-6 h-6 rounded-full bg-red-500 border-2 border-white shadow-md flex items-center justify-center" style={{ boxShadow: "0 0 0 3px rgba(239,68,68,0.2)" }}>
+                      <div className="w-2 h-2 rounded-full bg-white" />
+                    </div>
+                    <div className="w-0.5 h-1.5 bg-red-400 rounded-full" />
+                    <div className="w-2 h-0.5 bg-red-400 rounded-full" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">Drop Location</label>
-                  <select
-                    value={dropLocation}
-                    onChange={(e) => setDropLocation(e.target.value)}
-                    className="w-full p-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
-                  >
-                    <option value="">Select city</option>
-                    {LOCATIONS.map((loc) => (
-                      <option key={loc} value={loc}>{loc}</option>
-                    ))}
-                  </select>
+
+                {/* Input fields column */}
+                <div className="flex-1 flex flex-col gap-3">
+                  {/* Pickup */}
+                  <div className="bg-white rounded-xl shadow-sm border border-green-100 p-3">
+                    <p className="text-xs font-bold text-green-600 mb-1 flex items-center gap-1">
+                      <span>●</span> START — Pickup {viewMode === "outstation" ? "City" : "Area"}
+                    </p>
+                    <select
+                      value={viewMode === "outstation" ? pickupLocation : selectedPickupLocality}
+                      onChange={(e) =>
+                        viewMode === "outstation"
+                          ? setPickupLocation(e.target.value)
+                          : setSelectedPickupLocality(e.target.value)
+                      }
+                      className="w-full text-sm font-medium text-neutral-800 bg-transparent border-none outline-none appearance-none cursor-pointer"
+                    >
+                      <option value="">
+                        {viewMode === "outstation" ? "Choose starting city..." : "Choose starting area..."}
+                      </option>
+                      {(viewMode === "outstation" ? LOCATIONS : CHENNAI_LOCALITIES).map((loc) => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Drop */}
+                  <div className="bg-white rounded-xl shadow-sm border border-red-100 p-3">
+                    <p className="text-xs font-bold text-red-500 mb-1 flex items-center gap-1">
+                      <span>●</span> END — Drop {viewMode === "outstation" ? "City" : "Area"}
+                    </p>
+                    <select
+                      value={viewMode === "outstation" ? dropLocation : selectedDropLocality}
+                      onChange={(e) =>
+                        viewMode === "outstation"
+                          ? setDropLocation(e.target.value)
+                          : setSelectedDropLocality(e.target.value)
+                      }
+                      className="w-full text-sm font-medium text-neutral-800 bg-transparent border-none outline-none appearance-none cursor-pointer"
+                    >
+                      <option value="">
+                        {viewMode === "outstation" ? "Choose destination city..." : "Choose drop area..."}
+                      </option>
+                      {(viewMode === "outstation" ? LOCATIONS : CHENNAI_LOCALITIES).map((loc) => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">Pickup Area</label>
-                  <select
-                    value={selectedPickupLocality}
-                    onChange={(e) => setSelectedPickupLocality(e.target.value)}
-                    className="w-full p-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
-                  >
-                    <option value="">Any area</option>
-                    {CHENNAI_LOCALITIES.map((loc) => (
-                      <option key={loc} value={loc}>{loc}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">Drop Area</label>
-                  <select
-                    value={selectedDropLocality}
-                    onChange={(e) => setSelectedDropLocality(e.target.value)}
-                    className="w-full p-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
-                  >
-                    <option value="">Any area</option>
-                    {CHENNAI_LOCALITIES.map((loc) => (
-                      <option key={loc} value={loc}>{loc}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
 
-            {/* Search button */}
+              {/* Selected route preview */}
+              {((viewMode === "outstation" && pickupLocation && dropLocation) ||
+                (viewMode === "local" && selectedPickupLocality && selectedDropLocality)) && (
+                <div className="mx-4 mb-4 px-3 py-2 rounded-xl bg-white border border-primary-100 shadow-inner flex items-center gap-2">
+                  <span className="text-green-500 font-bold text-sm">
+                    {viewMode === "outstation" ? pickupLocation : selectedPickupLocality}
+                  </span>
+                  <div className="flex-1 flex items-center gap-0.5">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="flex-1 h-0.5 bg-primary-300 rounded-full" />
+                    ))}
+                    <span className="text-base">🚗</span>
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="flex-1 h-0.5 bg-primary-300 rounded-full" />
+                    ))}
+                  </div>
+                  <span className="text-red-500 font-bold text-sm">
+                    {viewMode === "outstation" ? dropLocation : selectedDropLocality}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* BIG Search Button */}
             {viewMode === "outstation" && (
-              <Button
+              <button
                 type="button"
                 disabled={!pickupLocation || !dropLocation}
                 onClick={handleSearch}
-                className="w-full mt-3 bg-secondary-500 text-white disabled:opacity-40"
+                className="w-full mt-4 py-4 rounded-2xl font-bold text-base text-white flex items-center justify-center gap-3 transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  background: (!pickupLocation || !dropLocation)
+                    ? "#9ca3af"
+                    : "linear-gradient(135deg, #1d4ed8 0%, #7c3aed 50%, #db2777 100%)",
+                  boxShadow: (!pickupLocation || !dropLocation)
+                    ? "none"
+                    : "0 8px 24px rgba(109,40,217,0.35)"
+                }}
               >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                </svg>
                 Search Vehicles
-              </Button>
+                <span className="text-lg">🚗</span>
+              </button>
+            )}
+
+            {viewMode === "local" && (
+              <button
+                type="button"
+                onClick={() => {}}
+                className="w-full mt-4 py-4 rounded-2xl font-bold text-base text-white flex items-center justify-center gap-3 transition-all duration-200 active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, #059669 0%, #0ea5e9 100%)",
+                  boxShadow: "0 8px 24px rgba(5,150,105,0.3)"
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                </svg>
+                Find Local Shifts
+                <span className="text-lg">📍</span>
+              </button>
             )}
           </div>
         )}
