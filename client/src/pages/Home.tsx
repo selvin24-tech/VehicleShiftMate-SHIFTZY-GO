@@ -8,7 +8,7 @@ import ShiftRequestCard from "@/components/common/ShiftRequestCard";
 import OnboardingTour from "@/components/tour/OnboardingTour";
 import { TESTIMONIALS, RECENT_TRIPS, NEARBY_SHIFT_REQUESTS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { Phone, AlertTriangle } from "lucide-react";
+import { Phone, AlertTriangle, MapPin, Navigation } from "lucide-react";
 
 export default function Home() {
   const [, navigate] = useLocation();
@@ -107,35 +107,53 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Nearby Ride Opportunities Section */}
+        {/* Nearby Pickups — 5 km Section */}
         <div className="mt-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="font-bold h2">Nearby Ride Opportunities</h2>
-            <Button 
-              variant="link" 
-              className="text-primary-600 text-sm p-0 h-auto"
+          {/* Header badge */}
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <Navigation className="w-4 h-4 text-green-600" />
+              </div>
+              <div>
+                <h2 className="font-bold text-base leading-tight">Nearby Pickups</h2>
+                <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  Within 5 km of you
+                </p>
+              </div>
+            </div>
+            <button
+              className="text-xs font-semibold text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full border border-primary-100"
               onClick={() => navigate("/travel")}
             >
               See All
-            </Button>
+            </button>
           </div>
-          
-          <p className="body-text text-neutral-600 mb-resp">
-            Available rides within 15 km of your location that need to be picked up in the next 6 hours.
-          </p>
-          
-          <div className="space-y-4">
+
+          {/* Subtle info strip */}
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-4">
+            <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
+            <p className="text-xs text-amber-700 font-medium">
+              Vehicles waiting for a driver near your area — grab one before someone else does!
+            </p>
+          </div>
+
+          {/* Cards */}
+          <div className="space-y-3">
             {NEARBY_SHIFT_REQUESTS.slice(0, 3).map((request) => (
               <ShiftRequestCard key={request.id} request={request} />
             ))}
-            
-            <Button 
-              className="w-full bg-transparent border border-primary-500 text-primary-500 hover:bg-primary-50"
-              onClick={() => navigate("/travel")}
-            >
-              View All Ride Opportunities
-            </Button>
           </div>
+
+          {/* View more button */}
+          <button
+            onClick={() => navigate("/travel")}
+            className="mt-4 w-full py-3 rounded-xl font-semibold text-sm text-primary-700 border-2 border-primary-200 bg-primary-50 hover:bg-primary-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <Navigation className="w-4 h-4" />
+            View All Nearby Opportunities
+          </button>
         </div>
         
         {/* Recent Trips Section */}

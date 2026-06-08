@@ -391,78 +391,21 @@ export default function Travel() {
 
       </div>
 
-      {/* Results */}
-      <div className="px-4 py-5">
-        {viewMode === "outstation" ? (
-          <>
-            {searchResults.length > 0 && (
-              <>
-                <h2 className="font-bold text-lg mb-4">Available Vehicles</h2>
-                <div className="space-y-4 mb-8">
-                  {searchResults.map((vehicle) => (
-                    <VehicleCard
-                      key={vehicle.id}
-                      vehicle={vehicle}
-                      onClick={() => navigate(`/vehicle/${vehicle.id}`)}
-                    />
-                  ))}
-                </div>
-
-                <h2 className="font-bold text-lg mb-4">Nearby Shift Requests</h2>
-                {NEARBY_SHIFT_REQUESTS.length > 0 ? (
-                  <div className="space-y-4">
-                    {NEARBY_SHIFT_REQUESTS.map((request) => (
-                      <ShiftRequestCard key={request.id} request={request} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-neutral-500">No shift requests available.</p>
-                  </div>
-                )}
-              </>
-            )}
-
-            {!selectedVehicleType && (
-              <div className="text-center py-12 text-neutral-400">
-                <span className="text-4xl block mb-3">🚗</span>
-                <p className="font-medium">Choose a vehicle type above to get started</p>
-              </div>
-            )}
-
-            {selectedVehicleType && (!pickupLocation || !dropLocation) && (
-              <div className="text-center py-12 text-neutral-400">
-                <span className="text-4xl block mb-3">📍</span>
-                <p className="font-medium">Select pickup & drop locations to search</p>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            {!selectedVehicleType ? (
-              <div className="text-center py-12 text-neutral-400">
-                <span className="text-4xl block mb-3">🏍️</span>
-                <p className="font-medium">Choose a vehicle type above to get started</p>
-              </div>
-            ) : (
-              <>
-                <h2 className="font-bold text-lg mb-4">Local Shift Requests</h2>
-                {filteredLocalRequests.length > 0 ? (
-                  <div className="space-y-4">
-                    {filteredLocalRequests.map((request) => (
-                      <ShiftRequestCard key={request.id} request={request} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-neutral-500">No local shift requests found.</p>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </div>
+      {/* After search — matched vehicles only */}
+      {searchResults.length > 0 && (
+        <div className="px-4 pb-6">
+          <h2 className="font-bold text-lg mb-4">Matched Vehicles</h2>
+          <div className="space-y-4">
+            {searchResults.map((vehicle) => (
+              <VehicleCard
+                key={vehicle.id}
+                vehicle={vehicle}
+                onClick={() => navigate(`/vehicle/${vehicle.id}`)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <BottomNav />
     </div>
