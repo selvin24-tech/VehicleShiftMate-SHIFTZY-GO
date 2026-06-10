@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "bHjIKvc9bpQ9e-29vOnGf"
+uri = "file://shiftzygo-source.tar.gz"
+type = "unspecified"
+title = "ShiftzyGo Source Code"
