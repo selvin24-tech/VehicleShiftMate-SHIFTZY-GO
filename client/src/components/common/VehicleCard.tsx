@@ -63,42 +63,21 @@ export default function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
           <div className="flex-1">
             <div className="flex justify-between items-start">
               <h3 className="font-bold text-lg">{vehicle.make} {vehicle.model}</h3>
-              <div className="flex items-center gap-2">
-                {vehicle.pricePerDay && (
-                  <div className="flex items-center gap-1">
-                    {isEditing ? (
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="number"
-                          value={editedPrice}
-                          onChange={(e) => setEditedPrice(Number(e.target.value))}
-                          className="w-16 px-1 py-0.5 text-sm border rounded"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 w-6 p-0"
-                          onClick={handlePriceSubmit}
-                        >
-                          ✓
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="font-semibold text-secondary-600">₹{vehicle.pricePerDay}/day</div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 w-6 p-0"
-                          onClick={handleEditPrice}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                )}
+              <div className="flex items-center gap-1.5">
+                {/* Normal / Premium category badge */}
+                {(() => {
+                  const premiumMakes = ["BMW","Mercedes","Audi","Jaguar","Lexus","Land Rover","KTM","Royal Enfield"];
+                  const isPremium = vehicle.vehicleCategory === "premium" || premiumMakes.includes(vehicle.make);
+                  return (
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      isPremium
+                        ? "bg-purple-100 text-purple-700 border border-purple-200"
+                        : "bg-green-100 text-green-700 border border-green-200"
+                    }`}>
+                      {isPremium ? "✦ Premium" : "● Normal"}
+                    </span>
+                  );
+                })()}
               </div>
             </div>
             <div className="flex items-center text-sm text-neutral-500 mb-2">

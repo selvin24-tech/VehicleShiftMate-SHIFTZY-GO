@@ -203,16 +203,45 @@ export default function VehicleDetails() {
       </div>
       
       {/* Vehicle Info */}
-      <div className="mb-4 flex justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-bold mb-1">{vehicle.make} {vehicle.model}</h2>
-          <p className="text-neutral-600">{vehicle.registrationNumber}</p>
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-primary-600">₹{vehicle.pricePerDay}<span className="text-sm font-normal text-neutral-500">/day</span></div>
-          <p className="text-xs text-neutral-500">All inclusive price</p>
-        </div>
-      </div>
+      {(() => {
+        const PREMIUM_MAKES = ["BMW","Mercedes","Audi","Jaguar","Lexus","Land Rover","KTM","Royal Enfield"];
+        const isPremium = vehicle.vehicleCategory === "premium" || PREMIUM_MAKES.includes(vehicle.make);
+        const isBike = vehicle.type === "bike";
+        const isSuv = vehicle.type === "suv";
+        let ownerPerKm: number, fuelPerKm: number, appFeePerKm: number;
+        if (isBike) { ownerPerKm = isPremium ? 10 : 7; fuelPerKm = isPremium ? 4 : 3; appFeePerKm = isPremium ? 3 : 2; }
+        else if (isSuv) { ownerPerKm = 15; fuelPerKm = 10; appFeePerKm = 4; }
+        else if (isPremium) { ownerPerKm = 20; fuelPerKm = 8; appFeePerKm = 6; }
+        else { ownerPerKm = 13; fuelPerKm = 8; appFeePerKm = 3; }
+        return (
+          <div className="mb-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h2 className="text-2xl font-bold mb-1">{vehicle.make} {vehicle.model}</h2>
+                <p className="text-neutral-600">{vehicle.registrationNumber}</p>
+              </div>
+              <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                isPremium ? "bg-purple-100 text-purple-700 border border-purple-200" : "bg-green-100 text-green-700 border border-green-200"
+              }`}>
+                {isPremium ? "✦ Premium" : "● Normal"}
+              </span>
+            </div>
+            {/* Two-sided pricing breakdown */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                <p className="text-xs font-bold text-green-700 mb-1">🏠 Owner Pays</p>
+                <p className="text-xl font-bold text-green-700">₹{ownerPerKm}<span className="text-sm font-normal">/km</span></p>
+                <p className="text-xs text-green-600 mt-1">Relocation fee</p>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                <p className="text-xs font-bold text-blue-700 mb-1">🚗 You Pay</p>
+                <p className="text-xl font-bold text-blue-700">₹{fuelPerKm + appFeePerKm}<span className="text-sm font-normal">/km</span></p>
+                <p className="text-xs text-blue-600 mt-0.5">₹{fuelPerKm} fuel + ₹{appFeePerKm} app fee</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       
       {/* Owner Details */}
       <Card className="p-4 border border-neutral-200 mb-6">
@@ -273,10 +302,12 @@ export default function VehicleDetails() {
         
         <Card className="p-3 border border-neutral-200">
           <div className="flex flex-col h-full">
-            <div className="text-neutral-500 mb-1 text-sm">Price Per Day</div>
+            <div className="text-neutral-500 mb-1 text-sm">Owner Rate</div>
             <div className="flex items-center">
-              <Banknote className="h-5 w-5 mr-2 text-primary-500" />
-              <span className="font-medium">₹{vehicle.pricePerDay}</span>
+              <Banknote className="h-5 w-5 mr-2 text-green-500" />
+              <span className="font-medium text-green-700">
+                ₹{["BMW","Mercedes","Audi","Jaguar","Lexus","Land Rover"].includes(vehicle.make) ? 20 : vehicle.type === "suv" ? 15 : vehicle.type === "bike" ? (["KTM","Royal Enfield"].includes(vehicle.make) ? 10 : 7) : 13}/km
+              </span>
             </div>
           </div>
         </Card>

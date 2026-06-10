@@ -1,5 +1,51 @@
 import { Testimonial, Vehicle, Trip, ShiftRequest, Review } from "./types";
 
+// ─── Pricing Structure ────────────────────────────────────────────────────────
+// Two simple categories based on the Shiftzy Go model:
+//   Owner posts a shift → pays a reduced relocation fee
+//   Traveler accepts  → pays fuel + small app service fee, gets a free road trip
+// ─────────────────────────────────────────────────────────────────────────────
+export const PRICING_STRUCTURE = {
+  normal: {
+    label: "Normal",
+    color: "green",
+    exampleVehicles: ["Swift", "i20", "Baleno", "Amaze", "City", "Apache", "Pulsar"],
+    ownerPerKm: 13,
+    travelerFuelPerKm: 8,
+    travelerAppFeePerKm: 3,
+    travelerTotalPerKm: 11,
+    description: "Owner saves ~50% vs transport company. Traveler gets a road trip at just fuel cost.",
+  },
+  premium: {
+    label: "Premium",
+    color: "purple",
+    exampleVehicles: ["BMW", "Mercedes", "Audi", "Fortuner", "KTM Duke", "Royal Enfield"],
+    ownerPerKm: 20,
+    travelerFuelPerKm: 8,
+    travelerAppFeePerKm: 6,
+    travelerTotalPerKm: 14,
+    description: "Drive a luxury vehicle for your trip at the cost of fuel + small service fee.",
+  },
+  bike: {
+    label: "Bike",
+    color: "blue",
+    ownerPerKm: 7,
+    travelerFuelPerKm: 3,
+    travelerAppFeePerKm: 2,
+    travelerTotalPerKm: 5,
+    description: "Quick local shifts on two-wheelers.",
+  },
+  suv: {
+    label: "SUV",
+    color: "orange",
+    ownerPerKm: 15,
+    travelerFuelPerKm: 10,
+    travelerAppFeePerKm: 4,
+    travelerTotalPerKm: 14,
+    description: "Big, spacious family vehicles for long road trips.",
+  },
+};
+
 export const VEHICLE_TYPES = [
   {
     id: "car",
@@ -681,7 +727,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "09:30 AM (Tomorrow)",
     distance: "28 km",
     estimatedDuration: "50m",
-    reward: 300,
+    reward: 280,
     postedTime: "2 hours ago",
     status: "pending"
   },
@@ -711,7 +757,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "08:00 AM",
     distance: "22 km",
     estimatedDuration: "50m",
-    reward: 350,
+    reward: 154,
     postedTime: "30 minutes ago",
     status: "pending"
   },
@@ -743,7 +789,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "11:00 AM",
     distance: "45 km",
     estimatedDuration: "1h 15m",
-    reward: 600,
+    reward: 585,
     postedTime: "1 hour ago",
     status: "pending"
   },
@@ -773,7 +819,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "02:00 PM (Tomorrow)",
     distance: "15 km",
     estimatedDuration: "40m",
-    reward: 400,
+    reward: 195,
     postedTime: "3 hours ago",
     status: "pending"
   },
@@ -805,7 +851,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "09:00 AM",
     distance: "22 km",
     estimatedDuration: "50m",
-    reward: 550,
+    reward: 330,
     postedTime: "4 hours ago",
     status: "pending"
   },
@@ -835,7 +881,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "04:30 PM",
     distance: "26 km",
     estimatedDuration: "1h",
-    reward: 650,
+    reward: 390,
     postedTime: "5 hours ago",
     status: "pending"
   },
@@ -867,7 +913,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "10:30 AM",
     distance: "15 km",
     estimatedDuration: "35m",
-    reward: 800,
+    reward: 300,
     postedTime: "2 hours ago",
     status: "pending"
   },
@@ -897,7 +943,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "02:00 PM (Tomorrow)",
     distance: "35 km",
     estimatedDuration: "1h 10m",
-    reward: 1200,
+    reward: 700,
     postedTime: "30 minutes ago",
     status: "pending"
   }
@@ -930,7 +976,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "10:30 AM",
     distance: "350 km",
     estimatedDuration: "5h 30m",
-    reward: 2000,
+    reward: 4550,
     postedTime: "1 hour ago",
     status: "pending"
   },
@@ -960,7 +1006,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "12:45 PM",
     distance: "160 km",
     estimatedDuration: "2h 45m",
-    reward: 900,
+    reward: 1600,
     postedTime: "2 hours ago",
     status: "pending"
   },
@@ -990,7 +1036,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "09:00 AM (Tomorrow)",
     distance: "510 km",
     estimatedDuration: "7h 15m",
-    reward: 3500,
+    reward: 7650,
     postedTime: "30 minutes ago",
     status: "pending"
   },
@@ -1020,7 +1066,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "08:15 AM",
     distance: "450 km",
     estimatedDuration: "6h 45m",
-    reward: 2800,
+    reward: 5850,
     postedTime: "3 hours ago",
     status: "pending"
   },
@@ -1050,7 +1096,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "11:00 AM (Tomorrow)",
     distance: "685 km",
     estimatedDuration: "10h",
-    reward: 5000,
+    reward: 13700,
     postedTime: "45 minutes ago",
     status: "pending"
   },
@@ -1080,7 +1126,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "02:30 PM",
     distance: "350 km",
     estimatedDuration: "5h",
-    reward: 1200,
+    reward: 2450,
     postedTime: "4 hours ago",
     status: "pending"
   }

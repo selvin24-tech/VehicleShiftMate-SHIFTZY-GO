@@ -39,6 +39,7 @@ export interface Vehicle {
   availabilityStatus?: 'available' | 'unavailable' | 'available-tomorrow';
   features?: string[];
   pricePerDay?: number;
+  vehicleCategory?: 'normal' | 'premium';
 }
 
 export interface Testimonial {
