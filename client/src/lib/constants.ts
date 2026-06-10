@@ -1,48 +1,75 @@
 import { Testimonial, Vehicle, Trip, ShiftRequest, Review } from "./types";
 
-// ─── Pricing Structure ────────────────────────────────────────────────────────
-// Two simple categories based on the Shiftzy Go model:
-//   Owner posts a shift → pays a reduced relocation fee
-//   Traveler accepts  → pays fuel + small app service fee, gets a free road trip
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Shared-Cost Marketplace Model ───────────────────────────────────────────
+// Core insight: One needs the vehicle moved. The other needs transportation.
+// Both share the SAME trip cost → both pay LESS than going alone.
+//
+// Trip cost = Fuel + Tolls + Platform fee
+// Owner contributes ~50%  → saves massively vs ₹20,000+ transport company
+// Traveler contributes ~50% → saves vs their own travel (bus/train/taxi)
+//
+// Formula: ownerShare + travelerShare = totalTripCost
+// App calculates this dynamically based on: distance · vehicle type · fuel price · demand
+// ──────────────────────────────────────────────────────────────────────────────
 export const PRICING_STRUCTURE = {
   normal: {
     label: "Normal",
     color: "green",
-    exampleVehicles: ["Swift", "i20", "Baleno", "Amaze", "City", "Apache", "Pulsar"],
-    ownerPerKm: 13,
-    travelerFuelPerKm: 8,
-    travelerAppFeePerKm: 3,
-    travelerTotalPerKm: 11,
-    description: "Owner saves ~50% vs transport company. Traveler gets a road trip at just fuel cost.",
+    examples: ["Swift", "i20", "Amaze", "City", "Innova", "Creta"],
+    totalCostPerKm: 12,           // fuel ₹8.5 + toll ₹1.5 + platform ₹2
+    ownerSharePerKm: 6,           // 50% of trip cost
+    travelerSharePerKm: 6,        // 50% of trip cost
+    transportCompanyPerKm: 32,    // what a traditional transport company charges
+    travelerAltPerKm: 8,          // traveler's alternative (bus/train/own fuel)
+    ownerSaving: "~80% vs transport company",
+    travelerSaving: "~25% vs own travel",
+    description: "Everyday vehicles. Both sides split cost 50-50.",
   },
   premium: {
     label: "Premium",
     color: "purple",
-    exampleVehicles: ["BMW", "Mercedes", "Audi", "Fortuner", "KTM Duke", "Royal Enfield"],
-    ownerPerKm: 20,
-    travelerFuelPerKm: 8,
-    travelerAppFeePerKm: 6,
-    travelerTotalPerKm: 14,
-    description: "Drive a luxury vehicle for your trip at the cost of fuel + small service fee.",
+    examples: ["BMW", "Mercedes", "Audi", "Jaguar", "Lexus"],
+    totalCostPerKm: 16,
+    ownerSharePerKm: 8,
+    travelerSharePerKm: 8,
+    transportCompanyPerKm: 50,
+    travelerAltPerKm: 10,
+    ownerSaving: "~84% vs transport company",
+    travelerSaving: "~20% vs own travel",
+    description: "Luxury vehicles. Experience premium travel at shared cost.",
   },
   bike: {
     label: "Bike",
     color: "blue",
-    ownerPerKm: 7,
-    travelerFuelPerKm: 3,
-    travelerAppFeePerKm: 2,
-    travelerTotalPerKm: 5,
-    description: "Quick local shifts on two-wheelers.",
+    examples: ["Pulsar", "Apache", "Hero Xpulse"],
+    totalCostPerKm: 8,
+    ownerSharePerKm: 4,
+    travelerSharePerKm: 4,
+    transportCompanyPerKm: 15,
+    travelerAltPerKm: 6,
+    description: "Two-wheelers for quick local and city shifts.",
+  },
+  premiumBike: {
+    label: "Premium Bike",
+    color: "indigo",
+    examples: ["KTM Duke", "Royal Enfield Himalayan"],
+    totalCostPerKm: 10,
+    ownerSharePerKm: 5,
+    travelerSharePerKm: 5,
+    transportCompanyPerKm: 22,
+    travelerAltPerKm: 8,
+    description: "Performance bikes. Great for weekend road trips.",
   },
   suv: {
     label: "SUV",
     color: "orange",
-    ownerPerKm: 15,
-    travelerFuelPerKm: 10,
-    travelerAppFeePerKm: 4,
-    travelerTotalPerKm: 14,
-    description: "Big, spacious family vehicles for long road trips.",
+    examples: ["XUV700", "Harrier", "Hector", "Scorpio"],
+    totalCostPerKm: 14,
+    ownerSharePerKm: 7,
+    travelerSharePerKm: 7,
+    transportCompanyPerKm: 40,
+    travelerAltPerKm: 10,
+    description: "Spacious family SUVs. Perfect for long family road trips.",
   },
 };
 
@@ -727,7 +754,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "09:30 AM (Tomorrow)",
     distance: "28 km",
     estimatedDuration: "50m",
-    reward: 280,
+    reward: 150,
     postedTime: "2 hours ago",
     status: "pending"
   },
@@ -757,7 +784,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "08:00 AM",
     distance: "22 km",
     estimatedDuration: "50m",
-    reward: 154,
+    reward: 150,
     postedTime: "30 minutes ago",
     status: "pending"
   },
@@ -789,7 +816,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "11:00 AM",
     distance: "45 km",
     estimatedDuration: "1h 15m",
-    reward: 585,
+    reward: 270,
     postedTime: "1 hour ago",
     status: "pending"
   },
@@ -819,7 +846,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "02:00 PM (Tomorrow)",
     distance: "15 km",
     estimatedDuration: "40m",
-    reward: 195,
+    reward: 200,
     postedTime: "3 hours ago",
     status: "pending"
   },
@@ -851,7 +878,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "09:00 AM",
     distance: "22 km",
     estimatedDuration: "50m",
-    reward: 330,
+    reward: 200,
     postedTime: "4 hours ago",
     status: "pending"
   },
@@ -881,7 +908,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "04:30 PM",
     distance: "26 km",
     estimatedDuration: "1h",
-    reward: 390,
+    reward: 200,
     postedTime: "5 hours ago",
     status: "pending"
   },
@@ -913,7 +940,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "10:30 AM",
     distance: "15 km",
     estimatedDuration: "35m",
-    reward: 300,
+    reward: 200,
     postedTime: "2 hours ago",
     status: "pending"
   },
@@ -943,7 +970,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "02:00 PM (Tomorrow)",
     distance: "35 km",
     estimatedDuration: "1h 10m",
-    reward: 700,
+    reward: 280,
     postedTime: "30 minutes ago",
     status: "pending"
   }
@@ -976,7 +1003,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "10:30 AM",
     distance: "350 km",
     estimatedDuration: "5h 30m",
-    reward: 4550,
+    reward: 2100,
     postedTime: "1 hour ago",
     status: "pending"
   },
@@ -1006,7 +1033,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "12:45 PM",
     distance: "160 km",
     estimatedDuration: "2h 45m",
-    reward: 1600,
+    reward: 800,
     postedTime: "2 hours ago",
     status: "pending"
   },
@@ -1036,7 +1063,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "09:00 AM (Tomorrow)",
     distance: "510 km",
     estimatedDuration: "7h 15m",
-    reward: 7650,
+    reward: 3570,
     postedTime: "30 minutes ago",
     status: "pending"
   },
@@ -1066,7 +1093,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "08:15 AM",
     distance: "450 km",
     estimatedDuration: "6h 45m",
-    reward: 5850,
+    reward: 2700,
     postedTime: "3 hours ago",
     status: "pending"
   },
@@ -1096,7 +1123,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "11:00 AM (Tomorrow)",
     distance: "685 km",
     estimatedDuration: "10h",
-    reward: 13700,
+    reward: 5480,
     postedTime: "45 minutes ago",
     status: "pending"
   },
@@ -1126,7 +1153,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     pickupTime: "02:30 PM",
     distance: "350 km",
     estimatedDuration: "5h",
-    reward: 2450,
+    reward: 1400,
     postedTime: "4 hours ago",
     status: "pending"
   }

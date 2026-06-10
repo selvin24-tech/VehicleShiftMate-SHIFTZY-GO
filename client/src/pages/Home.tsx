@@ -74,7 +74,7 @@ export default function Home() {
                 <h2 className="option-brand-name">
                   <span className="option-brand-shift">Shift</span>
                 </h2>
-                <p className="body-text text-neutral-600">Transport your vehicle to another location</p>
+                <p className="body-text text-neutral-600">Need your vehicle moved? Share the trip cost with a traveler going that way</p>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>
@@ -97,7 +97,7 @@ export default function Home() {
                 <h2 className="option-brand-name">
                   <span className="option-brand-go">Go</span>
                 </h2>
-                <p className="body-text text-neutral-600">Find vehicles to drive and earn while traveling</p>
+                <p className="body-text text-neutral-600">Heading somewhere? Share a vehicle relocation trip — both sides save</p>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>
@@ -135,7 +135,7 @@ export default function Home() {
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-4">
             <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
             <p className="text-xs text-amber-700 font-medium">
-              Vehicles waiting for a driver near your area — grab one before someone else does!
+              Owners nearby need their vehicle moved — share the trip cost, both of you save!
             </p>
           </div>
 

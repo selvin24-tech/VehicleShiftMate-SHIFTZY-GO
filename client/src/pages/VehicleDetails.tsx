@@ -226,17 +226,31 @@ export default function VehicleDetails() {
                 {isPremium ? "✦ Premium" : "● Normal"}
               </span>
             </div>
-            {/* Two-sided pricing breakdown */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                <p className="text-xs font-bold text-green-700 mb-1">🏠 Owner Pays</p>
-                <p className="text-xl font-bold text-green-700">₹{ownerPerKm}<span className="text-sm font-normal">/km</span></p>
-                <p className="text-xs text-green-600 mt-1">Relocation fee</p>
+            {/* Shared-cost pricing breakdown */}
+            <div className="space-y-2">
+              {/* Total trip cost reference */}
+              <div className="bg-neutral-100 rounded-xl px-4 py-2 flex items-center justify-between">
+                <span className="text-xs text-neutral-500 font-medium">Trip cost per km</span>
+                <span className="font-bold text-neutral-800">₹{ownerPerKm + (fuelPerKm - ownerPerKm) + appFeePerKm}/km total</span>
               </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                <p className="text-xs font-bold text-blue-700 mb-1">🚗 You Pay</p>
-                <p className="text-xl font-bold text-blue-700">₹{fuelPerKm + appFeePerKm}<span className="text-sm font-normal">/km</span></p>
-                <p className="text-xs text-blue-600 mt-0.5">₹{fuelPerKm} fuel + ₹{appFeePerKm} app fee</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-1">🏠 Owner Shares</p>
+                  <p className="text-xl font-bold text-green-700">₹{ownerPerKm}<span className="text-sm font-normal">/km</span></p>
+                  <p className="text-xs text-green-600 mt-1">~50% of trip cost</p>
+                  <p className="text-[10px] text-green-500 mt-0.5">Saves vs transport company</p>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-1">🚗 You Share</p>
+                  <p className="text-xl font-bold text-blue-700">₹{fuelPerKm}<span className="text-sm font-normal">/km</span></p>
+                  <p className="text-xs text-blue-600 mt-1">~50% of trip cost</p>
+                  <p className="text-[10px] text-blue-500 mt-0.5">Saves vs own travel</p>
+                </div>
+              </div>
+              <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-center">
+                <p className="text-xs text-amber-800 font-medium">
+                  ✅ Both save because both get value from the same trip
+                </p>
               </div>
             </div>
           </div>
