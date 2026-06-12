@@ -111,50 +111,67 @@ export default function Home() {
 
         {/* Nearby Pickups — 5 km Section */}
         <div className="mt-8">
-          {/* Header badge */}
-          <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                <Navigation className="w-4 h-4 text-green-600" />
+
+          {/* Bold section header */}
+          <div className="relative bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl px-4 py-4 mb-4 overflow-hidden shadow-lg">
+            {/* Background glow blobs */}
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+            <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/10 rounded-full blur-xl" />
+
+            <div className="relative flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {/* Pulsing radar icon */}
+                <div className="relative w-11 h-11">
+                  <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" />
+                  <div className="relative w-11 h-11 rounded-full bg-white/25 flex items-center justify-center">
+                    <Navigation className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-white text-lg leading-tight">Nearby Pickups</h2>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="inline-block w-2 h-2 rounded-full bg-yellow-300 animate-pulse" />
+                    <span className="text-green-100 text-xs font-semibold">Within 5 km · Live</span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h2 className="font-bold text-base leading-tight">Nearby Pickups</h2>
-                <p className="text-xs text-green-600 font-medium flex items-center gap-1">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  Within 5 km of you
-                </p>
-              </div>
+
+              {/* See All — bold pill */}
+              <button
+                onClick={() => navigate("/nearby")}
+                className="flex items-center gap-1.5 bg-white text-green-700 font-bold text-sm px-4 py-2 rounded-full shadow-md active:scale-95 transition-all hover:bg-green-50"
+              >
+                See All
+                <span className="bg-green-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  {NEARBY_SHIFT_REQUESTS.length}
+                </span>
+              </button>
             </div>
-            <button
-              className="text-xs font-semibold text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full border border-primary-100"
-              onClick={() => navigate("/travel")}
-            >
-              See All
-            </button>
+
+            {/* Info tag inside header card */}
+            <div className="mt-3 flex items-center gap-2 bg-white/15 rounded-xl px-3 py-2">
+              <MapPin className="w-3.5 h-3.5 text-yellow-300 shrink-0" />
+              <p className="text-xs text-white font-medium">
+                Owners nearby need their vehicle moved — share cost, both save!
+              </p>
+            </div>
           </div>
 
-          {/* Subtle info strip */}
-          <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-4">
-            <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
-            <p className="text-xs text-amber-700 font-medium">
-              Owners nearby need their vehicle moved — share the trip cost, both of you save!
-            </p>
-          </div>
-
-          {/* Cards */}
+          {/* Cards — only 2 closest shown on home */}
           <div className="space-y-3">
-            {NEARBY_SHIFT_REQUESTS.slice(0, 3).map((request) => (
+            {NEARBY_SHIFT_REQUESTS.slice(0, 2).map((request) => (
               <ShiftRequestCard key={request.id} request={request} />
             ))}
           </div>
 
-          {/* View more button */}
+          {/* View all button */}
           <button
-            onClick={() => navigate("/travel")}
-            className="mt-4 w-full py-3 rounded-xl font-semibold text-sm text-primary-700 border-2 border-primary-200 bg-primary-50 hover:bg-primary-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+            onClick={() => navigate("/nearby")}
+            className="mt-4 w-full py-3.5 rounded-2xl font-bold text-sm text-white active:scale-95 transition-all flex items-center justify-center gap-2 shadow-md"
+            style={{ background: "linear-gradient(135deg, #16a34a 0%, #059669 100%)" }}
           >
             <Navigation className="w-4 h-4" />
-            View All Nearby Opportunities
+            View All {NEARBY_SHIFT_REQUESTS.length} Nearby Vehicles
           </button>
         </div>
         
