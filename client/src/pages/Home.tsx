@@ -74,7 +74,8 @@ export default function Home() {
                 <h2 className="option-brand-name">
                   <span className="option-brand-shift">Shift</span>
                 </h2>
-                <p className="body-text text-neutral-600">Need your vehicle moved? Share the trip cost with a traveler going that way</p>
+                <p className="font-semibold text-sm text-neutral-700">Need to Shift?</p>
+                <p className="text-xs text-neutral-500 mt-0.5">Safe, easy vehicle relocation.</p>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>
@@ -97,7 +98,8 @@ export default function Home() {
                 <h2 className="option-brand-name">
                   <span className="option-brand-go">Go</span>
                 </h2>
-                <p className="body-text text-neutral-600">Heading somewhere? Share a vehicle relocation trip — both sides save</p>
+                <p className="font-semibold text-sm text-neutral-700">Ready to Go?</p>
+                <p className="text-xs text-neutral-500 mt-0.5">Choose a vehicle and start your journey.</p>
               </div>
               <div className="arrow-icon">
                 <i className="fas fa-arrow-right"></i>
