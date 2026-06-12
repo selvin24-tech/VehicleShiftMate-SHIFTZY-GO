@@ -152,9 +152,19 @@ export default function Travel() {
 
       <div className="p-4 bg-white space-y-5">
 
+        {/* Intro question */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl px-4 py-4 border border-blue-100">
+          <p className="text-lg font-bold text-blue-900 leading-snug">
+            Are you moving somewhere? 🚀
+          </p>
+          <p className="text-sm text-blue-600 mt-1">
+            Select your travel · Pick your favourite vehicle · Share your location
+          </p>
+        </div>
+
         {/* STEP 1: Outstation / Local Tabs */}
         <div>
-          <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Step 1 — Select Journey Type</p>
+          <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Step 1 — Select Your Travel</p>
           <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl p-1.5 flex w-full shadow-md">
             <button
               type="button"
@@ -186,7 +196,7 @@ export default function Travel() {
         {/* STEP 2: Vehicle Type */}
         <div>
           <div className="flex justify-between items-center mb-2">
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Step 2 — Choose Vehicle Type</p>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Step 2 — Pick Your Favourite Vehicle</p>
             {selectedVehicleType && (
               <button
                 type="button"
@@ -233,7 +243,7 @@ export default function Travel() {
         {/* STEP 3: Pickup & Drop — only shown after vehicle type is selected */}
         {selectedVehicleType && (
           <div>
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Step 3 — Plan Your Route</p>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Step 3 — Select Your Location</p>
 
             {/* Creative Route Card */}
             <div className="relative rounded-2xl overflow-hidden shadow-lg border border-neutral-100"
