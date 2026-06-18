@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Lock, User, CreditCard, Phone, CheckCircle2, ArrowLeft, UserPlus, LogIn } from "lucide-react";
+import { Eye, EyeOff, Lock, User, CreditCard, Phone, CheckCircle2, ArrowLeft, UserPlus, LogIn, Car, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
@@ -38,6 +38,11 @@ const aadhaarSchema = z.object({
     .min(12, "Aadhaar number must be 12 digits")
     .max(12, "Aadhaar number must be 12 digits")
     .regex(/^\d{12}$/, "Only digits allowed"),
+  vehicleNumber: z
+    .string()
+    .min(1, "Vehicle number is required")
+    .regex(/^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/, "Enter a valid vehicle number (e.g. TN09AB1234)"),
+  loginPlace: z.string().min(2, "Please enter your current city or place"),
 });
 
 const otpSchema = z.object({
@@ -81,7 +86,7 @@ export default function Login() {
 
   const aadhaarForm = useForm<AadhaarData>({
     resolver: zodResolver(aadhaarSchema),
-    defaultValues: { aadhaarNumber: "" },
+    defaultValues: { aadhaarNumber: "", vehicleNumber: "", loginPlace: "" },
   });
 
   const otpForm = useForm<OtpData>({
@@ -150,6 +155,9 @@ export default function Login() {
       setIsLoading(false);
       const last4 = data.aadhaarNumber.slice(-4);
       setMaskedAadhaar(`XXXX XXXX ${last4}`);
+      // Save vehicle number and place for later use
+      localStorage.setItem("vehicleNumber", data.vehicleNumber.toUpperCase());
+      localStorage.setItem("loginPlace", data.loginPlace);
       startCountdown();
       setStep("otp");
       toast({
@@ -395,6 +403,7 @@ export default function Login() {
                 <p className="text-sm text-neutral-500 text-center mb-5">Enter your 12-digit Aadhaar number to receive an OTP</p>
                 <Form {...aadhaarForm}>
                   <form onSubmit={aadhaarForm.handleSubmit(handleSendOtp)} className="space-y-4" autoComplete="off">
+                    {/* Aadhaar Number */}
                     <FormField control={aadhaarForm.control} name="aadhaarNumber" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Aadhaar Card Number</FormLabel>
@@ -412,7 +421,48 @@ export default function Login() {
                             />
                           </div>
                         </FormControl>
-                        <p className="text-xs text-neutral-400 mt-1">12-digit number on your Aadhaar card</p>
+                        <p className="text-xs text-neutral-400 mt-1">12-digit number printed on your Aadhaar card</p>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* Vehicle Number */}
+                    <FormField control={aadhaarForm.control} name="vehicleNumber" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vehicle Number</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Car className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Input
+                              {...field}
+                              placeholder="e.g. TN09AB1234"
+                              className="pl-10 uppercase tracking-wider"
+                              autoComplete="off"
+                              onChange={e => field.onChange(e.target.value.toUpperCase().replace(/\s/g, ""))}
+                            />
+                          </div>
+                        </FormControl>
+                        <p className="text-xs text-neutral-400 mt-1">Registration number from your RC book</p>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* Login Place */}
+                    <FormField control={aadhaarForm.control} name="loginPlace" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Your Current City / Place</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Input
+                              {...field}
+                              placeholder="e.g. Chennai, Coimbatore"
+                              className="pl-10"
+                              autoComplete="off"
+                            />
+                          </div>
+                        </FormControl>
+                        <p className="text-xs text-neutral-400 mt-1">City or area you are currently signing up from</p>
                         <FormMessage />
                       </FormItem>
                     )} />
