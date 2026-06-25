@@ -16,6 +16,11 @@ import Chat from "@/pages/Chat";
 import VehicleDetails from "@/pages/VehicleDetails";
 import Checkout from "@/pages/Checkout";
 import Nearby from "@/pages/Nearby";
+import Notifications from "@/pages/Notifications";
+import BookingConfirmation from "@/pages/BookingConfirmation";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
+import Wallet from "@/pages/Wallet";
 import { ChatProvider } from "@/contexts/ChatContext";
 
 function Router() {
@@ -24,7 +29,6 @@ function Router() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check authentication status on app load
     const checkAuth = () => {
       const authStatus = localStorage.getItem("isAuthenticated");
       const storedUserType = localStorage.getItem("userType");
@@ -32,16 +36,15 @@ function Router() {
       setUserType(storedUserType);
       setIsLoading(false);
     };
-
     checkAuth();
   }, []);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-neutral-600">Loading...</p>
+          <div className="animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-neutral-600 font-medium">Loading Shiftzy Go...</p>
         </div>
       </div>
     );
@@ -64,7 +67,12 @@ function Router() {
       <Route path="/vehicle/:id" component={VehicleDetails} />
       <Route path="/checkout/:vehicleId" component={Checkout} />
       <Route path="/nearby" component={Nearby} />
-      <Route path="/payment-success" component={Profile} />
+      <Route path="/notifications" component={Notifications} />
+      <Route path="/booking-confirmation" component={BookingConfirmation} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/wallet" component={Wallet} />
+      <Route path="/payment-success" component={BookingConfirmation} />
       <Route component={NotFound} />
     </Switch>
   );

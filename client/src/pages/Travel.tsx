@@ -240,10 +240,47 @@ export default function Travel() {
           )}
         </div>
 
-        {/* STEP 3: Pickup & Drop — only shown after vehicle type is selected */}
+        {/* STEP 3: Date & Time + Price Filter */}
+        {selectedVehicleType && viewMode === "outstation" && (
+          <div>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Step 3 — Choose Your Date & Budget</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white border border-blue-100 rounded-xl p-3 shadow-sm">
+                <p className="text-xs font-bold text-blue-600 mb-1 flex items-center gap-1">📅 Travel Date</p>
+                <input
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full text-sm font-medium text-neutral-800 border-none outline-none bg-transparent"
+                  defaultValue={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                />
+              </div>
+              <div className="bg-white border border-orange-100 rounded-xl p-3 shadow-sm">
+                <p className="text-xs font-bold text-orange-500 mb-1 flex items-center gap-1">🕐 Pickup Time</p>
+                <input
+                  type="time"
+                  className="w-full text-sm font-medium text-neutral-800 border-none outline-none bg-transparent"
+                  defaultValue="09:00"
+                />
+              </div>
+            </div>
+            <div className="bg-white border border-neutral-100 rounded-xl p-3 shadow-sm mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-bold text-neutral-600">💰 Max Budget (Your Share)</p>
+                <p className="text-xs font-bold text-blue-600">₹500 – ₹5,000</p>
+              </div>
+              <input type="range" min={500} max={5000} step={100} defaultValue={3000}
+                className="w-full accent-blue-600" />
+              <div className="flex justify-between text-[10px] text-neutral-400 mt-1">
+                <span>₹500</span><span>₹5,000</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 4: Pickup & Drop — only shown after vehicle type is selected */}
         {selectedVehicleType && (
           <div>
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Step 3 — Select Your Location</p>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Step {viewMode === "outstation" ? "4" : "3"} — Select Your Location</p>
 
             {/* Creative Route Card */}
             <div className="relative rounded-2xl overflow-hidden shadow-lg border border-neutral-100"

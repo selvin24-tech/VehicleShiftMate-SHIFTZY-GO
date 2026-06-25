@@ -1,194 +1,386 @@
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
-import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import TripCard from "@/components/common/TripCard";
-import ReviewsSection from "@/components/reviews/ReviewsSection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { USER_PROFILE } from "@/lib/constants";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, HelpCircle, Shield, LogOut, Car, Bike, ChevronRight, Star } from "lucide-react";
+import {
+  ChevronLeft, ChevronRight, Camera, Edit3, Save, X, Star,
+  CreditCard, FileText, Car, Wallet, Bell, Shield, HelpCircle,
+  LogOut, Upload, CheckCircle2, Clock, Flag, Phone, Mail, MapPin,
+  Package, BookOpen
+} from "lucide-react";
+
+const INITIAL_PROFILE = {
+  name: "Selvin Raj",
+  firstName: "Selvin",
+  lastName: "Raj",
+  phone: "+91 98765 43210",
+  email: "selvin.raj@gmail.com",
+  city: "Chennai",
+  avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+  rating: 4.8,
+  totalTrips: 12,
+  aadhaarVerified: true,
+  dlVerified: false,
+  vehicleVerified: true,
+};
+
+const MY_BOOKINGS = [
+  { id: "BK-20481", route: "Chennai → Bangalore", vehicle: "Honda City", status: "completed", date: "Today", amount: 2352 },
+  { id: "BK-19832", route: "Chennai → Madurai", vehicle: "Maruti Swift", status: "in-transit", date: "10 Jun", amount: 1620 },
+  { id: "BK-18741", route: "Coimbatore → Chennai", vehicle: "Hyundai i20", status: "cancelled", date: "5 Jun", amount: 0 },
+];
+
+const STATUS_STYLE: Record<string, string> = {
+  completed: "bg-green-100 text-green-700",
+  "in-transit": "bg-blue-100 text-blue-700",
+  cancelled: "bg-red-100 text-red-700",
+  pending: "bg-orange-100 text-orange-700",
+};
 
 export default function Profile() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dlInputRef = useRef<HTMLInputElement>(null);
 
-  const handleAddVehicle = () => {
-    toast({
-      title: "Add Vehicle",
-      description: "Add vehicle functionality coming soon!",
-    });
+  const [profile, setProfile] = useState(INITIAL_PROFILE);
+  const [editing, setEditing] = useState(false);
+  const [editData, setEditData] = useState({ firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone, email: profile.email, city: profile.city });
+  const [dlUploaded, setDlUploaded] = useState(false);
+  const [activeTab, setActiveTab] = useState<"profile" | "bookings" | "docs">("profile");
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+
+  const handleSave = () => {
+    setProfile(p => ({ ...p, firstName: editData.firstName, lastName: editData.lastName, name: `${editData.firstName} ${editData.lastName}`, phone: editData.phone, email: editData.email, city: editData.city }));
+    setEditing(false);
+    toast({ title: "Profile Updated", description: "Your details have been saved." });
+  };
+
+  const handlePhotoUpload = () => fileInputRef.current?.click();
+
+  const handleDLUpload = () => dlInputRef.current?.click();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const url = URL.createObjectURL(e.target.files[0]);
+      setProfile(p => ({ ...p, avatarUrl: url }));
+      toast({ title: "Photo Updated", description: "Your profile photo has been changed." });
+    }
+  };
+
+  const handleDLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setDlUploaded(true);
+      setProfile(p => ({ ...p, dlVerified: true }));
+      toast({ title: "Driving Licence Uploaded", description: "Under review — verification takes up to 24 hours." });
+    }
   };
 
   const handleLogout = () => {
-    // Clear authentication and tour status
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("hasSeenTour");
-    localStorage.removeItem("isFirstLogin");
-    
-    toast({
-      title: "Logged Out",
-      description: "You have been logged out successfully.",
-    });
-    
-    // Force page reload to trigger authentication check
+    ["isAuthenticated", "hasSeenTour", "isFirstLogin", "username", "userType"].forEach(k => localStorage.removeItem(k));
     window.location.href = "/";
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-16">
-      {/* Header */}
-      <div className="bg-primary-600 text-white p-6 pb-16 relative">
-        <div className="flex items-center">
-          <button
-            className="mr-3"
-            aria-label="Back"
-            onClick={() => navigate("/")}
-          >
-            <i className="fas fa-arrow-left"></i>
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
+      {/* Hidden inputs */}
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+      <input ref={dlInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleDLChange} />
+
+      {/* Hero header */}
+      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 px-4 pt-12 pb-8 relative overflow-hidden">
+        <div className="absolute -top-6 -right-6 w-32 h-32 bg-white/5 rounded-full" />
+        <div className="absolute -bottom-4 -left-6 w-24 h-24 bg-orange-500/20 rounded-full" />
+        <div className="flex items-center justify-between mb-5 relative">
+          <button onClick={() => navigate("/")} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+            <ChevronLeft className="w-5 h-5 text-white" />
           </button>
-          <h1 className="text-xl font-semibold">Profile</h1>
+          <h1 className="font-bold text-lg text-white">My Profile</h1>
+          <button onClick={() => setEditing(!editing)} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+            {editing ? <X className="w-4 h-4 text-white" /> : <Edit3 className="w-4 h-4 text-white" />}
+          </button>
         </div>
-      </div>
-      
-      {/* Profile Card */}
-      <div className="relative px-4">
-        <Card className="bg-white rounded-xl shadow-lg p-4 -mt-12 flex items-center">
-          <Avatar className="w-16 h-16 mr-4 border-2 border-white">
-            <AvatarImage src={USER_PROFILE.avatarUrl} alt={USER_PROFILE.name} />
-            <AvatarFallback>{USER_PROFILE.name.charAt(0)}</AvatarFallback>
-          </Avatar>
+
+        {/* Avatar + info */}
+        <div className="flex items-center gap-4 relative">
+          <div className="relative">
+            <Avatar className="w-20 h-20 border-4 border-white shadow-xl">
+              <AvatarImage src={profile.avatarUrl} />
+              <AvatarFallback className="text-blue-600 text-xl font-bold bg-blue-100">{profile.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <button onClick={handlePhotoUpload} className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shadow-md border-2 border-white">
+              <Camera className="w-3.5 h-3.5 text-white" />
+            </button>
+          </div>
           <div>
-            <h2 className="font-bold text-lg">{USER_PROFILE.name}</h2>
-            <p className="text-sm text-neutral-500">{USER_PROFILE.phone}</p>
-            <Button variant="link" className="text-primary-600 text-sm p-0 h-auto mt-1">Edit Profile</Button>
+            <h2 className="text-white font-extrabold text-lg leading-tight">{profile.name}</h2>
+            <p className="text-blue-200 text-sm">{profile.city}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-1 bg-white/20 rounded-full px-2 py-0.5">
+                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                <span className="text-white text-xs font-bold">{profile.rating}</span>
+              </div>
+              <span className="text-blue-200 text-xs">{profile.totalTrips} trips</span>
+            </div>
           </div>
-        </Card>
-      </div>
-      
-      {/* Profile Sections */}
-      <div className="px-4 py-6">
-        {/* Personal Details */}
-        <div className="mb-6">
-          <h3 className="font-bold text-lg mb-3">Personal Details</h3>
-          <Card className="bg-white rounded-lg border border-neutral-200 divide-y divide-neutral-100">
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <i className="fas fa-envelope text-neutral-500 w-6"></i>
-                <span className="ml-3">Email</span>
-              </div>
-              <div className="text-neutral-700">{USER_PROFILE.email}</div>
-            </div>
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <i className="fas fa-id-card text-neutral-500 w-6"></i>
-                <span className="ml-3">ID Verification</span>
-              </div>
-              <div className="text-green-600 flex items-center">
-                <span>Verified</span>
-                <i className="fas fa-check-circle ml-1"></i>
-              </div>
-            </div>
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <i className="fas fa-map-marker-alt text-neutral-500 w-6"></i>
-                <span className="ml-3">Address</span>
-              </div>
-              <div className="text-neutral-700">{USER_PROFILE.address}</div>
-            </div>
-          </Card>
         </div>
-        
-        {/* My Vehicles */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="font-bold text-lg">My Vehicles</h3>
-            <Button 
-              variant="link" 
-              className="text-primary-600 text-sm p-0 h-auto"
-              onClick={handleAddVehicle}
-            >
-              Add New
-            </Button>
-          </div>
-          
-          {USER_PROFILE.vehicles?.map((vehicle) => (
-            <Card 
-              key={vehicle.id} 
-              className="bg-white rounded-lg border border-neutral-200 p-4 mb-3 cursor-pointer hover:border-secondary-300 transition-all"
-              onClick={() => navigate(`/vehicle/${vehicle.id}`)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="bg-primary-100 rounded-full p-2 mr-3">
-                    {vehicle.type === 'car' ? 
-                      <Car className="text-primary-500" /> : 
-                      <Bike className="text-primary-500" />
-                    }
+
+        {/* Verification badges */}
+        <div className="flex gap-2 mt-4 relative">
+          {[
+            { label: "Aadhaar", verified: profile.aadhaarVerified },
+            { label: "Driving Licence", verified: profile.dlVerified },
+            { label: "Vehicle", verified: profile.vehicleVerified },
+          ].map(b => (
+            <div key={b.label} className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold border ${b.verified ? "bg-green-500/20 border-green-400/40 text-green-300" : "bg-white/10 border-white/20 text-white/60"}`}>
+              {b.verified ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+              {b.label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-neutral-100 bg-white sticky top-0 z-10">
+        {(["profile", "bookings", "docs"] as const).map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)}
+            className={`flex-1 py-3 text-sm font-semibold capitalize transition-colors ${activeTab === tab ? "text-blue-600 border-b-2 border-blue-600" : "text-neutral-400"}`}>
+            {tab === "bookings" ? "My Bookings" : tab === "docs" ? "Documents" : "Profile"}
+          </button>
+        ))}
+      </div>
+
+      <div className="px-4 py-4 space-y-4">
+
+        {/* ── PROFILE TAB ── */}
+        {activeTab === "profile" && (
+          <>
+            {editing ? (
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Edit Your Details</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-neutral-500 font-medium">First Name</label>
+                    <Input value={editData.firstName} onChange={e => setEditData(d => ({ ...d, firstName: e.target.value }))} className="mt-1" />
                   </div>
                   <div>
-                    <h4 className="font-semibold">{vehicle.make} {vehicle.model}</h4>
-                    <p className="text-xs text-neutral-500">{vehicle.registrationNumber}</p>
+                    <label className="text-xs text-neutral-500 font-medium">Last Name</label>
+                    <Input value={editData.lastName} onChange={e => setEditData(d => ({ ...d, lastName: e.target.value }))} className="mt-1" />
                   </div>
                 </div>
-                <ChevronRight className="text-neutral-400 h-5 w-5" />
+                <div>
+                  <label className="text-xs text-neutral-500 font-medium">Phone</label>
+                  <Input value={editData.phone} onChange={e => setEditData(d => ({ ...d, phone: e.target.value }))} className="mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500 font-medium">Email</label>
+                  <Input value={editData.email} onChange={e => setEditData(d => ({ ...d, email: e.target.value }))} className="mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500 font-medium">City</label>
+                  <Input value={editData.city} onChange={e => setEditData(d => ({ ...d, city: e.target.value }))} className="mt-1" />
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <Button onClick={handleSave} className="flex-1 bg-blue-600 hover:bg-blue-700 gap-2"><Save className="w-4 h-4" />Save Changes</Button>
+                  <Button onClick={() => setEditing(false)} variant="outline" className="flex-1">Cancel</Button>
+                </div>
               </div>
-            </Card>
-          ))}
-        </div>
-        
-        {/* History Section */}
-        <div className="mb-6">
-          <h3 className="font-bold text-lg mb-3">Travel History</h3>
-          {USER_PROFILE.trips?.map((trip) => (
-            <TripCard key={trip.id} trip={trip} showDetails />
-          ))}
-        </div>
-        
-        {/* Reviews Section */}
-        <div className="mb-6">
-          <ReviewsSection 
-            type="user" 
-            id={parseInt(USER_PROFILE.id)}
-            title="My Reviews"
-            showForm={false}
-          />
-        </div>
-        
-        {/* Settings & Help Section */}
-        <Card className="bg-white rounded-lg border border-neutral-200 divide-y divide-neutral-100">
-          <button className="w-full p-4 flex items-center justify-between text-left">
-            <div className="flex items-center">
-              <Settings className="text-neutral-500 w-6 h-6" />
-              <span className="ml-3">Settings</span>
+            ) : (
+              <div className="bg-neutral-50 rounded-2xl divide-y divide-neutral-100">
+                {[
+                  { icon: Phone, label: "Phone", value: profile.phone },
+                  { icon: Mail, label: "Email", value: profile.email },
+                  { icon: MapPin, label: "City", value: profile.city },
+                ].map(row => (
+                  <div key={row.label} className="flex items-center gap-3 p-4">
+                    <row.icon className="w-4 h-4 text-blue-500 shrink-0" />
+                    <div>
+                      <p className="text-xs text-neutral-400">{row.label}</p>
+                      <p className="font-semibold text-sm text-neutral-800">{row.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Quick links */}
+            <div className="space-y-2">
+              {[
+                { icon: Wallet, label: "My Wallet", sub: "Balance & transactions", color: "text-blue-600", action: () => navigate("/wallet") },
+                { icon: Bell, label: "Notifications", sub: "Alerts & updates", color: "text-orange-500", action: () => navigate("/notifications") },
+                { icon: HelpCircle, label: "Help & Support", sub: "FAQs and emergency", color: "text-blue-600", action: () => navigate("/help") },
+                { icon: BookOpen, label: "Terms & Conditions", sub: "Usage policy", color: "text-neutral-500", action: () => navigate("/terms") },
+                { icon: Shield, label: "Privacy Policy", sub: "Your data & rights", color: "text-neutral-500", action: () => navigate("/privacy") },
+              ].map(item => (
+                <button key={item.label} onClick={item.action} className="w-full flex items-center gap-3 bg-neutral-50 rounded-xl p-4 hover:bg-neutral-100 transition-colors">
+                  <item.icon className={`w-5 h-5 ${item.color} shrink-0`} />
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold text-sm">{item.label}</p>
+                    <p className="text-xs text-neutral-400">{item.sub}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-neutral-300" />
+                </button>
+              ))}
             </div>
-            <ChevronRight className="text-neutral-400 w-5 h-5" />
-          </button>
-          <button className="w-full p-4 flex items-center justify-between text-left">
-            <div className="flex items-center">
-              <HelpCircle className="text-neutral-500 w-6 h-6" />
-              <span className="ml-3">Help & Support</span>
+
+            {/* Report & Logout */}
+            <div className="space-y-2 pt-1">
+              <button onClick={() => setShowReport(true)} className="w-full flex items-center gap-3 bg-red-50 rounded-xl p-4 text-red-600 hover:bg-red-100 transition-colors">
+                <Flag className="w-5 h-5 shrink-0" />
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-sm">Report an Issue / Flag User</p>
+                  <p className="text-xs text-red-400">Report misconduct or suspicious behaviour</p>
+                </div>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button onClick={handleLogout} className="w-full flex items-center gap-3 bg-neutral-50 rounded-xl p-4 text-neutral-600 hover:bg-neutral-100 transition-colors">
+                <LogOut className="w-5 h-5 shrink-0" />
+                <div className="flex-1 text-left"><p className="font-semibold text-sm">Log Out</p></div>
+              </button>
             </div>
-            <ChevronRight className="text-neutral-400 w-5 h-5" />
-          </button>
-          <button className="w-full p-4 flex items-center justify-between text-left">
-            <div className="flex items-center">
-              <Shield className="text-neutral-500 w-6 h-6" />
-              <span className="ml-3">Privacy & Terms</span>
+          </>
+        )}
+
+        {/* ── BOOKINGS TAB ── */}
+        {activeTab === "bookings" && (
+          <div className="space-y-3">
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Your Booking History</p>
+            {MY_BOOKINGS.map(bk => (
+              <div key={bk.id} className="bg-neutral-50 rounded-2xl p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="font-bold text-sm">{bk.route}</p>
+                    <p className="text-xs text-neutral-400 mt-0.5">{bk.vehicle} · {bk.date}</p>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${STATUS_STYLE[bk.status]}`}>
+                    {bk.status.replace("-", " ")}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-3">
+                  <p className="text-xs text-neutral-400">{bk.id}</p>
+                  <div className="flex gap-2">
+                    {bk.status === "completed" && (
+                      <button onClick={() => toast({ title: "Invoice", description: `Invoice for ${bk.id} downloaded.` })}
+                        className="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg flex items-center gap-1">
+                        <FileText className="w-3 h-3" /> Invoice
+                      </button>
+                    )}
+                    {bk.status === "in-transit" && (
+                      <button onClick={() => navigate("/track")}
+                        className="text-xs font-semibold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg flex items-center gap-1">
+                        <Package className="w-3 h-3" /> Track
+                      </button>
+                    )}
+                    {bk.status === "in-transit" && (
+                      <button onClick={() => toast({ title: "Cancellation", description: "Cancellation request submitted. Refund in 5–7 days." })}
+                        className="text-xs font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg">
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── DOCUMENTS TAB ── */}
+        {activeTab === "docs" && (
+          <div className="space-y-4">
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Verification Documents</p>
+
+            {/* Aadhaar */}
+            <div className="bg-neutral-50 rounded-2xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Aadhaar Card</p>
+                  <p className="text-xs text-green-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Verified</p>
+                </div>
+              </div>
+              <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">✓ Done</span>
             </div>
-            <ChevronRight className="text-neutral-400 w-5 h-5" />
-          </button>
-          <button 
-            className="w-full p-4 flex items-center text-red-500 text-left"
-            onClick={handleLogout}
-          >
-            <LogOut className="w-6 h-6" />
-            <span className="ml-3">Logout</span>
-          </button>
-        </Card>
+
+            {/* Driving Licence */}
+            <div className="bg-neutral-50 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${dlUploaded || profile.dlVerified ? "bg-green-100" : "bg-orange-100"}`}>
+                    <FileText className={`w-5 h-5 ${dlUploaded || profile.dlVerified ? "text-green-600" : "text-orange-500"}`} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Driving Licence</p>
+                    <p className={`text-xs font-medium flex items-center gap-1 ${dlUploaded || profile.dlVerified ? "text-green-600" : "text-orange-500"}`}>
+                      {dlUploaded || profile.dlVerified ? <><CheckCircle2 className="w-3 h-3" /> Uploaded — Under Review</> : <><Clock className="w-3 h-3" /> Not Uploaded</>}
+                    </p>
+                  </div>
+                </div>
+                {!(dlUploaded || profile.dlVerified) && (
+                  <button onClick={handleDLUpload} className="bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1">
+                    <Upload className="w-3 h-3" /> Upload
+                  </button>
+                )}
+              </div>
+              {!(dlUploaded || profile.dlVerified) && (
+                <div className="bg-orange-50 rounded-xl p-3">
+                  <p className="text-xs text-orange-700">Upload a clear photo of both sides of your driving licence to unlock traveler features.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Vehicle RC */}
+            <div className="bg-neutral-50 rounded-2xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Car className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Vehicle RC</p>
+                  <p className="text-xs text-green-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Verified</p>
+                </div>
+              </div>
+              <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">✓ Done</span>
+            </div>
+
+            <div className="bg-blue-50 rounded-xl p-4">
+              <p className="text-xs text-blue-700 font-medium">All verified documents are encrypted and stored securely in compliance with India's data protection laws.</p>
+            </div>
+          </div>
+        )}
+
       </div>
-      
+
+      {/* Report Modal */}
+      {showReport && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+          <div className="bg-white w-full max-w-md mx-auto rounded-t-3xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-lg text-red-600">Report / Flag</h3>
+              <button onClick={() => setShowReport(false)}><X className="w-5 h-5 text-neutral-400" /></button>
+            </div>
+            <p className="text-sm text-neutral-500 mb-4">Select a reason and we'll investigate within 24 hours.</p>
+            <div className="space-y-2 mb-4">
+              {["Reckless driving", "Vehicle damage", "Fraud / Fake listing", "Harassment", "No-show", "Other"].map(r => (
+                <button key={r} onClick={() => setReportReason(r)}
+                  className={`w-full text-left text-sm px-4 py-3 rounded-xl border transition-all ${reportReason === r ? "bg-red-50 border-red-300 font-semibold text-red-700" : "border-neutral-200 text-neutral-600"}`}>
+                  {r}
+                </button>
+              ))}
+            </div>
+            <Button onClick={() => { setShowReport(false); setReportReason(""); toast({ title: "Report Submitted", description: "We'll review this and take action within 24 hours." }); }}
+              disabled={!reportReason} className="w-full bg-red-600 hover:bg-red-700 text-white">
+              Submit Report
+            </Button>
+          </div>
+        </div>
+      )}
+
       <BottomNav />
     </div>
   );

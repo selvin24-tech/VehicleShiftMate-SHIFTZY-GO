@@ -58,7 +58,7 @@ type SignUpData = z.infer<typeof signUpSchema>;
 type AadhaarData = z.infer<typeof aadhaarSchema>;
 type OtpData = z.infer<typeof otpSchema>;
 
-type Mode = "signIn" | "signUp";
+type Mode = "signIn" | "signUp" | "forgot";
 type Step = "form" | "aadhaar" | "otp";
 
 const SIMULATED_OTP = "123456";
@@ -73,6 +73,11 @@ export default function Login() {
   const [maskedAadhaar, setMaskedAadhaar] = useState("");
   const [countdown, setCountdown] = useState(0);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [forgotPhone, setForgotPhone] = useState("");
+  const [forgotOtpSent, setForgotOtpSent] = useState(false);
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [forgotNewPwd, setForgotNewPwd] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   const signInForm = useForm<SignInData>({
     resolver: zodResolver(signInSchema),
@@ -235,7 +240,7 @@ export default function Login() {
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 
           {/* ── Tab switcher (Sign In / Sign Up) ─── only on form step ──── */}
-          {step === "form" && (
+          {step === "form" && mode !== "forgot" && (
             <div className="flex border-b border-neutral-100">
               <button
                 onClick={() => switchMode("signIn")}
@@ -300,6 +305,13 @@ export default function Login() {
                     <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 h-11 font-semibold" disabled={isLoading}>
                       {isLoading ? "Signing In..." : "Sign In"}
                     </Button>
+
+                    <div className="text-center">
+                      <button type="button" onClick={() => { setMode("forgot"); setForgotPhone(""); setForgotOtpSent(false); setForgotOtp(""); setForgotNewPwd(""); setForgotSuccess(false); }}
+                        className="text-sm text-blue-600 font-semibold hover:underline">
+                        Forgot Password?
+                      </button>
+                    </div>
                   </form>
                 </Form>
 
@@ -314,6 +326,87 @@ export default function Login() {
                   </button>
                 </div>
               </>
+            )}
+
+            {/* ── FORGOT PASSWORD ───────────────────────────────────────── */}
+            {mode === "forgot" && (
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
+                    <Lock className="w-7 h-7 text-blue-600" />
+                  </div>
+                  <h2 className="font-bold text-lg">Reset Password</h2>
+                  <p className="text-sm text-neutral-500 mt-1">
+                    {forgotSuccess ? "Password reset successfully!" : forgotOtpSent ? "Enter the OTP sent to your phone" : "Enter your registered phone number"}
+                  </p>
+                </div>
+
+                {forgotSuccess ? (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="w-9 h-9 text-green-600" />
+                    </div>
+                    <p className="text-sm text-green-700 font-medium">Your password has been reset. You can now sign in.</p>
+                    <Button onClick={() => setMode("signIn")} className="w-full bg-blue-600 hover:bg-blue-700 h-11">Sign In Now</Button>
+                  </div>
+                ) : !forgotOtpSent ? (
+                  <>
+                    <div>
+                      <label className="text-sm font-medium text-neutral-700">Registered Phone Number</label>
+                      <div className="relative mt-1">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="tel" placeholder="+91 98765 43210" value={forgotPhone}
+                          onChange={e => setForgotPhone(e.target.value)}
+                          className="w-full border border-neutral-200 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-blue-400"
+                        />
+                      </div>
+                    </div>
+                    <Button onClick={() => { if (forgotPhone.length >= 10) { setForgotOtpSent(true); toast({ title: "OTP Sent", description: "A 6-digit OTP has been sent to your phone." }); } }}
+                      disabled={forgotPhone.length < 10} className="w-full bg-blue-600 hover:bg-blue-700 h-11">
+                      Send OTP
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="text-sm font-medium text-neutral-700">Enter OTP (use 123456)</label>
+                      <input type="text" maxLength={6} placeholder="6-digit OTP" value={forgotOtp}
+                        onChange={e => setForgotOtp(e.target.value.replace(/\D/, ""))}
+                        className="w-full border border-neutral-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-400 mt-1 tracking-widest text-center text-lg font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-neutral-700">New Password</label>
+                      <div className="relative mt-1">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <input type="password" placeholder="New password (min. 6 chars)" value={forgotNewPwd}
+                          onChange={e => setForgotNewPwd(e.target.value)}
+                          className="w-full border border-neutral-200 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-blue-400"
+                        />
+                      </div>
+                    </div>
+                    <Button onClick={() => {
+                      if (forgotOtp === "123456" && forgotNewPwd.length >= 6) {
+                        setForgotSuccess(true);
+                      } else if (forgotOtp !== "123456") {
+                        toast({ title: "Wrong OTP", description: "Incorrect OTP. Try again.", variant: "destructive" });
+                      } else {
+                        toast({ title: "Password too short", description: "Minimum 6 characters required.", variant: "destructive" });
+                      }
+                    }} disabled={forgotOtp.length < 6 || forgotNewPwd.length < 6}
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white h-11">
+                      Reset Password
+                    </Button>
+                  </>
+                )}
+
+                {!forgotSuccess && (
+                  <button onClick={() => setMode("signIn")} className="w-full flex items-center justify-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mt-2">
+                    <ArrowLeft className="w-4 h-4" /> Back to Sign In
+                  </button>
+                )}
+              </div>
             )}
 
             {/* ── SIGN UP — form ───────────────────────────────────────── */}
