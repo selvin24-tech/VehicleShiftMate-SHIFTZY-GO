@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { NEARBY_SHIFT_REQUESTS } from "@/lib/constants";
 import {
   MapPin, ChevronRight, Star, Briefcase, CalendarDays, Clock,
-  Shield, Navigation, ShieldCheck, Lock, ChevronDown
+  Shield, Navigation, Lock, ChevronDown, Route, Timer,
+  IndianRupee, Phone, MessageCircle
 } from "lucide-react";
 
 const VEHICLE_BADGE: Record<string, { label: string; color: string }> = {
@@ -27,6 +30,7 @@ const SAMPLE_RATINGS = [4.8, 4.7, 4.9, 4.6, 4.8];
 
 export default function Home() {
   const [, navigate] = useLocation();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
     <div className="max-w-lg mx-auto bg-white min-h-screen pb-20">
@@ -178,61 +182,161 @@ export default function Home() {
             const badge = VEHICLE_BADGE[req.vehicle.type] ?? { label: req.vehicle.type.toUpperCase(), color: "bg-neutral-100 text-neutral-600" };
             const sample = SAMPLE_DATES[i % SAMPLE_DATES.length];
             const rating = SAMPLE_RATINGS[i % SAMPLE_RATINGS.length];
+            const isOpen = expandedId === req.id;
             return (
-              <button
+              <motion.div
                 key={req.id}
-                onClick={() => navigate("/nearby")}
-                className="w-full bg-white border border-neutral-100 rounded-2xl p-3 flex items-center gap-3 text-left shadow-sm active:scale-[0.98] transition-transform hover:shadow-md"
+                layout
+                transition={{ layout: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } }}
+                className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${isOpen ? "border-blue-300 shadow-md" : "border-neutral-100"}`}
               >
-                {/* Vehicle thumbnail */}
-                <div className="relative shrink-0">
-                  <img
-                    src={`${req.vehicle.image}?w=80&h=60&q=70&fit=crop`}
-                    alt={req.vehicle.model}
-                    className="w-16 h-12 rounded-xl object-cover"
-                  />
-                  <span className={`absolute -bottom-1 -right-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${badge.color}`}>
-                    {badge.label}
-                  </span>
-                </div>
-
-                {/* Main info */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-extrabold text-neutral-900 text-sm leading-tight">
-                    {req.pickupLocation.name} → {req.dropLocation.name}
-                  </p>
-                  <p className="text-[11px] text-neutral-500 mt-0.5 truncate">
-                    {req.vehicle.make} {req.vehicle.model} · {req.vehicle.registrationNumber}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex items-center gap-1 text-neutral-400">
-                      <CalendarDays className="w-3 h-3 shrink-0" />
-                      <span className="text-[10px]">{sample.date}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-neutral-400">
-                      <Clock className="w-3 h-3 shrink-0" />
-                      <span className="text-[10px]">{sample.time}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right: price + rating */}
-                <div className="shrink-0 flex flex-col items-end gap-1">
-                  <p className="font-extrabold text-neutral-900 text-sm">
-                    ₹{req.reward.toLocaleString("en-IN")}
-                  </p>
-                  <p className="text-[9px] text-neutral-400 font-medium">One Way</p>
-                  <div className="flex items-center gap-1 mt-1">
+                {/* ── Summary row (always visible) ── */}
+                <motion.button
+                  layout="position"
+                  onClick={() => setExpandedId(isOpen ? null : req.id)}
+                  className="w-full p-3 flex items-center gap-3 text-left active:bg-neutral-50 transition-colors"
+                >
+                  {/* Vehicle thumbnail */}
+                  <div className="relative shrink-0">
                     <img
-                      src={`${req.userAvatar}?w=24&h=24&q=60&fit=crop&face`}
-                      alt={req.userName}
-                      className="w-5 h-5 rounded-full object-cover border border-neutral-200"
+                      src={`${req.vehicle.image}?w=80&h=60&q=70&fit=crop`}
+                      alt={req.vehicle.model}
+                      className="w-16 h-12 rounded-xl object-cover"
                     />
-                    <Star className="w-3 h-3 text-orange-400 fill-orange-400" />
-                    <span className="text-[10px] font-bold text-neutral-700">{rating}</span>
+                    <span className={`absolute -bottom-1 -right-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${badge.color}`}>
+                      {badge.label}
+                    </span>
                   </div>
-                </div>
-              </button>
+
+                  {/* Main info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-extrabold text-neutral-900 text-sm leading-tight">
+                      {req.pickupLocation.name} → {req.dropLocation.name}
+                    </p>
+                    <p className="text-[11px] text-neutral-500 mt-0.5 truncate">
+                      {req.vehicle.make} {req.vehicle.model} · {req.vehicle.registrationNumber}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-1 text-neutral-400">
+                        <CalendarDays className="w-3 h-3 shrink-0" />
+                        <span className="text-[10px]">{sample.date}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-neutral-400">
+                        <Clock className="w-3 h-3 shrink-0" />
+                        <span className="text-[10px]">{sample.time}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: price + rating + chevron */}
+                  <div className="shrink-0 flex flex-col items-end gap-1">
+                    <p className="font-extrabold text-neutral-900 text-sm">
+                      ₹{req.reward.toLocaleString("en-IN")}
+                    </p>
+                    <p className="text-[9px] text-neutral-400 font-medium">One Way</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <img
+                        src={`${req.userAvatar}?w=24&h=24&q=60&fit=crop&face`}
+                        alt={req.userName}
+                        className="w-5 h-5 rounded-full object-cover border border-neutral-200"
+                      />
+                      <Star className="w-3 h-3 text-orange-400 fill-orange-400" />
+                      <span className="text-[10px] font-bold text-neutral-700">{rating}</span>
+                    </div>
+                    <motion.div animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.3 }} className="mt-0.5">
+                      <ChevronRight className="w-4 h-4 text-blue-500" />
+                    </motion.div>
+                  </div>
+                </motion.button>
+
+                {/* ── Expanded detail panel (smooth slide-down) ── */}
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      key="detail"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-3 pb-3">
+                        <div className="border-t border-dashed border-neutral-200 pt-3">
+                          {/* Route detail */}
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="flex flex-col items-center pt-1">
+                              <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                              <div className="w-0.5 h-7 bg-gradient-to-b from-blue-600 to-orange-500" />
+                              <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs font-bold text-neutral-800">{req.pickupLocation.name}</p>
+                              <p className="text-[10px] text-neutral-400 mb-2">{req.pickupLocation.address}</p>
+                              <p className="text-xs font-bold text-neutral-800">{req.dropLocation.name}</p>
+                              <p className="text-[10px] text-neutral-400">{req.dropLocation.address}</p>
+                            </div>
+                          </div>
+
+                          {/* Stat grid */}
+                          <div className="grid grid-cols-3 gap-2 mb-3">
+                            <div className="bg-blue-50 rounded-xl p-2 text-center">
+                              <Route className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
+                              <p className="text-[11px] font-extrabold text-neutral-800">{req.distance}</p>
+                              <p className="text-[9px] text-neutral-400">Distance</p>
+                            </div>
+                            <div className="bg-orange-50 rounded-xl p-2 text-center">
+                              <Timer className="w-3.5 h-3.5 text-orange-600 mx-auto mb-0.5" />
+                              <p className="text-[11px] font-extrabold text-neutral-800">{req.estimatedDuration}</p>
+                              <p className="text-[9px] text-neutral-400">Duration</p>
+                            </div>
+                            <div className="bg-blue-50 rounded-xl p-2 text-center">
+                              <IndianRupee className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
+                              <p className="text-[11px] font-extrabold text-neutral-800">₹{req.reward.toLocaleString("en-IN")}</p>
+                              <p className="text-[9px] text-neutral-400">You Earn</p>
+                            </div>
+                          </div>
+
+                          {/* Owner row */}
+                          <div className="flex items-center gap-2 bg-neutral-50 rounded-xl p-2 mb-3">
+                            <img
+                              src={`${req.userAvatar}?w=40&h=40&q=60&fit=crop&face`}
+                              alt={req.userName}
+                              className="w-8 h-8 rounded-full object-cover border border-neutral-200"
+                            />
+                            <div className="flex-1">
+                              <p className="text-xs font-bold text-neutral-800">{req.userName}</p>
+                              <p className="text-[10px] text-neutral-400">Posted {req.postedTime}</p>
+                            </div>
+                            <div className="flex items-center gap-0.5 bg-white border border-neutral-200 rounded-full px-2 py-0.5">
+                              <Star className="w-3 h-3 text-orange-400 fill-orange-400" />
+                              <span className="text-[10px] font-bold text-neutral-700">{rating}</span>
+                            </div>
+                          </div>
+
+                          {/* Action buttons */}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => navigate("/nearby")}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl active:scale-95 transition-all"
+                            >
+                              Accept &amp; Shift
+                            </button>
+                            <button
+                              onClick={() => navigate("/chat")}
+                              className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center active:scale-95 transition-all"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </button>
+                            <button className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center active:scale-95 transition-all">
+                              <Phone className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             );
           })}
         </div>

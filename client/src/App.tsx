@@ -22,6 +22,7 @@ import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import Wallet from "@/pages/Wallet";
 import { ChatProvider } from "@/contexts/ChatContext";
+import LoadingScreen from "@/components/branding/LoadingScreen";
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,14 +41,7 @@ function Router() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-neutral-600 font-medium">Loading Shiftzy Go...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Starting Shiftzy Go" />;
   }
 
   if (!isAuthenticated) {

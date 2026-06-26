@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, ChevronLeft, Gauge, Menu } from "lucide-react";
+import { Bell, ChevronLeft, Menu } from "lucide-react";
 import { USER_PROFILE } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import HeaderLogo from "@/components/branding/HeaderLogo";
 
 interface HeaderProps {
   title?: string;
@@ -33,41 +34,8 @@ export default function Header({
           <Menu className="w-5 h-5 text-neutral-600" />
         </button>
 
-        {/* Center: Logo */}
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1">
-            <span
-              style={{
-                fontFamily: "Impact, 'Arial Narrow Bold', sans-serif",
-                fontSize: "22px",
-                fontWeight: 900,
-                color: "#1d4ed8",
-                letterSpacing: "1px",
-                fontStyle: "italic",
-              }}
-            >
-              SHIFTZY
-            </span>
-            <div className="flex items-center gap-0.5 ml-1">
-              <div className="w-7 h-7 rounded-full border-2 border-orange-500 flex items-center justify-center">
-                <Gauge className="w-3.5 h-3.5 text-orange-500" />
-              </div>
-              <span
-                style={{
-                  fontFamily: "Impact, 'Arial Narrow Bold', sans-serif",
-                  fontSize: "22px",
-                  fontWeight: 900,
-                  color: "#111827",
-                  letterSpacing: "1px",
-                  fontStyle: "italic",
-                }}
-              >
-                GO
-              </span>
-            </div>
-          </div>
-          <p className="text-[9px] text-neutral-400 font-medium tracking-wide -mt-0.5">Safe Shifts. Joyful Journeys.</p>
-        </div>
+        {/* Center: Animated Logo */}
+        <HeaderLogo />
 
         {/* Right: Bell + Avatar */}
         <div className="flex items-center gap-2">

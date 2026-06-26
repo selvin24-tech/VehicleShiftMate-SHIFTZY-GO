@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { 
   Form, 
@@ -98,34 +97,26 @@ export default function VehicleDetails() {
     navigate("/travel");
   };
   
-  // Show loading state if we're fetching data
+  // Vehicle resolves synchronously from constants, so a missing vehicle means
+  // the ID is invalid / not found — show a clear not-found state, not a loader.
   if (!vehicle) {
     return (
-      <div className="max-w-lg mx-auto px-4 pb-24">
-        <Header />
-        
-        <div className="flex items-center mb-4 mt-2">
-          <Button variant="ghost" size="icon" onClick={handleBack} className="mr-2">
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <Skeleton className="h-6 w-40" />
+      <div className="max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center text-center px-6 gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center">
+          <Car className="w-8 h-8 text-orange-500" />
         </div>
-        
-        <Skeleton className="w-full h-52 rounded-lg mb-4" />
-        
-        <Skeleton className="w-3/4 h-6 mb-2" />
-        <Skeleton className="w-1/2 h-4 mb-4" />
-        
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
+        <div>
+          <h2 className="text-lg font-extrabold text-neutral-900">Vehicle not found</h2>
+          <p className="text-sm text-neutral-500 mt-1">
+            This vehicle may no longer be available or the link is incorrect.
+          </p>
         </div>
-        
-        <Skeleton className="w-full h-40 rounded-lg mb-4" />
-        
-        <BottomNav />
+        <button
+          onClick={handleBack}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl active:scale-95 transition-all"
+        >
+          Browse vehicles
+        </button>
       </div>
     );
   }

@@ -29,7 +29,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   ChevronLeft, CircleCheck, ChevronRight,
   Shield, Users, Building2, Home, Clock, User, Phone,
-  KeyRound, StickyNote, MapPin, CheckCircle2
+  KeyRound, StickyNote, MapPin, CheckCircle2, RefreshCw
 } from "lucide-react";
 
 /* ─── Hubs ─── */
@@ -187,10 +187,6 @@ export default function ShiftRequest() {
                 <FormItem className="mb-5">
                   <div className="flex justify-between items-center mb-2">
                     <FormLabel className="text-neutral-700 font-medium">Vehicle Type</FormLabel>
-                    {selectedVehicleType && (
-                      <button type="button" onClick={() => setSelectedVehicleType(null)}
-                        className="text-xs text-blue-600 font-semibold underline">Change</button>
-                    )}
                   </div>
                   <FormControl>
                     {selectedVehicleType ? (
@@ -200,7 +196,14 @@ export default function ShiftRequest() {
                           <p className="font-bold text-blue-700 capitalize">{selectedVehicleType === "luxury" ? "Premium" : selectedVehicleType}</p>
                           <p className="text-xs text-neutral-500">{selectedVehicleType === "car" ? "Sedans, Hatchbacks" : selectedVehicleType === "bike" ? "Scooters, Motorbikes" : selectedVehicleType === "suv" ? "Big & Spacious" : "Top-end vehicles"}</p>
                         </div>
-                        <CheckCircle2 className="w-5 h-5 text-blue-600 ml-auto" />
+                        <button
+                          type="button"
+                          onClick={() => setSelectedVehicleType(null)}
+                          className="ml-auto flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-4 py-2 rounded-xl shadow-md active:scale-95 transition-all"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Change
+                        </button>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-3">
