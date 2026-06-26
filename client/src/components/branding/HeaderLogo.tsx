@@ -10,13 +10,13 @@ export default function HeaderLogo() {
       <div className="flex flex-col items-center select-none">
         <div
           className="flex items-center justify-center"
-          style={{ fontFamily: LOGO_FONT, fontSize: "20px", fontWeight: 900, letterSpacing: "1px", fontStyle: "italic", lineHeight: 1 }}
+          style={{ fontFamily: LOGO_FONT, fontSize: "30px", fontWeight: 900, letterSpacing: "1px", fontStyle: "italic", lineHeight: 1 }}
         >
           <span style={{ color: "#1d4ed8" }}>SHIFT</span>
           <span style={{ color: "#f97316", margin: "0 1px" }}>ZY</span>
           <span style={{ color: "#111827" }} className="ml-1">GO</span>
         </div>
-        <p className="text-[9px] text-neutral-400 font-medium tracking-wide -mt-0.5">Safe Shifts. Joyful Journeys.</p>
+        <p className="text-[11px] text-neutral-400 font-medium tracking-wide -mt-0.5">Safe Shifts. Joyful Journeys.</p>
       </div>
     );
   }
@@ -26,7 +26,7 @@ export default function HeaderLogo() {
       {/* Animated wordmark */}
       <div
         className="flex items-center justify-center"
-        style={{ fontFamily: LOGO_FONT, fontSize: "20px", fontWeight: 900, letterSpacing: "1px", fontStyle: "italic", lineHeight: 1 }}
+        style={{ fontFamily: LOGO_FONT, fontSize: "30px", fontWeight: 900, letterSpacing: "1px", fontStyle: "italic", lineHeight: 1 }}
       >
         {/* SHIFT — drops in like a heavy container */}
         <motion.span
@@ -87,21 +87,21 @@ export default function HeaderLogo() {
       </div>
 
       {/* Tagline */}
-      <p className="text-[9px] text-neutral-400 font-medium tracking-wide -mt-0.5">Safe Shifts. Joyful Journeys.</p>
+      <p className="text-[11px] text-neutral-400 font-medium tracking-wide -mt-0.5">Safe Shifts. Joyful Journeys.</p>
 
       {/* Small road with a clearly visible car (right→left) and bike (left→right) */}
-      <div className="relative w-40 h-6 mt-1 overflow-hidden">
+      <div className="relative w-56 h-7 mt-1 overflow-hidden">
         {/* dashed road line */}
         <div className="absolute top-1/2 left-0 right-0 flex gap-1.5 -translate-y-1/2">
-          {[...Array(11)].map((_, i) => (
+          {[...Array(15)].map((_, i) => (
             <span key={i} className="h-[2px] w-2.5 bg-neutral-200 rounded-full" />
           ))}
         </div>
         {/* car: right → left */}
         <motion.span
           className="absolute top-1/2 -translate-y-1/2"
-          style={{ fontSize: "18px", lineHeight: 1 }}
-          animate={{ x: [160, -22] }}
+          style={{ fontSize: "24px", lineHeight: 1 }}
+          animate={{ x: [224, -26] }}
           transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
         >
           🚗
@@ -109,8 +109,8 @@ export default function HeaderLogo() {
         {/* bike: left → right */}
         <motion.span
           className="absolute top-1/2 -translate-y-1/2 scale-x-[-1]"
-          style={{ fontSize: "16px", lineHeight: 1 }}
-          animate={{ x: [-22, 160] }}
+          style={{ fontSize: "21px", lineHeight: 1 }}
+          animate={{ x: [-26, 224] }}
           transition={{ repeat: Infinity, duration: 7.5, ease: "linear", delay: 1 }}
         >
           🏍️

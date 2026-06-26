@@ -1,8 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import ReviewsSection from "@/components/reviews/ReviewsSection";
@@ -11,23 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
   DialogDescription, 
-  DialogFooter, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger 
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -44,21 +33,24 @@ import {
   Fuel, 
   Banknote,
   ShieldCheck,
-  Map,
-  ArrowRight,
-  CircleCheck
+  CircleCheck,
+  CheckCheck,
+  Home,
+  Building2,
+  Navigation,
+  Bell,
+  AlertTriangle,
+  Headphones,
+  MessageCircle,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { AVAILABLE_VEHICLES, LOCATIONS, computeFare, FUEL_PRICE_PER_LITRE } from "@/lib/constants"; 
+import { AVAILABLE_VEHICLES, computeFare, FUEL_PRICE_PER_LITRE, HUBS, DEFAULT_HUBS } from "@/lib/constants"; 
+import { addStoredNotif } from "@/lib/notificationsStore";
 import { useToast } from "@/hooks/use-toast";
 
-// Form schema for booking
-const bookingFormSchema = z.object({
-  pickupLocation: z.string().min(1, { message: "Please select a pickup location" }),
-  dropLocation: z.string().min(1, { message: "Please select a drop location" }),
-  pickupDate: z.date({ required_error: "Please select a date" }),
-});
+type RequestStage = "form" | "dropped" | "confirmed";
 
 export default function VehicleDetails() {
   const [, navigate] = useLocation();
@@ -66,8 +58,23 @@ export default function VehicleDetails() {
   const [showReviews, setShowReviews] = useState(false);
   const [showFeatures, setShowFeatures] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [bookingSuccess, setBookingSuccess] = useState(false);
   const { toast } = useToast();
+
+  // Quick Book request flow state
+  const [pickupType, setPickupType] = useState<"hub" | "home">("hub");
+  const [selectedHub, setSelectedHub] = useState("");
+  const [homeAddress, setHomeAddress] = useState("");
+  const [pickupDate, setPickupDate] = useState<Date | undefined>(undefined);
+  const [pickupTime, setPickupTime] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [requestStage, setRequestStage] = useState<RequestStage>("form");
+  const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (confirmTimer.current) clearTimeout(confirmTimer.current);
+    };
+  }, []);
   
   const vehicleId = params?.id;
 
@@ -81,22 +88,54 @@ export default function VehicleDetails() {
   // For demo purposes, we'll use the vehicle data from constants
   const vehicle = AVAILABLE_VEHICLES.find(v => v.id === vehicleId);
   
-  // Booking form
-  const form = useForm<z.infer<typeof bookingFormSchema>>({
-    resolver: zodResolver(bookingFormSchema),
-    defaultValues: {
-      pickupLocation: "",
-      dropLocation: "",
-    },
-  });
+  // Hubs available near the pickup city
+  const hubOptions = (tripPickup && HUBS[tripPickup]) || DEFAULT_HUBS;
 
-  // Handle form submission
-  const onSubmit = (values: z.infer<typeof bookingFormSchema>) => {
-    console.log(values);
-    // In a real app, this would be an API call
-    setTimeout(() => {
-      setBookingSuccess(true);
-    }, 1000);
+  const pickupPointReady =
+    pickupType === "hub" ? selectedHub.trim().length > 0 : homeAddress.trim().length > 0;
+  const canSubmitRequest = pickupPointReady && !!pickupDate && termsAccepted;
+
+  const resetRequest = () => {
+    if (confirmTimer.current) clearTimeout(confirmTimer.current);
+    setRequestStage("form");
+    setSelectedHub("");
+    setHomeAddress("");
+    setPickupType("hub");
+    setPickupDate(undefined);
+    setPickupTime("");
+    setTermsAccepted(false);
+  };
+
+  // Drop the request to the owner, then simulate the owner confirming it.
+  const handleDropRequest = () => {
+    if (!canSubmitRequest || !vehicle) return;
+    const pickupPoint = pickupType === "hub" ? selectedHub : homeAddress;
+    const vehicleLabel = `${vehicle.make} ${vehicle.model}`;
+    const dateLabel = pickupDate ? format(pickupDate, "PPP") : "";
+
+    setRequestStage("dropped");
+    addStoredNotif({
+      category: "bookings",
+      iconKey: "request",
+      color: "blue",
+      title: "Request Sent",
+      body: `You requested ${vehicleLabel}${tripDrop ? ` to ${tripDrop}` : ""} · Pickup at ${pickupPoint}${dateLabel ? ` on ${dateLabel}` : ""}. Waiting for owner to confirm.`,
+    });
+
+    confirmTimer.current = setTimeout(() => {
+      setRequestStage("confirmed");
+      addStoredNotif({
+        category: "bookings",
+        iconKey: "accepted",
+        color: "blue",
+        title: "Owner Confirmed Your Request",
+        body: `${vehicle.ownerName || "The owner"} confirmed ${vehicleLabel}. Chat is now open to arrange timing & pickup.`,
+      });
+      toast({
+        title: "Owner confirmed your request",
+        description: "You can now chat with the owner about timing and pickup.",
+      });
+    }, 3000);
   };
   
   // Handle back navigation
@@ -408,10 +447,9 @@ export default function VehicleDetails() {
       <div className="fixed bottom-20 left-0 right-0 p-4 bg-white border-t border-neutral-200">
         <div className="grid grid-cols-2 gap-3">
           <Button 
-            className="w-full" 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
             size="lg" 
-            variant="outline"
-            onClick={() => setIsBookingOpen(true)}
+            onClick={() => { resetRequest(); setIsBookingOpen(true); }}
           >
             Quick Book
           </Button>
@@ -419,6 +457,7 @@ export default function VehicleDetails() {
           <Button 
             className="w-full bg-secondary-500 hover:bg-secondary-600 text-white" 
             size="lg"
+            variant="outline"
             onClick={() => {
               const category = tripCategoryParam
                 || (vehicle.vehicleCategory === "premium" ? "premium" : vehicle.type || "car");
@@ -437,192 +476,218 @@ export default function VehicleDetails() {
       </div>
       
       {/* Quick Book Dialog */}
-      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          {!bookingSuccess ? (
+      <Dialog
+        open={isBookingOpen}
+        onOpenChange={(open) => {
+          setIsBookingOpen(open);
+          // Keep the pending owner-confirmation alive if the user closes the
+          // dialog mid-wait; only reset when no request is in flight.
+          if (!open && requestStage !== "dropped") resetRequest();
+        }}
+      >
+        <DialogContent className="sm:max-w-[440px] max-h-[88vh] overflow-y-auto">
+          {requestStage === "form" && (
             <>
               <DialogHeader>
-                <DialogTitle>Book {vehicle.make} {vehicle.model}</DialogTitle>
+                <DialogTitle>Quick Book · {vehicle.make} {vehicle.model}</DialogTitle>
                 <DialogDescription>
-                  Enter your trip details to book this vehicle.
+                  No need to re-enter your route — just choose your pickup point and confirm.
                 </DialogDescription>
               </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-                  {/* Pickup Location */}
-                  <FormField
-                    control={form.control}
-                    name="pickupLocation"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Pickup Location</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                className={cn(
-                                  "w-full justify-between",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value
-                                  ? LOCATIONS.find(
-                                      (location) => location === field.value
-                                    )
-                                  : "Select pickup location"}
-                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-full p-0">
-                            <div className="max-h-[200px] overflow-y-auto">
-                              {LOCATIONS.map((location) => (
-                                <div
-                                  key={location}
-                                  className="cursor-pointer p-2 hover:bg-neutral-100"
-                                  onClick={() => {
-                                    form.setValue("pickupLocation", location);
-                                    form.clearErrors("pickupLocation");
-                                  }}
-                                >
-                                  {location}
-                                </div>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  {/* Drop Location */}
-                  <FormField
-                    control={form.control}
-                    name="dropLocation"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Drop Location</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                className={cn(
-                                  "w-full justify-between",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value
-                                  ? LOCATIONS.find(
-                                      (location) => location === field.value
-                                    )
-                                  : "Select drop location"}
-                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-full p-0">
-                            <div className="max-h-[200px] overflow-y-auto">
-                              {LOCATIONS.map((location) => (
-                                <div
-                                  key={location}
-                                  className="cursor-pointer p-2 hover:bg-neutral-100"
-                                  onClick={() => {
-                                    form.setValue("dropLocation", location);
-                                    form.clearErrors("dropLocation");
-                                  }}
-                                >
-                                  {location}
-                                </div>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  {/* Pickup Date */}
-                  <FormField
-                    control={form.control}
-                    name="pickupDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Pickup Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date < new Date() || date > new Date(2025, 12, 31)
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                
-                  <DialogFooter>
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={form.formState.isSubmitting}
+
+              <div className="space-y-5 py-2">
+                {/* Route summary (carried over from GO) */}
+                {(tripPickup || tripDrop) && (
+                  <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3 flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-blue-600 shrink-0" />
+                    <span className="font-semibold text-neutral-800">{tripPickup || "Pickup"}</span>
+                    <span className="text-neutral-400">→</span>
+                    <span className="font-semibold text-neutral-800">{tripDrop || "Drop"}</span>
+                  </div>
+                )}
+
+                {/* Pickup point: hub vs home */}
+                <div>
+                  <p className="text-sm font-semibold text-neutral-800 mb-2">Where should we pick up the vehicle?</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPickupType("hub")}
+                      className={cn(
+                        "flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold transition-all",
+                        pickupType === "hub"
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-neutral-200 text-neutral-600"
+                      )}
                     >
-                      {form.formState.isSubmitting ? "Processing..." : "Confirm Booking"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
+                      <Building2 className="h-4 w-4" /> Common Hub
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPickupType("home")}
+                      className={cn(
+                        "flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold transition-all",
+                        pickupType === "home"
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-neutral-200 text-neutral-600"
+                      )}
+                    >
+                      <Home className="h-4 w-4" /> House Address
+                    </button>
+                  </div>
+
+                  {pickupType === "hub" ? (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn("w-full justify-between mt-3", !selectedHub && "text-muted-foreground")}
+                        >
+                          {selectedHub || "Select a common hub"}
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                        <div className="max-h-[200px] overflow-y-auto">
+                          {hubOptions.map((hub) => (
+                            <div
+                              key={hub}
+                              className="cursor-pointer p-2.5 text-sm hover:bg-neutral-100"
+                              onClick={() => setSelectedHub(hub)}
+                            >
+                              {hub}
+                            </div>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <Input
+                      className="mt-3"
+                      placeholder="Enter your house / pickup address"
+                      value={homeAddress}
+                      onChange={(e) => setHomeAddress(e.target.value)}
+                    />
+                  )}
+                </div>
+
+                {/* Pickup date + time */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col">
+                    <p className="text-sm font-semibold text-neutral-800 mb-2">Pickup date</p>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn("w-full pl-3 text-left font-normal", !pickupDate && "text-muted-foreground")}
+                        >
+                          {pickupDate ? format(pickupDate, "PP") : <span>Pick a date</span>}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={pickupDate}
+                          onSelect={setPickupDate}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-sm font-semibold text-neutral-800 mb-2">Pickup time</p>
+                    <Input
+                      type="time"
+                      value={pickupTime}
+                      onChange={(e) => setPickupTime(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Trust & safety */}
+                <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
+                  <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2.5">Every shift is protected</p>
+                  <div className="space-y-2">
+                    {[
+                      { icon: Navigation, text: "24/7 live GPS tracking of your vehicle" },
+                      { icon: Bell, text: "Instant pickup & drop updates" },
+                      { icon: AlertTriangle, text: "Alerts if the vehicle goes off-route" },
+                      { icon: ShieldCheck, text: "Insurance cover during the shift" },
+                      { icon: Headphones, text: "24/7 on-call support" },
+                    ].map(({ icon: Icon, text }) => (
+                      <div key={text} className="flex items-center gap-2.5 text-sm text-neutral-700">
+                        <Icon className="h-4 w-4 text-blue-600 shrink-0" />
+                        <span>{text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Terms acknowledgement */}
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={termsAccepted}
+                    onCheckedChange={(c) => setTermsAccepted(c === true)}
+                    className="mt-0.5"
+                  />
+                  <span className="text-xs text-neutral-600 leading-relaxed">
+                    I agree to drive responsibly and carefully, behave well, keep the vehicle well-maintained,
+                    and not misuse it in any way, as per government law. I accept the booking terms & conditions.
+                  </span>
+                </label>
+
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  size="lg"
+                  disabled={!canSubmitRequest}
+                  onClick={handleDropRequest}
+                >
+                  Book My Request
+                </Button>
+              </div>
             </>
-          ) : (
+          )}
+
+          {requestStage === "dropped" && (
             <div className="py-6 flex flex-col items-center justify-center text-center">
               <div className="bg-blue-100 rounded-full p-3 mb-4">
                 <CircleCheck className="h-8 w-8 text-blue-600" />
               </div>
-              <DialogTitle className="mb-2">Booking Confirmed!</DialogTitle>
-              <DialogDescription className="mb-6">
-                Your booking for {vehicle.make} {vehicle.model} has been confirmed. 
-                You'll receive a confirmation message shortly.
+              <DialogTitle className="mb-2">You've dropped a request!</DialogTitle>
+              <DialogDescription className="mb-5">
+                Your request for {vehicle.make} {vehicle.model} has been sent to the owner.
+                We'll notify you the moment they confirm.
               </DialogDescription>
-              <Button 
+              <div className="flex items-center gap-2 text-sm font-medium text-neutral-500">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                Waiting for the owner to confirm…
+              </div>
+            </div>
+          )}
+
+          {requestStage === "confirmed" && (
+            <div className="py-6 flex flex-col items-center justify-center text-center">
+              <div className="bg-blue-100 rounded-full p-3 mb-4">
+                <CheckCheck className="h-8 w-8 text-blue-600" />
+              </div>
+              <DialogTitle className="mb-2">Owner confirmed your request!</DialogTitle>
+              <DialogDescription className="mb-6">
+                {vehicle.ownerName || "The owner"} has accepted your request for {vehicle.make} {vehicle.model}.
+                Chat with them now to fix the timing and whether it's a hub or house pickup.
+              </DialogDescription>
+              <Button
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                size="lg"
                 onClick={() => {
                   setIsBookingOpen(false);
-                  setBookingSuccess(false);
-                  toast({
-                    title: "Booking Confirmed",
-                    description: `You've successfully booked ${vehicle.make} ${vehicle.model}.`,
-                  });
+                  resetRequest();
+                  navigate("/chat");
                 }}
               >
-                Done
+                <MessageCircle className="h-4 w-4 mr-2" /> Chat with Owner
               </Button>
             </div>
           )}

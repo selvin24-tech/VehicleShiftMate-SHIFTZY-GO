@@ -2,6 +2,16 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Bell, ChevronLeft, CheckCheck, Package, CreditCard, Car, XCircle, Navigation } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
+import { getStoredNotifs, type StoredIconKey } from "@/lib/notificationsStore";
+
+const ICON_MAP: Record<StoredIconKey, typeof Package> = {
+  request: Package,
+  accepted: CheckCheck,
+  rejected: XCircle,
+  payment: CreditCard,
+  "trip-started": Navigation,
+  "trip-completed": Car,
+};
 
 type NotifCategory = "all" | "bookings" | "payments";
 
@@ -30,7 +40,19 @@ const colorMap: Record<string, string> = {
 export default function Notifications() {
   const [, navigate] = useLocation();
   const [active, setActive] = useState<NotifCategory>("all");
-  const [notifications, setNotifications] = useState(NOTIFICATIONS);
+  const [notifications, setNotifications] = useState(() => {
+    const stored = getStoredNotifs().map(n => ({
+      id: n.id,
+      category: n.category,
+      icon: ICON_MAP[n.iconKey] ?? Package,
+      color: n.color,
+      title: n.title,
+      body: n.body,
+      time: n.time,
+      unread: n.unread,
+    }));
+    return [...stored, ...NOTIFICATIONS];
+  });
 
   const filtered = active === "all" ? notifications : notifications.filter(n => n.category === active);
   const unreadCount = notifications.filter(n => n.unread).length;

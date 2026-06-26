@@ -668,6 +668,17 @@ export const LOCATIONS = [
   "Pondicherry"
 ];
 
+// Common pickup/drop hubs per city (used by Quick Book as an alternative to a home address).
+export const HUBS: Record<string, string[]> = {
+  Chennai: ["Koyambedu Bus Terminus", "Chennai Central Station", "Tambaram Hub", "Airport Pickup Point"],
+  Bangalore: ["Majestic Bus Stand", "KR Puram Hub", "Electronic City Hub", "Airport Pickup Point"],
+  Coimbatore: ["Gandhipuram Hub", "Coimbatore Junction", "Singanallur Hub"],
+  Madurai: ["Mattuthavani Bus Stand", "Madurai Junction", "Periyar Hub"],
+  Pondicherry: ["Pondicherry Bus Stand", "Beach Road Hub", "Lawspet Hub"],
+};
+
+export const DEFAULT_HUBS = ["City Bus Stand", "Railway Junction", "Central Pickup Point"];
+
 export const CHENNAI_LOCALITIES = [
   "Mambakkam", 
   "Avadi", 
