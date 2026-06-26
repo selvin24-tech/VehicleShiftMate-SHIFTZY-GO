@@ -3,20 +3,16 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import { AVAILABLE_VEHICLES, LOCATIONS, CHENNAI_LOCALITIES } from "@/lib/constants";
+import { AVAILABLE_VEHICLES, LOCATIONS, CHENNAI_LOCALITIES, computeFare, FUEL_PRICE_PER_LITRE } from "@/lib/constants";
 import { ChevronLeft, ChevronRight, Star, CheckCircle2, X } from "lucide-react";
 
 /* ─── Approx distances (km) between outstation cities ─── */
 const CITY_DISTANCES: Record<string, Record<string, number>> = {
-  Chennai:        { Tiruvannamalai: 185, Bangalore: 345, Coimbatore: 495, Madurai: 460, Salem: 335, Tirupati: 135, Pondicherry: 160, Kochi: 685 },
-  Tiruvannamalai: { Chennai: 185, Bangalore: 220, Coimbatore: 310, Madurai: 280, Salem: 150, Tirupati: 230, Pondicherry: 130, Kochi: 500 },
-  Bangalore:      { Chennai: 345, Tiruvannamalai: 220, Coimbatore: 365, Madurai: 440, Salem: 250, Tirupati: 160, Pondicherry: 310, Kochi: 600 },
-  Coimbatore:     { Chennai: 495, Tiruvannamalai: 310, Bangalore: 365, Madurai: 215, Salem: 165, Tirupati: 450, Pondicherry: 380, Kochi: 200 },
-  Madurai:        { Chennai: 460, Tiruvannamalai: 280, Bangalore: 440, Coimbatore: 215, Salem: 295, Tirupati: 420, Pondicherry: 320, Kochi: 380 },
-  Salem:          { Chennai: 335, Tiruvannamalai: 150, Bangalore: 250, Coimbatore: 165, Madurai: 295, Tirupati: 295, Pondicherry: 240, Kochi: 370 },
-  Tirupati:       { Chennai: 135, Tiruvannamalai: 230, Bangalore: 160, Coimbatore: 450, Madurai: 420, Salem: 295, Pondicherry: 200, Kochi: 750 },
-  Pondicherry:    { Chennai: 160, Tiruvannamalai: 130, Bangalore: 310, Coimbatore: 380, Madurai: 320, Salem: 240, Tirupati: 200, Kochi: 550 },
-  Kochi:          { Chennai: 685, Tiruvannamalai: 500, Bangalore: 600, Coimbatore: 200, Madurai: 380, Salem: 370, Tirupati: 750, Pondicherry: 550 },
+  Chennai:     { Bangalore: 345, Coimbatore: 495, Madurai: 460, Pondicherry: 160 },
+  Bangalore:   { Chennai: 345, Coimbatore: 365, Madurai: 440, Pondicherry: 310 },
+  Coimbatore:  { Chennai: 495, Bangalore: 365, Madurai: 215, Pondicherry: 380 },
+  Madurai:     { Chennai: 460, Bangalore: 440, Coimbatore: 215, Pondicherry: 320 },
+  Pondicherry: { Chennai: 160, Bangalore: 310, Coimbatore: 380, Madurai: 320 },
 };
 
 /* ─── Local area distance estimate (flat) ─── */
@@ -33,7 +29,7 @@ const VEHICLE_CATEGORIES = [
     desc: "Quick & Economical",
     detail: "Ideal for solo travellers. Fastest for short distances.",
     examples: ["Bajaj Pulsar", "TVS Apache", "Royal Enfield", "Yamaha R15", "KTM Duke", "Hero Xpulse"],
-    pricePerKm: 4,          // traveler's share per km
+    pricePerKm: 4,          // legacy reference only (fares now via computeFare)
     color: "from-blue-500 to-blue-700",
     borderColor: "border-blue-300",
     bgLight: "bg-blue-50",
@@ -78,11 +74,6 @@ const VEHICLE_CATEGORIES = [
 function getDistance(from: string, to: string, isLocal: boolean) {
   if (isLocal) return LOCAL_DISTANCE_KM;
   return CITY_DISTANCES[from]?.[to] ?? CITY_DISTANCES[to]?.[from] ?? 300;
-}
-
-function calcPrice(pricePerKm: number, distKm: number) {
-  const raw = pricePerKm * distKm;
-  return Math.round(raw / 50) * 50; // round to nearest ₹50
 }
 
 /* ─── MAIN COMPONENT ─── */
@@ -134,7 +125,7 @@ export default function Travel() {
 
         {/* Hero banner */}
         <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-2xl px-4 py-4 border border-blue-100">
-          <p className="text-lg font-bold text-blue-900 leading-snug">Are you moving somewhere? 🚀</p>
+          <p className="text-lg font-bold text-blue-900 leading-snug">Planning to travel somewhere? 🚀</p>
           <p className="text-sm text-blue-600 mt-1">Pick your route → choose your vehicle → start your journey</p>
         </div>
 
@@ -277,7 +268,7 @@ export default function Travel() {
             </div>
 
             {VEHICLE_CATEGORIES.map(cat => {
-              const estPrice = calcPrice(cat.pricePerKm, distKm);
+              const estPrice = computeFare(distKm, cat.id).total;
               const isExpanded = expandedCategory === cat.id;
 
               return (
@@ -300,10 +291,10 @@ export default function Travel() {
                       </div>
                       <p className="text-xs text-neutral-500 mb-1">{cat.detail}</p>
                       <div className="flex items-center gap-2">
-                        <span className={`text-lg font-extrabold ${cat.textColor}`}>₹{estPrice.toLocaleString()}</span>
-                        <span className="text-xs text-neutral-400">est. your share</span>
+                        <span className={`text-lg font-extrabold ${cat.textColor}`}>₹{estPrice.toLocaleString("en-IN")}</span>
+                        <span className="text-xs text-neutral-400">est. total fare</span>
                       </div>
-                      <p className="text-[10px] text-neutral-400 mt-0.5">₹{cat.pricePerKm}/km · {distKm} km</p>
+                      <p className="text-[10px] text-neutral-400 mt-0.5">{distKm} km · incl. app fee + GST · petrol ₹{FUEL_PRICE_PER_LITRE}/L</p>
                     </div>
 
                     {/* Chevron */}
@@ -343,10 +334,10 @@ export default function Travel() {
                             </div>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className={`font-extrabold text-sm ${cat.textColor}`}>₹{estPrice.toLocaleString()}</p>
-                            <p className="text-[10px] text-neutral-400">your share</p>
+                            <p className={`font-extrabold text-sm ${cat.textColor}`}>₹{estPrice.toLocaleString("en-IN")}</p>
+                            <p className="text-[10px] text-neutral-400">est. fare</p>
                             <button
-                              onClick={() => navigate(`/vehicle/${v.id}`)}
+                              onClick={() => navigate(`/vehicle/${v.id}?distance=${distKm}&category=${cat.id}&pickup=${encodeURIComponent(pickup)}&drop=${encodeURIComponent(drop)}`)}
                               className={`mt-1.5 text-[11px] font-bold text-white px-3 py-1.5 rounded-xl bg-gradient-to-r ${cat.color} active:scale-95`}>
                               Book
                             </button>
@@ -363,10 +354,10 @@ export default function Travel() {
             <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-2xl p-4 border border-blue-100">
               <p className="text-xs font-bold text-blue-700 mb-2">💡 How Shiftzy Go Pricing Works</p>
               <div className="space-y-1">
-                <p className="text-xs text-neutral-600">• Both owner & traveller <strong>split the trip cost 50–50</strong></p>
+                <p className="text-xs text-neutral-600">• Fares are calculated from the <strong>current petrol price ₹{FUEL_PRICE_PER_LITRE}/L</strong> &amp; distance</p>
                 <p className="text-xs text-neutral-600">• You pay far less than a bus, train, or cab alone</p>
-                <p className="text-xs text-neutral-600">• Price shown above is <strong>your estimated share</strong></p>
-                <p className="text-xs text-neutral-600">• Final price confirmed at booking based on fuel rates</p>
+                <p className="text-xs text-neutral-600">• Price shown above is the <strong>estimated total fare</strong> (incl. app fee &amp; GST)</p>
+                <p className="text-xs text-neutral-600">• Final amount is confirmed at checkout</p>
               </div>
             </div>
           </div>

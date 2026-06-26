@@ -1,35 +1,30 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Bell, ChevronLeft, CheckCheck, Package, MessageCircle, CreditCard, AlertTriangle, Star, Car } from "lucide-react";
+import { Bell, ChevronLeft, CheckCheck, Package, CreditCard, Car, XCircle, Navigation } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
 
-type NotifCategory = "all" | "bookings" | "messages" | "payments" | "alerts";
+type NotifCategory = "all" | "bookings" | "payments";
 
+// Version 1 supports only these notification types:
+// Booking Request, Booking Accepted, Booking Rejected, Payment Successful, Trip Started, Trip Completed.
 const NOTIFICATIONS = [
-  { id: 1, category: "bookings", icon: Car, color: "blue", title: "Shift Request Accepted", body: "Karthik R. accepted your shift request for Honda City · Chennai → Bangalore", time: "2 min ago", unread: true },
-  { id: 2, category: "payments", icon: CreditCard, color: "green", title: "Payment Received", body: "₹3,780 received for trip TRK-2048. Amount credited to your wallet.", time: "15 min ago", unread: true },
-  { id: 3, category: "messages", icon: MessageCircle, color: "orange", title: "New Message", body: "Ramu S.: 'Hi, I am ready to pick up the vehicle tomorrow morning at 9 AM.'", time: "32 min ago", unread: true },
-  { id: 4, category: "alerts", icon: AlertTriangle, color: "red", title: "Vehicle Inspection Required", body: "Please complete the pre-trip inspection for your shift starting tomorrow.", time: "1 hr ago", unread: true },
-  { id: 5, category: "bookings", icon: Package, color: "blue", title: "Trip Completed", body: "Your vehicle (TN09AB1234) has been successfully delivered to Bangalore.", time: "2 hr ago", unread: false },
-  { id: 6, category: "payments", icon: CreditCard, color: "green", title: "Refund Processed", body: "₹499 refund for cancelled booking #BK-1023 has been initiated.", time: "Yesterday", unread: false },
-  { id: 7, category: "alerts", icon: Star, color: "orange", title: "Rate Your Experience", body: "How was your recent trip with Arjun V.? Tap to leave a review.", time: "Yesterday", unread: false },
-  { id: 8, category: "messages", icon: MessageCircle, color: "orange", title: "New Message", body: "Janu K.: 'Can we reschedule the pickup to 11 AM instead?'", time: "2 days ago", unread: false },
-  { id: 9, category: "bookings", icon: Car, color: "blue", title: "New Shift Near You", body: "A vehicle owner in your area needs a driver · Perambur → Tambaram · ₹2,100", time: "2 days ago", unread: false },
+  { id: 1, category: "bookings", icon: Package, color: "blue", title: "Booking Request", body: "Ananya S. requested to book your Honda City · Chennai → Bangalore", time: "2 min ago", unread: true },
+  { id: 2, category: "bookings", icon: CheckCheck, color: "blue", title: "Booking Accepted", body: "Karthik R. accepted your booking for Toyota Innova · Chennai → Coimbatore", time: "20 min ago", unread: true },
+  { id: 3, category: "payments", icon: CreditCard, color: "blue", title: "Payment Successful", body: "₹3,780 paid successfully for booking SZG-2048. Chat is now unlocked.", time: "18 min ago", unread: true },
+  { id: 4, category: "bookings", icon: Navigation, color: "blue", title: "Trip Started", body: "Your trip has started. Track your vehicle live on the map.", time: "1 hr ago", unread: false },
+  { id: 5, category: "bookings", icon: Car, color: "blue", title: "Trip Completed", body: "Your vehicle (TN 09 AB 1234) was safely delivered to Bangalore.", time: "2 hr ago", unread: false },
+  { id: 6, category: "bookings", icon: XCircle, color: "orange", title: "Booking Rejected", body: "Your booking request for MG Hector was declined. Try another vehicle.", time: "Yesterday", unread: false },
 ];
 
 const CATEGORY_TABS: { id: NotifCategory; label: string }[] = [
   { id: "all", label: "All" },
   { id: "bookings", label: "Bookings" },
-  { id: "messages", label: "Messages" },
   { id: "payments", label: "Payments" },
-  { id: "alerts", label: "Alerts" },
 ];
 
 const colorMap: Record<string, string> = {
   blue: "bg-blue-100 text-blue-600",
-  green: "bg-blue-100 text-blue-600",
   orange: "bg-orange-100 text-orange-600",
-  red: "bg-red-100 text-red-600",
 };
 
 export default function Notifications() {

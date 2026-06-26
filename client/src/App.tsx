@@ -20,7 +20,6 @@ import Notifications from "@/pages/Notifications";
 import BookingConfirmation from "@/pages/BookingConfirmation";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
-import Wallet from "@/pages/Wallet";
 import { ChatProvider } from "@/contexts/ChatContext";
 import LoadingScreen from "@/components/branding/LoadingScreen";
 
@@ -65,7 +64,6 @@ function Router() {
       <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
-      <Route path="/wallet" component={Wallet} />
       <Route path="/payment-success" component={BookingConfirmation} />
       <Route component={NotFound} />
     </Switch>

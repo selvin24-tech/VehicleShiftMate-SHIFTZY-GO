@@ -121,6 +121,7 @@ export interface ShiftRequest {
   distance: string;
   estimatedDuration: string;
   reward: number;
+  rating?: number;
   postedTime: string;
   status: 'pending' | 'approved' | 'in-transit' | 'completed' | 'cancelled';
 }

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 // Import icons from Lucide
-import { Ambulance, ShieldAlert, Flame } from "lucide-react";
+import { Ambulance, ShieldAlert, Flame, Headphones, PhoneCall } from "lucide-react";
 
 interface NavItem {
   path: string;
@@ -53,6 +53,20 @@ const emergencyServices: Record<string, EmergencyService> = {
     icon: <Flame size={24} />,
     color: "bg-orange-600 hover:bg-orange-700 text-white border-2 border-orange-300",
     animationDelay: "delay-[600ms]"
+  },
+  support: {
+    name: "Shiftzy Support",
+    number: "1800 200 1234",
+    icon: <Headphones size={22} />,
+    color: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-300",
+    animationDelay: "delay-[800ms]"
+  },
+  emergencyContact: {
+    name: "Emergency Contact",
+    number: "+91 98765 43210",
+    icon: <PhoneCall size={22} />,
+    color: "bg-orange-500 hover:bg-orange-600 text-white border-2 border-orange-200",
+    animationDelay: "delay-[1000ms]"
   }
 };
 
@@ -185,64 +199,24 @@ export default function BottomNav() {
         <span className="text-xs">SOS</span>
       </button>
       
-      {/* Rectangular pattern of buttons that appear above the navigation bar */}
+      {/* Quick-help panel above the navigation bar */}
       {isOpen && (
-        <div className="fixed left-0 right-0 bottom-16 mx-auto max-w-md z-[60]">
-          <div className="relative flex justify-center items-center h-24">
-            {/* Ambulance - Top */}
-            <button
-              onClick={() => handleServiceSelect('ambulance')}
-              className={`absolute w-10 h-10 rounded-full shadow-lg 
-                flex items-center justify-center
-                transition-all duration-700 ${emergencyServices.ambulance.color}
-                hover:scale-110 sos-button-animation ${emergencyServices.ambulance.animationDelay}
-                z-[60]`}
-              style={{
-                bottom: '60px',
-                left: '50%',
-                transform: 'translateX(-50%)'
-              }}
-              disabled={isCallInProgress}
-              aria-label={emergencyServices.ambulance.name}
-            >
-              {emergencyServices.ambulance.icon}
-            </button>
-            
-            {/* Police - Left */}
-            <button
-              onClick={() => handleServiceSelect('police')}
-              className={`absolute w-10 h-10 rounded-full shadow-lg 
-                flex items-center justify-center
-                transition-all duration-700 ${emergencyServices.police.color}
-                hover:scale-110 sos-button-animation ${emergencyServices.police.animationDelay}
-                z-[60]`}
-              style={{
-                bottom: '30px',
-                left: 'calc(50% - 60px)'
-              }}
-              disabled={isCallInProgress}
-              aria-label={emergencyServices.police.name}
-            >
-              {emergencyServices.police.icon}
-            </button>
-            
-            {/* Fire - Right */}
-            <button
-              onClick={() => handleServiceSelect('fire')}
-              className={`absolute w-10 h-10 rounded-full shadow-lg 
-                flex items-center justify-center
-                transition-all duration-700 ${emergencyServices.fire.color}
-                hover:scale-110 sos-button-animation ${emergencyServices.fire.animationDelay}
-                z-[60]`}
-              style={{
-                bottom: '30px',
-                left: 'calc(50% + 60px)'
-              }}
-              disabled={isCallInProgress}
-              aria-label={emergencyServices.fire.name}
-            >
-              {emergencyServices.fire.icon}
-            </button>
+        <div className="fixed left-0 right-0 bottom-20 mx-auto max-w-md z-[60] px-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-neutral-100 p-3 flex justify-between gap-1.5">
+            {Object.entries(emergencyServices).map(([key, svc]) => (
+              <button
+                key={key}
+                onClick={() => handleServiceSelect(key)}
+                disabled={isCallInProgress}
+                className="flex-1 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+                aria-label={svc.name}
+              >
+                <span className={`w-11 h-11 rounded-full flex items-center justify-center shadow ${svc.color}`}>
+                  {svc.icon}
+                </span>
+                <span className="text-[9px] font-semibold text-neutral-600 text-center leading-tight">{svc.name}</span>
+              </button>
+            ))}
           </div>
         </div>
       )}
@@ -251,11 +225,10 @@ export default function BottomNav() {
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-center text-xl text-red-600">
+            <AlertDialogTitle className="text-center text-xl text-neutral-900">
               {selectedService && (
                 <div className="flex items-center justify-center gap-2">
-                  <i className={`fas ${emergencyServices[selectedService].icon} text-2xl`}></i>
-                  <span>Emergency {emergencyServices[selectedService].name} Call</span>
+                  <span>Call {emergencyServices[selectedService].name}</span>
                 </div>
               )}
             </AlertDialogTitle>
@@ -263,12 +236,10 @@ export default function BottomNav() {
               {selectedService && (
                 <>
                   <p className="text-base font-medium mb-2">
-                    You are about to call {emergencyServices[selectedService].name} Emergency Services
-                    at {emergencyServices[selectedService].number}
+                    You are about to call {emergencyServices[selectedService].name} at {emergencyServices[selectedService].number}
                   </p>
                   <p className="text-sm text-neutral-600 mb-2">
-                    Only confirm if this is a genuine emergency.
-                    Misuse of emergency services is a punishable offense.
+                    Please confirm only if you genuinely need to make this call.
                   </p>
                   
                   <div className="bg-neutral-100 p-3 rounded-lg mt-3 mb-2">

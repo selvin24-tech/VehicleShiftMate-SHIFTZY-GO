@@ -62,6 +62,8 @@ const formSchema = z.object({
   registrationNumber: z.string().min(5, "Valid registration number is required"),
   pickupLocation:     z.string().min(2, "Pickup location is required"),
   dropLocation:       z.string().min(2, "Drop location is required"),
+  travelDate:         z.string().min(1, "Travel date is required"),
+  pickupTime:         z.string().min(1, "Pickup time is required"),
   insuranceExpiryDate:z.string().min(2, "Insurance expiry date is required"),
   luxuryBrand:        z.string().optional(),
 });
@@ -99,7 +101,7 @@ export default function ShiftRequest() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       vehicleType: undefined, vehicleModel: "", registrationNumber: "",
-      pickupLocation: "", dropLocation: "", insuranceExpiryDate: "", luxuryBrand: "",
+      pickupLocation: "", dropLocation: "", travelDate: "", pickupTime: "", insuranceExpiryDate: "", luxuryBrand: "",
     },
   });
 
@@ -303,6 +305,30 @@ export default function ShiftRequest() {
                   <FormMessage />
                 </FormItem>
               )} />
+
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                <FormField control={form.control} name="travelDate" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-neutral-700 font-medium">Travel Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field}
+                        className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-1" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="pickupTime" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-neutral-700 font-medium">Pickup Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field}
+                        className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-1" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
 
               <FormField control={form.control} name="insuranceExpiryDate" render={({ field }) => (
                 <FormItem className="mb-5">

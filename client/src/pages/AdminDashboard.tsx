@@ -520,8 +520,8 @@ export default function AdminDashboard() {
               <CardContent className="space-y-3">
                 {[
                   { msg: "🔧 Maintenance at 2AM tonight. App may be unavailable for 30 min.", sent: "Yesterday, 6PM", reach: 4210 },
-                  { msg: "🎉 New feature: Wallet cashback is live! Earn rewards on every trip.", sent: "3 days ago", reach: 4305 },
-                  { msg: "📢 New cities added: Pondicherry, Salem, and Vellore now available!", sent: "1 week ago", reach: 3980 },
+                  { msg: "🚗 Drive safe! Always verify pickup & drop details before starting a trip.", sent: "3 days ago", reach: 4305 },
+                  { msg: "📢 Now serving Chennai, Bangalore, Coimbatore, Madurai & Pondicherry!", sent: "1 week ago", reach: 3980 },
                 ].map((b, i) => (
                   <div key={i} className="flex items-start justify-between gap-3 p-3 bg-gray-50 rounded-lg">
                     <div><p className="text-sm font-medium">{b.msg}</p><p className="text-xs text-gray-400 mt-0.5">{b.sent} · {b.reach.toLocaleString()} users reached</p></div>
@@ -584,7 +584,7 @@ export default function AdminDashboard() {
                 <CardContent>
                   <p className="text-xs text-gray-500 mb-3">Currently active cities</p>
                   <div className="flex flex-wrap gap-2">
-                    {["Chennai", "Bangalore", "Coimbatore", "Madurai", "Mumbai", "Delhi", "Hyderabad", "Pune", "Trichy", "Salem"].map(city => (
+                    {["Chennai", "Bangalore", "Coimbatore", "Madurai", "Pondicherry"].map(city => (
                       <span key={city} className="text-xs font-semibold bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-100">{city}</span>
                     ))}
                   </div>
@@ -597,8 +597,6 @@ export default function AdminDashboard() {
                 <CardHeader><CardTitle className="text-sm flex items-center gap-2"><BarChart3 className="w-4 h-4 text-purple-600" />Feature Toggles</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
                   {[
-                    { label: "Wallet & Cashback", enabled: true },
-                    { label: "Referral Program", enabled: true },
                     { label: "Trip Insurance Add-on", enabled: true },
                     { label: "Live GPS Tracking", enabled: false },
                     { label: "New User Registrations", enabled: true },

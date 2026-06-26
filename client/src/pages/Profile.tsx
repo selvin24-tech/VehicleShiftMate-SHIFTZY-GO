@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChevronLeft, ChevronRight, Camera, Edit3, Save, X, Star,
-  CreditCard, FileText, Car, Wallet, Bell, Shield, HelpCircle,
+  CreditCard, FileText, Car, Bell, Shield, HelpCircle,
   LogOut, Upload, CheckCircle2, Clock, Flag, Phone, Mail, MapPin,
   Package, BookOpen
 } from "lucide-react";
@@ -210,7 +210,6 @@ export default function Profile() {
             {/* Quick links */}
             <div className="space-y-2">
               {[
-                { icon: Wallet, label: "My Wallet", sub: "Balance & transactions", color: "text-blue-600", action: () => navigate("/wallet") },
                 { icon: Bell, label: "Notifications", sub: "Alerts & updates", color: "text-orange-500", action: () => navigate("/notifications") },
                 { icon: HelpCircle, label: "Help & Support", sub: "FAQs and emergency", color: "text-blue-600", action: () => navigate("/help") },
                 { icon: BookOpen, label: "Terms & Conditions", sub: "Usage policy", color: "text-neutral-500", action: () => navigate("/terms") },

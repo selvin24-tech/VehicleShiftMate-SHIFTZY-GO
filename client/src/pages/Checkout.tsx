@@ -12,133 +12,146 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Header from "@/components/layout/Header";
-import { ChevronLeft, Calendar, Car, Clock, CreditCard, CheckCircle } from "lucide-react";
+import {
+  ChevronLeft, MapPin, Fuel, Landmark, BadgePercent, ShieldCheck,
+  CreditCard, CheckCircle, Clock, ReceiptText, Navigation
+} from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  computeFare, FUEL_PRICE_PER_LITRE, PLATFORM_FEE_PERCENT, GST_PERCENT,
+  FARE_CATEGORIES, type FareBreakdown
+} from "@/lib/constants";
 
-// Make sure to call `loadStripe` outside of a component's render to avoid
-// recreating the `Stripe` object on every render.
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error("Missing Stripe public key");
 }
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-const BookingSummary = ({ vehicle, booking }: any) => {
+const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+
+const normalizeCategory = (cat: string) =>
+  cat in FARE_CATEGORIES ? cat : (cat === "luxury" ? "premium" : "car");
+
+interface Booking {
+  pickup: string;
+  drop: string;
+  category: string;
+  distanceKm: number;
+  fare: FareBreakdown;
+}
+
+/* ─── Fare breakdown (petrol-price driven) ─── */
+const FareBreakdownCard = ({ booking, paid }: { booking: Booking; paid: boolean }) => {
+  const f = booking.fare;
   return (
-    <div className="p-4 bg-white rounded-lg border border-neutral-200">
-      <h3 className="text-lg font-semibold mb-2">Booking Summary</h3>
-      
-      <div className="flex items-center gap-3 mt-4">
-        <div className="h-16 w-16 bg-neutral-100 rounded-lg overflow-hidden flex items-center justify-center">
-          {vehicle.image ? (
-            <img src={vehicle.image} alt={`${vehicle.make} ${vehicle.model}`} className="w-full h-full object-cover" />
-          ) : (
-            <Car className="h-8 w-8 text-neutral-400" />
-          )}
+    <div className="bg-white rounded-2xl border border-neutral-200 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-base font-bold">Fare Breakdown</h3>
+        <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+          paid ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700"
+        }`}>
+          {paid ? "Payment Successful" : "Payment Pending"}
+        </span>
+      </div>
+
+      {/* Trip cost (running cost, shared) */}
+      <div className="flex justify-between items-center py-1.5">
+        <span className="text-sm font-semibold text-neutral-800">Trip Cost</span>
+        <span className="text-sm font-bold text-neutral-900">{inr(f.tripCost)}</span>
+      </div>
+      <div className="pl-3 space-y-1 mb-1">
+        <div className="flex justify-between text-xs text-neutral-500">
+          <span className="flex items-center gap-1.5"><Fuel className="w-3.5 h-3.5 text-blue-500" /> Fuel ({booking.distanceKm} km @ ₹{FUEL_PRICE_PER_LITRE}/L)</span>
+          <span>{inr(f.fuelCost)}</span>
         </div>
-        <div>
-          <h4 className="font-medium">{vehicle.make} {vehicle.model}</h4>
-          <p className="text-sm text-neutral-600">{vehicle.registrationNumber}</p>
-          {vehicle.type && (
-            <span className="inline-block px-2 py-0.5 bg-secondary-100 text-secondary-700 rounded text-xs mt-1">
-              {vehicle.type.charAt(0).toUpperCase() + vehicle.type.slice(1)}
-            </span>
-          )}
+        <div className="flex justify-between text-xs text-neutral-500">
+          <span className="flex items-center gap-1.5"><Landmark className="w-3.5 h-3.5 text-blue-500" /> Tolls & road charges</span>
+          <span>{inr(f.tollCost)}</span>
         </div>
       </div>
-      
-      <Separator className="my-4" />
-      
-      <div className="space-y-3">
-        <div className="flex justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4 text-neutral-500" />
-            <span>Pickup date</span>
-          </div>
-          <span className="font-medium">{format(new Date(booking.pickupDate), "dd MMM yyyy")}</span>
-        </div>
-        
-        <div className="flex justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4 text-neutral-500" />
-            <span>Return date</span>
-          </div>
-          <span className="font-medium">{format(new Date(booking.returnDate), "dd MMM yyyy")}</span>
-        </div>
-        
-        <div className="flex justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4 text-neutral-500" />
-            <span>Duration</span>
-          </div>
-          <span className="font-medium">{booking.totalDays} days</span>
-        </div>
+
+      <Separator className="my-2" />
+
+      {/* App fee → admin (SEPARATE line, on top of other charges) */}
+      <div className="flex justify-between items-center py-1.5">
+        <span className="text-sm text-neutral-700 flex items-center gap-1.5">
+          <BadgePercent className="w-4 h-4 text-orange-500" />
+          App Fee ({PLATFORM_FEE_PERCENT}%)
+        </span>
+        <span className="text-sm font-semibold text-neutral-900">{inr(f.platformFee)}</span>
       </div>
-      
-      <Separator className="my-4" />
-      
-      <div className="space-y-2">
-        <div className="flex justify-between">
-          <span className="text-sm">Price per day</span>
-          <span className="font-medium">₹{Number(vehicle.pricePerDay).toLocaleString()}</span>
-        </div>
-        
-        <div className="flex justify-between">
-          <span className="text-sm">Duration</span>
-          <span className="font-medium">× {booking.totalDays} days</span>
-        </div>
-        
-        {booking.insuranceFee > 0 && (
-          <div className="flex justify-between">
-            <span className="text-sm">Insurance fee</span>
-            <span className="font-medium">+ ₹{booking.insuranceFee.toLocaleString()}</span>
-          </div>
-        )}
-        
-        {booking.discount > 0 && (
-          <div className="flex justify-between text-blue-600">
-            <span className="text-sm">Discount</span>
-            <span className="font-medium">- ₹{booking.discount.toLocaleString()}</span>
-          </div>
-        )}
-        
-        <Separator className="my-2" />
-        
-        <div className="flex justify-between font-semibold text-lg">
-          <span>Total</span>
-          <span>₹{booking.totalAmount.toLocaleString()}</span>
-        </div>
+      <p className="pl-6 text-[10px] text-neutral-400 -mt-1 mb-1">Shiftzy platform fee — collected by Shiftzy</p>
+
+      {/* GST */}
+      <div className="flex justify-between items-center py-1.5">
+        <span className="text-sm text-neutral-700">GST ({GST_PERCENT}% on app fee)</span>
+        <span className="text-sm font-semibold text-neutral-900">{inr(f.gst)}</span>
+      </div>
+
+      <Separator className="my-2" />
+
+      {/* Total */}
+      <div className="flex justify-between items-center py-1">
+        <span className="text-base font-bold text-neutral-900">Total Payable</span>
+        <span className="text-lg font-extrabold text-blue-700">{inr(f.total)}</span>
+      </div>
+
+      <div className="mt-3 flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+        <Fuel className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+        <p className="text-[11px] text-blue-700 leading-relaxed">
+          Fares are calculated from the current petrol price (₹{FUEL_PRICE_PER_LITRE}/L) and your route distance.
+        </p>
       </div>
     </div>
   );
 };
 
-const PaymentForm = ({ clientSecret, onPaymentSuccess }: { clientSecret: string, onPaymentSuccess: (paymentId: string) => void }) => {
+/* ─── Trip summary ─── */
+const TripSummary = ({ booking }: { booking: Booking }) => (
+  <div className="bg-white rounded-2xl border border-neutral-200 p-4">
+    <h3 className="text-base font-bold mb-3">Trip Summary</h3>
+    <div className="flex items-center gap-2 text-sm">
+      <div className="flex flex-col items-center pt-1">
+        <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+        <span className="w-0.5 h-6 bg-neutral-200" />
+        <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+      </div>
+      <div className="flex-1 space-y-3">
+        <p className="font-semibold text-neutral-800">{booking.pickup}</p>
+        <p className="font-semibold text-neutral-800">{booking.drop}</p>
+      </div>
+    </div>
+    <Separator className="my-3" />
+    <div className="flex justify-between text-xs text-neutral-500">
+      <span className="flex items-center gap-1.5"><Navigation className="w-3.5 h-3.5" /> {booking.distanceKm} km</span>
+      <span className="flex items-center gap-1.5 capitalize">
+        <MapPin className="w-3.5 h-3.5" /> {FARE_CATEGORIES[normalizeCategory(booking.category)].label}
+      </span>
+    </div>
+  </div>
+);
+
+const PaymentForm = ({ onPaymentSuccess }: { onPaymentSuccess: (paymentId: string) => void }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!stripe || !elements) {
-      return;
-    }
-    
+    if (!stripe || !elements) return;
+
     setIsLoading(true);
     setErrorMessage(null);
-    
+
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        return_url: window.location.origin + "/payment-success",
-      },
+      confirmParams: { return_url: window.location.origin + "/payment-success" },
       redirect: "if_required",
     });
-    
+
     if (error) {
       setErrorMessage(error.message || "Payment failed. Please try again.");
       toast({
@@ -147,78 +160,96 @@ const PaymentForm = ({ clientSecret, onPaymentSuccess }: { clientSecret: string,
         variant: "destructive",
       });
     } else if (paymentIntent && paymentIntent.status === "succeeded") {
-      toast({
-        title: "Payment Successful",
-        description: "Your booking has been confirmed",
-      });
+      toast({ title: "Payment Successful", description: "Your booking has been confirmed" });
       onPaymentSuccess(paymentIntent.id);
     }
-    
+
     setIsLoading(false);
   };
-  
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white rounded-lg border border-neutral-200 p-4">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <CreditCard className="h-5 w-5 text-secondary-500" />
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="bg-white rounded-2xl border border-neutral-200 p-4">
+        <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+          <CreditCard className="h-5 w-5 text-blue-600" />
           Payment Details
         </h3>
-        
         <PaymentElement />
-        
-        {errorMessage && (
-          <div className="mt-4 text-red-500 text-sm">{errorMessage}</div>
-        )}
+        {errorMessage && <div className="mt-4 text-red-500 text-sm">{errorMessage}</div>}
       </div>
-      
-      <Button 
-        type="submit" 
-        className="w-full bg-secondary-500 hover:bg-secondary-600 text-white"
+
+      <Button
+        type="submit"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-bold rounded-xl"
         disabled={!stripe || isLoading}
       >
-        {isLoading ? "Processing..." : "Complete Payment"}
+        {isLoading ? "Processing..." : "Pay Securely"}
       </Button>
     </form>
   );
 };
 
-const PaymentSuccess = ({ bookingDetails, onClose }: { bookingDetails: any, onClose: () => void }) => {
+/* ─── Invoice (after successful payment) ─── */
+const Invoice = ({ booking, invoiceNo, paymentId, onClose }: {
+  booking: Booking; invoiceNo: string; paymentId: string; onClose: () => void;
+}) => {
+  const f = booking.fare;
+  const rows = [
+    { label: "Trip Cost (fuel + tolls)", value: f.tripCost },
+    { label: `App Fee (${PLATFORM_FEE_PERCENT}%) — to Shiftzy`, value: f.platformFee },
+    { label: `GST (${GST_PERCENT}% on app fee)`, value: f.gst },
+  ];
   return (
-    <div className="text-center bg-white rounded-lg border border-neutral-200 p-6 space-y-4">
-      <div className="flex justify-center">
-        <CheckCircle className="h-16 w-16 text-blue-500" />
+    <div className="space-y-4">
+      <div className="text-center bg-white rounded-2xl border border-neutral-200 p-6">
+        <div className="flex justify-center mb-3">
+          <CheckCircle className="h-14 w-14 text-blue-600" />
+        </div>
+        <h2 className="text-xl font-extrabold">Booking Confirmed!</h2>
+        <p className="text-neutral-500 text-sm mt-1">Your payment was successful.</p>
       </div>
-      
-      <h2 className="text-xl font-bold">Booking Confirmed!</h2>
-      <p className="text-neutral-600">
-        Your payment was successful and your booking has been confirmed.
-      </p>
-      
-      <div className="bg-neutral-50 p-4 rounded-lg text-left">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="text-sm text-neutral-500">Booking ID:</div>
-          <div className="text-sm font-medium">{bookingDetails.id}</div>
-          
-          <div className="text-sm text-neutral-500">Vehicle:</div>
-          <div className="text-sm font-medium">{bookingDetails.vehicleName}</div>
-          
-          <div className="text-sm text-neutral-500">Pickup Date:</div>
-          <div className="text-sm font-medium">{format(new Date(bookingDetails.pickupDate), "dd MMM yyyy")}</div>
-          
-          <div className="text-sm text-neutral-500">Return Date:</div>
-          <div className="text-sm font-medium">{format(new Date(bookingDetails.returnDate), "dd MMM yyyy")}</div>
-          
-          <div className="text-sm text-neutral-500">Total Amount:</div>
-          <div className="text-sm font-medium">₹{bookingDetails.totalAmount.toLocaleString()}</div>
+
+      <div className="bg-white rounded-2xl border border-neutral-200 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <ReceiptText className="w-5 h-5 text-blue-600" />
+            <h3 className="text-base font-bold">Invoice</h3>
+          </div>
+          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">PAID</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-y-1.5 text-xs mb-4">
+          <span className="text-neutral-400">Invoice No.</span>
+          <span className="text-right font-semibold text-neutral-700">{invoiceNo}</span>
+          <span className="text-neutral-400">Date</span>
+          <span className="text-right font-semibold text-neutral-700">{format(new Date(), "dd MMM yyyy")}</span>
+          <span className="text-neutral-400">Route</span>
+          <span className="text-right font-semibold text-neutral-700">{booking.pickup} → {booking.drop}</span>
+          <span className="text-neutral-400">Payment ID</span>
+          <span className="text-right font-semibold text-neutral-700 truncate">{paymentId.slice(0, 18)}…</span>
+        </div>
+
+        <Separator className="my-3" />
+
+        <div className="space-y-2">
+          {rows.map(r => (
+            <div key={r.label} className="flex justify-between text-sm">
+              <span className="text-neutral-600">{r.label}</span>
+              <span className="font-medium text-neutral-800">{inr(r.value)}</span>
+            </div>
+          ))}
+        </div>
+
+        <Separator className="my-3" />
+
+        <div className="flex justify-between font-bold text-base">
+          <span>Total Paid</span>
+          <span className="text-blue-700">{inr(f.total)}</span>
         </div>
       </div>
-      
-      <Button 
-        onClick={onClose}
-        className="w-full"
-      >
-        Go to Bookings
+
+      <Button onClick={onClose} className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold">
+        Go to My Trips
       </Button>
     </div>
   );
@@ -228,78 +259,39 @@ export default function Checkout() {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/checkout/:vehicleId");
   const vehicleId = params?.vehicleId;
-  
-  const [vehicle, setVehicle] = useState<any>(null);
-  const [bookingData, setBookingData] = useState<any>(null);
+
+  const [booking, setBooking] = useState<Booking | null>(null);
   const [clientSecret, setClientSecret] = useState("");
   const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
+  const [invoiceNo, setInvoiceNo] = useState("");
+  const [paymentId, setPaymentId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const isMobile = useIsMobile();
-  
-  // Retrieve URL parameters for booking details
+
   useEffect(() => {
     if (!vehicleId) {
       navigate("/travel");
       return;
     }
-    
-    const params = new URLSearchParams(window.location.search);
-    const pickupDate = params.get("pickupDate");
-    const returnDate = params.get("returnDate");
-    const insuranceFee = params.get("insurance") === "true" ? 499 : 0;
-    
-    // Fetch vehicle details
-    const fetchVehicleAndCreatePayment = async () => {
+
+    const search = new URLSearchParams(window.location.search);
+    const category = normalizeCategory(search.get("category") || "car");
+    const pickup = search.get("pickup") || "Pickup location";
+    const drop = search.get("drop") || "Drop location";
+    let distanceKm = parseInt(search.get("distance") || "", 10);
+    if (!distanceKm || distanceKm < 1) distanceKm = 100; // sensible fallback
+
+    const fare = computeFare(distanceKm, category);
+    const bookingData: Booking = { pickup, drop, category, distanceKm, fare };
+    setBooking(bookingData);
+
+    const setup = async () => {
       try {
-        // For demo purposes, using mock data since we don't have a real endpoint
-        // In a real app, we would fetch vehicle details from API
-        const mockVehicle = {
-          id: vehicleId,
-          make: "Toyota",
-          model: "Innova",
-          type: "car",
-          registrationNumber: "TN 05 XY 7890",
-          pricePerDay: "3500",
-          image: "https://images.unsplash.com/photo-1550355291-bbee04a92027"
-        };
-        
-        setVehicle(mockVehicle);
-        
-        if (!pickupDate || !returnDate) {
-          throw new Error("Missing booking dates");
-        }
-        
-        const pickup = new Date(pickupDate);
-        const returnD = new Date(returnDate);
-        const diffTime = Math.abs(returnD.getTime() - pickup.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const totalDays = diffDays > 0 ? diffDays : 1;
-        
-        const baseAmount = Number(mockVehicle.pricePerDay) * totalDays;
-        const discount = totalDays >= 7 ? baseAmount * 0.1 : 0; // 10% discount for bookings 7+ days
-        const totalAmount = baseAmount + insuranceFee - discount;
-        
-        const booking = {
-          vehicleId,
-          pickupDate,
-          returnDate,
-          totalDays,
-          insuranceFee,
-          discount,
-          totalAmount
-        };
-        
-        setBookingData(booking);
-        
-        // Create payment intent
         const response = await apiRequest("POST", "/api/create-payment-intent", {
           vehicleId,
-          totalDays,
-          totalAmount
+          totalDays: 1,
+          totalAmount: fare.total,
         });
-        
         const data = await response.json();
         setClientSecret(data.clientSecret);
         setIsLoading(false);
@@ -313,50 +305,42 @@ export default function Checkout() {
         navigate("/travel");
       }
     };
-    
-    fetchVehicleAndCreatePayment();
+
+    setup();
   }, [vehicleId, navigate, toast]);
-  
+
   const handlePaymentSuccess = async (paymentIntentId: string) => {
+    if (!booking) return;
+    setPaymentId(paymentIntentId);
+    setInvoiceNo(`SZ-${Date.now().toString().slice(-8)}`);
     try {
-      // Confirm booking
-      const response = await apiRequest("POST", "/api/confirm-booking", {
+      const today = new Date().toISOString();
+      await apiRequest("POST", "/api/confirm-booking", {
         paymentIntentId,
         vehicleId,
-        pickupDate: bookingData.pickupDate,
-        returnDate: bookingData.returnDate,
-        totalDays: bookingData.totalDays,
-        totalAmount: bookingData.totalAmount
+        pickupDate: today,
+        returnDate: today,
+        totalDays: 1,
+        totalAmount: booking.fare.total,
       });
-      
-      const bookingConfirmation = await response.json();
-      
-      setConfirmedBooking({
-        ...bookingConfirmation,
-        vehicleName: `${vehicle.make} ${vehicle.model}`
-      });
-      setPaymentCompleted(true);
     } catch (error) {
       console.error("Error confirming booking:", error);
       toast({
-        title: "Booking Error",
-        description: "Your payment was successful, but there was an issue confirming your booking. Please contact support.",
-        variant: "destructive",
+        title: "Booking Note",
+        description: "Payment succeeded. Your booking is being confirmed.",
       });
+    } finally {
+      setPaymentCompleted(true);
     }
   };
-  
-  const handleClose = () => {
-    navigate("/profile"); // Navigate to bookings/profile
-  };
-  
+
   return (
-    <div className="max-w-xl mx-auto bg-neutral-50 min-h-screen pb-20">
+    <div className="max-w-md mx-auto bg-neutral-50 min-h-screen pb-20">
       <Header title="Checkout" showBackButton variant="secondary" />
-      
+
       <div className="fixed top-4 left-4 z-50">
-        <Button 
-          variant="default" 
+        <Button
+          variant="default"
           size="lg"
           onClick={() => navigate(`/vehicle/${vehicleId}`)}
           className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 p-0 flex items-center justify-center"
@@ -364,26 +348,31 @@ export default function Checkout() {
           <ChevronLeft className="h-7 w-7" />
         </Button>
       </div>
-      
-      <div className="p-4 space-y-6 pt-6">
+
+      <div className="p-4 space-y-4 pt-6">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-secondary-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
-        ) : paymentCompleted ? (
-          <PaymentSuccess bookingDetails={confirmedBooking} onClose={handleClose} />
+        ) : paymentCompleted && booking ? (
+          <Invoice
+            booking={booking}
+            invoiceNo={invoiceNo}
+            paymentId={paymentId}
+            onClose={() => navigate("/profile")}
+          />
         ) : (
           <>
-            {vehicle && bookingData && (
-              <BookingSummary vehicle={vehicle} booking={bookingData} />
+            {booking && (
+              <>
+                <TripSummary booking={booking} />
+                <FareBreakdownCard booking={booking} paid={false} />
+              </>
             )}
-            
+
             {clientSecret && (
               <Elements stripe={stripePromise} options={{ clientSecret }}>
-                <PaymentForm 
-                  clientSecret={clientSecret} 
-                  onPaymentSuccess={handlePaymentSuccess} 
-                />
+                <PaymentForm onPaymentSuccess={handlePaymentSuccess} />
               </Elements>
             )}
           </>

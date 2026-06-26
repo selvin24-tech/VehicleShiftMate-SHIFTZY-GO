@@ -73,6 +73,44 @@ export const PRICING_STRUCTURE = {
   },
 };
 
+// ─── Central Fare Config (petrol-price driven) ───────────────────────────────
+// All fares are computed from the CURRENT petrol price so rates stay fair as
+// fuel prices change. Update FUEL_PRICE_PER_LITRE to the latest pump price.
+export const FUEL_PRICE_PER_LITRE = 102; // ₹ per litre (current petrol price)
+export const PLATFORM_FEE_PERCENT = 10;  // Shiftzy app fee (collected by admin)
+export const GST_PERCENT = 18;           // GST charged on the app fee
+
+// Approx mileage (km/litre) + toll per km by category. Drives fuel cost.
+export const FARE_CATEGORIES: Record<string, { mileage: number; tollPerKm: number; label: string }> = {
+  bike:    { mileage: 45, tollPerKm: 0,   label: "Bike" },
+  car:     { mileage: 18, tollPerKm: 1.5, label: "Budget Car" },
+  suv:     { mileage: 12, tollPerKm: 2,   label: "SUV" },
+  premium: { mileage: 10, tollPerKm: 2.5, label: "Premium" },
+};
+
+export interface FareBreakdown {
+  distanceKm: number;
+  fuelCost: number;
+  tollCost: number;
+  tripCost: number;    // fuel + toll (shared running cost)
+  platformFee: number; // Shiftzy app fee → admin
+  gst: number;         // GST on app fee
+  total: number;       // amount payable
+}
+
+// Compute a transparent fare breakdown from distance + category + petrol price.
+export function computeFare(distanceKm: number, category: string): FareBreakdown {
+  const key = category in FARE_CATEGORIES ? category : (category === "luxury" ? "premium" : "car");
+  const cfg = FARE_CATEGORIES[key];
+  const fuelCost = Math.round((distanceKm / cfg.mileage) * FUEL_PRICE_PER_LITRE);
+  const tollCost = Math.round(distanceKm * cfg.tollPerKm);
+  const tripCost = fuelCost + tollCost;
+  const platformFee = Math.round((tripCost * PLATFORM_FEE_PERCENT) / 100);
+  const gst = Math.round((platformFee * GST_PERCENT) / 100);
+  const total = tripCost + platformFee + gst;
+  return { distanceKm, fuelCost, tollCost, tripCost, platformFee, gst, total };
+}
+
 export const VEHICLE_TYPES = [
   {
     id: "car",
@@ -148,8 +186,8 @@ export const RECENT_TRIPS: Trip[] = [
     },
     dropLocation: {
       id: "loc2",
-      name: "Tiruvannamalai",
-      address: "Tiruvannamalai, Tamil Nadu"
+      name: "Bangalore",
+      address: "Bangalore, Karnataka"
     },
     date: "2023-05-15",
     price: 2500,
@@ -621,16 +659,13 @@ export const USER_PROFILE = {
   trips: RECENT_TRIPS
 };
 
+// Version 1 supported cities only.
 export const LOCATIONS = [
   "Chennai",
-  "Tiruvannamalai",
   "Bangalore",
   "Coimbatore",
   "Madurai",
-  "Salem",
-  "Tirupati",
-  "Pondicherry",
-  "Kochi"
+  "Pondicherry"
 ];
 
 export const CHENNAI_LOCALITIES = [
@@ -1004,6 +1039,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     distance: "350 km",
     estimatedDuration: "5h 30m",
     reward: 2100,
+    rating: 4.8,
     postedTime: "1 hour ago",
     status: "pending"
   },
@@ -1034,6 +1070,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     distance: "160 km",
     estimatedDuration: "2h 45m",
     reward: 800,
+    rating: 4.6,
     postedTime: "2 hours ago",
     status: "pending"
   },
@@ -1064,6 +1101,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     distance: "510 km",
     estimatedDuration: "7h 15m",
     reward: 3570,
+    rating: 4.9,
     postedTime: "30 minutes ago",
     status: "pending"
   },
@@ -1094,6 +1132,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     distance: "450 km",
     estimatedDuration: "6h 45m",
     reward: 2700,
+    rating: 4.7,
     postedTime: "3 hours ago",
     status: "pending"
   },
@@ -1117,13 +1156,14 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     },
     dropLocation: {
       id: "loc8",
-      name: "Kochi",
-      address: "Marine Drive, Kochi"
+      name: "Bangalore",
+      address: "MG Road, Bangalore"
     },
     pickupTime: "11:00 AM (Tomorrow)",
-    distance: "685 km",
-    estimatedDuration: "10h",
+    distance: "350 km",
+    estimatedDuration: "5h 30m",
     reward: 5480,
+    rating: 5.0,
     postedTime: "45 minutes ago",
     status: "pending"
   },
@@ -1147,13 +1187,14 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     },
     dropLocation: {
       id: "loc6",
-      name: "Salem",
-      address: "Shevapet, Salem"
+      name: "Coimbatore",
+      address: "Gandhipuram, Coimbatore"
     },
     pickupTime: "02:30 PM",
-    distance: "350 km",
-    estimatedDuration: "5h",
+    distance: "510 km",
+    estimatedDuration: "7h 15m",
     reward: 1400,
+    rating: 4.5,
     postedTime: "4 hours ago",
     status: "pending"
   }

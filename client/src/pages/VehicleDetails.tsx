@@ -50,7 +50,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { AVAILABLE_VEHICLES, LOCATIONS } from "@/lib/constants"; 
+import { AVAILABLE_VEHICLES, LOCATIONS, computeFare, FUEL_PRICE_PER_LITRE } from "@/lib/constants"; 
 import { useToast } from "@/hooks/use-toast";
 
 // Form schema for booking
@@ -70,6 +70,13 @@ export default function VehicleDetails() {
   const { toast } = useToast();
   
   const vehicleId = params?.id;
+
+  /* Trip params passed from the Travel/booking flow (petrol-price driven fare) */
+  const tripSearch = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const tripDistance = parseInt(tripSearch.get("distance") || "", 10);
+  const tripPickup = tripSearch.get("pickup") || "";
+  const tripDrop = tripSearch.get("drop") || "";
+  const tripCategoryParam = tripSearch.get("category") || "";
   
   // For demo purposes, we'll use the vehicle data from constants
   const vehicle = AVAILABLE_VEHICLES.find(v => v.id === vehicleId);
@@ -199,11 +206,9 @@ export default function VehicleDetails() {
         const isPremium = vehicle.vehicleCategory === "premium" || PREMIUM_MAKES.includes(vehicle.make);
         const isBike = vehicle.type === "bike";
         const isSuv = vehicle.type === "suv";
-        let ownerPerKm: number, fuelPerKm: number, appFeePerKm: number;
-        if (isBike) { ownerPerKm = isPremium ? 10 : 7; fuelPerKm = isPremium ? 4 : 3; appFeePerKm = isPremium ? 3 : 2; }
-        else if (isSuv) { ownerPerKm = 15; fuelPerKm = 10; appFeePerKm = 4; }
-        else if (isPremium) { ownerPerKm = 20; fuelPerKm = 8; appFeePerKm = 6; }
-        else { ownerPerKm = 13; fuelPerKm = 8; appFeePerKm = 3; }
+        const category = tripCategoryParam || (isPremium ? "premium" : isBike ? "bike" : isSuv ? "suv" : "car");
+        const hasRoute = tripDistance > 0;
+        const f = computeFare(hasRoute ? tripDistance : 0, category);
         return (
           <div className="mb-4">
             <div className="flex justify-between items-start mb-3">
@@ -217,32 +222,41 @@ export default function VehicleDetails() {
                 {isPremium ? "✦ Premium" : "● Normal"}
               </span>
             </div>
-            {/* Shared-cost pricing breakdown */}
-            <div className="space-y-2">
-              {/* Total trip cost reference */}
-              <div className="bg-neutral-100 rounded-xl px-4 py-2 flex items-center justify-between">
-                <span className="text-xs text-neutral-500 font-medium">Trip cost per km</span>
-                <span className="font-bold text-neutral-800">₹{ownerPerKm + (fuelPerKm - ownerPerKm) + appFeePerKm}/km total</span>
+
+            {/* Petrol-price-driven fare breakdown (matches checkout) */}
+            <div className="rounded-2xl border border-neutral-200 overflow-hidden">
+              <div className="bg-neutral-50 px-4 py-2.5 flex items-center justify-between border-b border-neutral-100">
+                <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Fare Estimate</span>
+                <span className="text-[10px] font-semibold text-neutral-400">Petrol ₹{FUEL_PRICE_PER_LITRE}/L</span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
-                  <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wider mb-1">🏠 Owner Shares</p>
-                  <p className="text-xl font-bold text-orange-700">₹{ownerPerKm}<span className="text-sm font-normal">/km</span></p>
-                  <p className="text-xs text-orange-600 mt-1">~50% of trip cost</p>
-                  <p className="text-[10px] text-orange-500 mt-0.5">Saves vs transport company</p>
+
+              {hasRoute ? (
+                <div className="p-4 space-y-2">
+                  <p className="text-xs text-neutral-500 mb-1">{tripPickup && tripDrop ? `${tripPickup} → ${tripDrop} · ` : ""}{tripDistance} km</p>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-600">Trip cost <span className="text-[11px] text-neutral-400">(fuel ₹{f.fuelCost.toLocaleString("en-IN")} + toll ₹{f.tollCost.toLocaleString("en-IN")})</span></span>
+                    <span className="font-semibold text-neutral-800">₹{f.tripCost.toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-600">App fee <span className="text-[11px] text-neutral-400">(to Shiftzy)</span></span>
+                    <span className="font-semibold text-neutral-800">₹{f.platformFee.toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-600">GST</span>
+                    <span className="font-semibold text-neutral-800">₹{f.gst.toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 mt-1 border-t border-neutral-100">
+                    <span className="font-bold text-neutral-900">Total fare</span>
+                    <span className="text-lg font-extrabold text-blue-700">₹{f.total.toLocaleString("en-IN")}</span>
+                  </div>
                 </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                  <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-1">🚗 You Share</p>
-                  <p className="text-xl font-bold text-blue-700">₹{fuelPerKm}<span className="text-sm font-normal">/km</span></p>
-                  <p className="text-xs text-blue-600 mt-1">~50% of trip cost</p>
-                  <p className="text-[10px] text-blue-500 mt-0.5">Saves vs own travel</p>
+              ) : (
+                <div className="p-4">
+                  <p className="text-sm text-neutral-600">
+                    Choose your route in the <span className="font-semibold text-blue-700">GO</span> tab to see the exact fare. Fares are calculated from the current petrol price, distance, tolls, app fee &amp; GST.
+                  </p>
                 </div>
-              </div>
-              <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-center">
-                <p className="text-xs text-amber-800 font-medium">
-                  ✅ Both save because both get value from the same trip
-                </p>
-              </div>
+              )}
             </div>
           </div>
         );
@@ -406,15 +420,15 @@ export default function VehicleDetails() {
             className="w-full bg-secondary-500 hover:bg-secondary-600 text-white" 
             size="lg"
             onClick={() => {
-              // Create URL with today and tomorrow as default dates
-              const today = new Date();
-              const tomorrow = new Date(today);
-              tomorrow.setDate(tomorrow.getDate() + 1);
-              
-              const pickupDate = today.toISOString().split('T')[0];
-              const returnDate = tomorrow.toISOString().split('T')[0];
-              
-              navigate(`/checkout/${vehicleId}?pickupDate=${pickupDate}&returnDate=${returnDate}&insurance=true`);
+              const category = tripCategoryParam
+                || (vehicle.vehicleCategory === "premium" ? "premium" : vehicle.type || "car");
+              const distance = (tripDistance && tripDistance > 0) ? tripDistance : "";
+              const q = new URLSearchParams();
+              if (distance) q.set("distance", String(distance));
+              q.set("category", category);
+              if (tripPickup) q.set("pickup", tripPickup);
+              if (tripDrop) q.set("drop", tripDrop);
+              navigate(`/checkout/${vehicleId}?${q.toString()}`);
             }}
           >
             Pay Now
