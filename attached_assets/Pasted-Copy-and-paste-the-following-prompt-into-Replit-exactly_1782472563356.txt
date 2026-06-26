@@ -1,0 +1,243 @@
+Copy and paste the following prompt into Replit exactly as it is.
+SHIFTZY GO - VERSION 1 (MVP)
+You are the senior full-stack developer for Shiftzy Go.
+Do NOT redesign the application.
+Do NOT create unnecessary features.
+Do NOT break any existing pages.
+Only improve the existing application and make it production-ready for Version 1.
+Primary Goal
+Build a stable, working MVP where vehicle owners can post their vehicle shifting request and verified travelers can accept those requests safely.
+The application should be lightweight, fast, mobile-friendly, and optimized to minimize Replit resource usage.
+1. Keep Existing Design
+Keep the current UI and branding.
+Only improve:
+Alignment
+Responsiveness
+Font consistency
+Button spacing
+Card spacing
+Icons
+Mobile optimization
+Do not redesign the layout.
+2. Supported Cities (Version 1 Only)
+Support only these cities:
+Chennai
+Bangalore
+Coimbatore
+Madurai
+Pondicherry
+Remove all other cities.
+3. Vehicle Owner Flow (SHIFT)
+Complete the following flow:
+Vehicle Type
+↓
+Vehicle Model
+↓
+Registration Number
+↓
+Pickup City
+↓
+Drop City
+↓
+Travel Date
+↓
+Pickup Time
+↓
+Insurance Expiry
+↓
+Vehicle Photo Upload
+↓
+Choose:
+• Professional Driver
+OR
+• Verified Traveler
+↓
+Submit Shift Request
+Validate all mandatory fields before submission.
+4. Traveler Flow (GO)
+Traveler should:
+Select Pickup City
+↓
+Select Destination
+↓
+Travel Date
+↓
+Travel Time
+↓
+See Matching Trips
+↓
+Open Trip Details
+↓
+Request Booking
+No unnecessary pages.
+5. Booking Flow
+Booking should work like this:
+Traveler requests booking
+↓
+Owner receives notification
+↓
+Owner Accepts / Rejects
+↓
+Booking Confirmed
+↓
+Booking ID generated
+↓
+Booking Amount Paid
+↓
+Chat unlocked
+↓
+Phone number unlocked
+↓
+Trip Starts
+↓
+Trip Completed
+This complete workflow must function correctly.
+6. Chat
+Chat should remain LOCKED until booking is confirmed.
+After booking:
+Enable
+Text messages
+Images
+Live location
+Do NOT implement:
+Voice notes
+Video calls
+File sharing
+7. Payments
+Keep payment simple.
+Show:
+Trip Cost
+Platform Fee
+GST
+Total Amount
+Payment Status
+Invoice
+Do NOT build:
+Wallet
+Coupons
+Reward Points
+Cashback
+Subscriptions
+8. Trip Tracking
+Simple tracking only.
+Show:
+Booking ID
+Current Status
+Current Location
+Estimated Arrival
+Destination
+Trip Completed
+9. Notifications
+Only implement:
+Booking Request
+Booking Accepted
+Booking Rejected
+Payment Successful
+Trip Started
+Trip Completed
+10. Profile
+Keep:
+Profile Photo
+Phone
+Email
+Rating
+Completed Trips
+Documents
+Booking History
+Logout
+11. Documents
+Support only:
+Aadhaar
+Driving Licence
+Vehicle RC
+Insurance
+Verification Status
+12. SOS
+Keep only:
+Police
+Ambulance
+Fire
+Shiftzy Support
+Emergency Contact
+13. Nearby Trips
+Display maximum 20 trips.
+Allow filtering by:
+Car
+Bike
+SUV
+Premium
+Sort by:
+Nearest
+Lowest Cost
+Highest Rating
+14. Security
+Before booking:
+Hide phone number
+Hide WhatsApp
+Hide email
+Only show:
+Rating
+Trips Completed
+Verification Badge
+After booking:
+Unlock chat
+Unlock phone
+Unlock navigation
+15. Database
+Store:
+Users
+Vehicles
+Trips
+Bookings
+Payments
+Documents
+Notifications
+Generate unique Booking ID for every booking.
+16. Performance Optimization
+Reduce unnecessary API calls.
+Reuse components.
+Optimize images.
+Optimize database queries.
+Avoid unnecessary libraries.
+Minimize Replit CPU and memory usage.
+17. Remove or Disable
+Remove or disable:
+Demo data
+Unused pages
+Duplicate screens
+Placeholder content
+Fake statistics
+Unnecessary animations
+Experimental features
+18. Do NOT Build in Version 1
+Do NOT build:
+Referral Program
+Wallet
+Reward Points
+Coupons
+Fuel Calculator
+AI Assistant
+Hotel Booking
+Multi-language
+Premium Membership
+Group Chat
+Voice Chat
+Video Calling
+Advanced Analytics
+Leaderboards
+These will be implemented in future versions.
+19. Final Deliverable
+The application must allow:
+Vehicle Owner posts a shifting request.
+Traveler searches available trips.
+Traveler requests booking.
+Owner accepts.
+Payment is completed.
+Chat unlocks.
+Trip starts.
+Live tracking works.
+Trip completes.
+Booking history updates automatically.
+Prioritize stability over features.
+Do not add anything outside the scope of this MVP.
+This prompt is optimized for Replit and should help keep resource usage focused on completing a clean, launch-ready Version 1 instead of spending credits on unnecessary features.
