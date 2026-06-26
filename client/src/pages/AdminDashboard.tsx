@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -10,9 +11,13 @@ import {
   CheckCircle2, XCircle, AlertTriangle, Users, Car, FileText,
   Flag, CreditCard, Bell, Settings, Search, Ban, Eye, RefreshCw,
   ShieldCheck, Star, Trash2, Send, MessageSquare, IndianRupee,
-  ChevronRight, BarChart3, Activity
+  ChevronRight, BarChart3, Activity, Phone, MapPin
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { Enquiry, EnquiryMessage } from "@shared/schema";
+
+type EnquiryWithMeta = Enquiry & { messageCount: number; lastMessage?: EnquiryMessage };
 
 /* ─────────────────────────── TYPES ─────────────────────────── */
 type Status = "pending" | "approved" | "rejected";
@@ -116,6 +121,45 @@ export default function AdminDashboard() {
   const [userSearch, setUserSearch] = useState("");
   const [broadcastMsg, setBroadcastMsg] = useState("");
   const [commissionPct, setCommissionPct] = useState(12);
+  const [activeEnquiryId, setActiveEnquiryId] = useState<number | null>(null);
+  const [mdReply, setMdReply] = useState("");
+
+  /* Enquiries (live data) */
+  const { data: enquiries = [] } = useQuery<EnquiryWithMeta[]>({
+    queryKey: ["/api/enquiries"],
+    refetchInterval: 8000,
+  });
+  const { data: activeThread } = useQuery<{ enquiry: Enquiry; messages: EnquiryMessage[] }>({
+    queryKey: ["/api/enquiries", activeEnquiryId, "messages"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/enquiries/${activeEnquiryId}/messages`);
+      return await res.json();
+    },
+    enabled: activeEnquiryId !== null,
+    refetchInterval: 5000,
+  });
+  const replyMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const res = await apiRequest("POST", `/api/enquiries/${activeEnquiryId}/messages`, { sender: "md", message });
+      return await res.json();
+    },
+    onSuccess: () => {
+      setMdReply("");
+      queryClient.invalidateQueries({ queryKey: ["/api/enquiries", activeEnquiryId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/enquiries"] });
+    },
+  });
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/enquiries/${id}`, { status });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/enquiries"] });
+      if (activeEnquiryId) queryClient.invalidateQueries({ queryKey: ["/api/enquiries", activeEnquiryId, "messages"] });
+    },
+  });
+  const newEnquiryCount = enquiries.filter(e => e.status === "new").length;
 
   /* Derived */
   const pendingCount = requests.filter(r => r.status === "pending").length;
@@ -194,6 +238,7 @@ export default function AdminDashboard() {
             <TabsList className="flex w-max gap-1 bg-white border border-neutral-200 p-1 rounded-xl shadow-sm h-auto">
               {[
                 { val: "approvals", label: "Approvals", badge: pendingCount },
+                { val: "enquiries", label: "Enquiries", badge: newEnquiryCount },
                 { val: "users", label: "Users", badge: 0 },
                 { val: "documents", label: "Documents", badge: docPending },
                 { val: "reports", label: "Reports", badge: reportOpen },
@@ -256,6 +301,106 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             ))}
+          </TabsContent>
+
+          {/* ── CUSTOMER ENQUIRIES (MD desk) ── */}
+          <TabsContent value="enquiries" className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold">Customer Enquiries</h2>
+                <p className="text-sm text-gray-500">Questions routed directly to the MD's desk</p>
+              </div>
+              <span className="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full text-xs">{newEnquiryCount} New</span>
+            </div>
+
+            {enquiries.length === 0 ? (
+              <Card><CardContent className="p-8 text-center text-sm text-gray-400">No enquiries yet.</CardContent></Card>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {/* Inbox list */}
+                <div className="space-y-2">
+                  {enquiries.map(e => (
+                    <button
+                      key={e.id}
+                      onClick={() => setActiveEnquiryId(e.id)}
+                      className={`w-full text-left rounded-xl border p-3 transition-colors ${activeEnquiryId === e.id ? "border-blue-500 bg-blue-50/60" : "border-neutral-200 bg-white hover:border-blue-300"}`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <p className="font-bold text-sm truncate">{e.name}</p>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize shrink-0 ${e.status === "new" ? "bg-orange-100 text-orange-700" : e.status === "resolved" ? "bg-blue-100 text-blue-700" : "bg-neutral-100 text-neutral-600"}`}>
+                          {(e.status || "new").replace("_", " ")}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 flex items-center gap-1 mb-0.5">
+                        <MapPin className="w-3 h-3" /> {e.pickup} → {e.drop} · {e.vehicleType}
+                      </p>
+                      <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> {e.phone}
+                      </p>
+                      {e.lastMessage && (
+                        <p className="text-xs text-gray-500 mt-1 truncate italic">"{e.lastMessage.message}"</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Thread + reply */}
+                <Card className="lg:sticky lg:top-4 h-fit">
+                  {!activeThread ? (
+                    <CardContent className="p-8 text-center text-sm text-gray-400">
+                      Select an enquiry to view the conversation.
+                    </CardContent>
+                  ) : (
+                    <CardContent className="p-4">
+                      <div className="border-b pb-3 mb-3">
+                        <p className="font-bold text-sm">{activeThread.enquiry.name}</p>
+                        <p className="text-xs text-gray-500">{activeThread.enquiry.pickup} → {activeThread.enquiry.drop} · {activeThread.enquiry.vehicleType}</p>
+                        {activeThread.enquiry.preferredDate && <p className="text-xs text-gray-500">Preferred: {activeThread.enquiry.preferredDate}</p>}
+                        <div className="flex gap-1.5 mt-2">
+                          {["new", "in_progress", "resolved"].map(s => (
+                            <button
+                              key={s}
+                              onClick={() => statusMutation.mutate({ id: activeThread.enquiry.id, status: s })}
+                              className={`text-[10px] font-bold px-2 py-1 rounded-full capitalize ${activeThread.enquiry.status === s ? "bg-blue-600 text-white" : "bg-neutral-100 text-neutral-600"}`}
+                            >
+                              {s.replace("_", " ")}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 max-h-72 overflow-y-auto mb-3">
+                        {activeThread.messages.map(m => {
+                          const isMd = m.sender === "md";
+                          return (
+                            <div key={m.id} className={`flex ${isMd ? "justify-end" : "justify-start"}`}>
+                              <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${isMd ? "bg-blue-600 text-white" : "bg-neutral-100 text-neutral-800"}`}>
+                                <p className="text-[10px] font-bold mb-0.5 opacity-70">{isMd ? "MD Desk" : activeThread.enquiry.name}</p>
+                                {m.message}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Input
+                          value={mdReply}
+                          onChange={(e) => setMdReply(e.target.value)}
+                          placeholder="Reply to customer…"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && mdReply.trim()) replyMutation.mutate(mdReply);
+                          }}
+                        />
+                        <Button size="icon" disabled={!mdReply.trim() || replyMutation.isPending} onClick={() => replyMutation.mutate(mdReply)}>
+                          <Send size={18} />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              </div>
+            )}
           </TabsContent>
 
           {/* ── 2. USERS ── */}

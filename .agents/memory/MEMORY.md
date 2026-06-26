@@ -1,0 +1,1 @@
+- [Query key fetcher](query-key-fetcher.md) — default getQueryFn uses queryKey[0] ONLY; nested GETs need an explicit queryFn or full-URL first key.

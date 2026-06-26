@@ -15,7 +15,9 @@ import {
   insertVehicleSchema,
   insertChatConversationSchema,
   insertChatMessageSchema,
-  ChatMessage
+  ChatMessage,
+  insertEnquirySchema,
+  insertEnquiryMessageSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -433,6 +435,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // --- Customer Enquiry (MD support desk) Routes ---
+  // Customer creates a new enquiry
+  app.post("/api/enquiries", async (req, res) => {
+    try {
+      const data = insertEnquirySchema.parse(req.body);
+      const enquiry = await storage.createEnquiry(data);
+      res.status(201).json(enquiry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      console.error("Error creating enquiry:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // List all enquiries (MD / admin inbox)
+  app.get("/api/enquiries", async (_req, res) => {
+    try {
+      const enquiries = await storage.getEnquiries();
+      const withMeta = await Promise.all(
+        enquiries.map(async (e) => {
+          const messages = await storage.getEnquiryMessages(e.id);
+          return { ...e, messageCount: messages.length, lastMessage: messages[messages.length - 1] };
+        })
+      );
+      res.json(withMeta);
+    } catch (error) {
+      console.error("Error fetching enquiries:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Get a single enquiry's message thread
+  app.get("/api/enquiries/:id/messages", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const enquiry = await storage.getEnquiry(id);
+      if (!enquiry) return res.status(404).json({ message: "Enquiry not found" });
+      const messages = await storage.getEnquiryMessages(id);
+      res.json({ enquiry, messages });
+    } catch (error) {
+      console.error("Error fetching enquiry messages:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Add a message to an enquiry thread (customer or MD)
+  app.post("/api/enquiries/:id/messages", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const enquiry = await storage.getEnquiry(id);
+      if (!enquiry) return res.status(404).json({ message: "Enquiry not found" });
+      const data = insertEnquiryMessageSchema.parse({ ...req.body, enquiryId: id });
+      const message = await storage.addEnquiryMessage(data);
+      res.status(201).json(message);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      console.error("Error adding enquiry message:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Update enquiry status (MD / admin)
+  app.patch("/api/enquiries/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      if (!status) return res.status(400).json({ message: "Status is required" });
+      const updated = await storage.updateEnquiryStatus(id, status);
+      if (!updated) return res.status(404).json({ message: "Enquiry not found" });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating enquiry:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // WebSocket server for real-time chat
   // --- Payment Routes ---
   // Create a payment intent for vehicle booking

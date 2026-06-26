@@ -137,11 +137,16 @@ const PaymentForm = ({ onPaymentSuccess }: { onPaymentSuccess: (paymentId: strin
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
+    if (!agreed) {
+      setErrorMessage("Please accept the traveler terms before paying.");
+      return;
+    }
 
     setIsLoading(true);
     setErrorMessage(null);
@@ -178,10 +183,25 @@ const PaymentForm = ({ onPaymentSuccess }: { onPaymentSuccess: (paymentId: strin
         {errorMessage && <div className="mt-4 text-red-500 text-sm">{errorMessage}</div>}
       </div>
 
+      {/* Traveler T&C acknowledgment */}
+      <label className="flex items-start gap-3 bg-white rounded-2xl border border-neutral-200 p-4 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={agreed}
+          onChange={(e) => setAgreed(e.target.checked)}
+          className="mt-0.5 w-4 h-4 accent-blue-600 shrink-0"
+        />
+        <span className="text-xs text-neutral-600 leading-relaxed">
+          As a traveler, I confirm I hold a valid driving licence, will inspect the vehicle before the trip, and accept
+          responsibility for it during transit. I agree to the trip cost, app fee &amp; GST and the{" "}
+          <a href="/terms" className="text-blue-600 font-semibold underline">Terms &amp; Conditions</a>.
+        </span>
+      </label>
+
       <Button
         type="submit"
         className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-bold rounded-xl"
-        disabled={!stripe || isLoading}
+        disabled={!stripe || isLoading || !agreed}
       >
         {isLoading ? "Processing..." : "Pay Securely"}
       </Button>

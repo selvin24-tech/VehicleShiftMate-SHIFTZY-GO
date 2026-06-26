@@ -14,7 +14,11 @@ import {
   ChatConversation,
   InsertChatConversation,
   ChatMessage,
-  InsertChatMessage
+  InsertChatMessage,
+  Enquiry,
+  InsertEnquiry,
+  EnquiryMessage,
+  InsertEnquiryMessage
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -67,6 +71,14 @@ export interface IStorage {
   getChatMessages(conversationId: number): Promise<ChatMessage[]>;
   sendChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   markMessagesAsRead(conversationId: number, userId: number): Promise<void>;
+
+  // Enquiry (MD support) operations
+  createEnquiry(enquiry: InsertEnquiry): Promise<Enquiry>;
+  getEnquiries(): Promise<Enquiry[]>;
+  getEnquiry(id: number): Promise<Enquiry | undefined>;
+  updateEnquiryStatus(id: number, status: string): Promise<Enquiry | undefined>;
+  getEnquiryMessages(enquiryId: number): Promise<EnquiryMessage[]>;
+  addEnquiryMessage(message: InsertEnquiryMessage): Promise<EnquiryMessage>;
 }
 
 // In-memory storage implementation
@@ -79,6 +91,8 @@ export class MemStorage implements IStorage {
   private vehicleReviews: Map<number, VehicleReview>;
   private chatConversations: Map<number, ChatConversation>;
   private chatMessages: Map<number, ChatMessage>;
+  private enquiries: Map<number, Enquiry>;
+  private enquiryMessages: Map<number, EnquiryMessage>;
   
   private userIdCounter: number = 1;
   private vehicleIdCounter: number = 1;
@@ -88,6 +102,8 @@ export class MemStorage implements IStorage {
   private vehicleReviewIdCounter: number = 1;
   private chatConversationIdCounter: number = 1;
   private chatMessageIdCounter: number = 1;
+  private enquiryIdCounter: number = 1;
+  private enquiryMessageIdCounter: number = 1;
   
   constructor() {
     this.users = new Map();
@@ -98,6 +114,8 @@ export class MemStorage implements IStorage {
     this.vehicleReviews = new Map();
     this.chatConversations = new Map();
     this.chatMessages = new Map();
+    this.enquiries = new Map();
+    this.enquiryMessages = new Map();
     
     // Initialize with some sample data
     this.initSampleData();
@@ -238,6 +256,17 @@ export class MemStorage implements IStorage {
       senderId: user1.id,
       recipientId: user2.id,
       message: "Great! When would you be available for pickup?"
+    });
+
+    // Sample customer enquiry to the MD desk
+    this.createEnquiry({
+      name: "Ramesh Kumar",
+      phone: "+91 98401 22334",
+      pickup: "Chennai",
+      drop: "Madurai",
+      vehicleType: "Car",
+      preferredDate: "2026-07-02 09:00",
+      message: "Is a sedan available this Saturday? Can your driver drop it at my home in Madurai?",
     });
   }
   
@@ -522,6 +551,67 @@ export class MemStorage implements IStorage {
         this.chatMessages.set(message.id, message);
       }
     });
+  }
+
+  // Enquiry (MD support) operations
+  async createEnquiry(enquiryData: InsertEnquiry): Promise<Enquiry> {
+    const id = this.enquiryIdCounter++;
+    const now = new Date();
+    const enquiry: Enquiry = {
+      id,
+      name: enquiryData.name,
+      phone: enquiryData.phone,
+      pickup: enquiryData.pickup,
+      drop: enquiryData.drop,
+      vehicleType: enquiryData.vehicleType,
+      preferredDate: enquiryData.preferredDate ?? null,
+      message: enquiryData.message,
+      status: "new",
+      createdAt: now,
+    };
+    this.enquiries.set(id, enquiry);
+
+    // Seed the chat thread: the customer's first message + an auto-reply from the MD desk
+    await this.addEnquiryMessage({ enquiryId: id, sender: "customer", message: enquiryData.message });
+    await this.addEnquiryMessage({
+      enquiryId: id,
+      sender: "md",
+      message: `Hi ${enquiryData.name.split(" ")[0] || "there"}! Thanks for reaching out to Shiftzy. I've received your enquiry for ${enquiryData.pickup} → ${enquiryData.drop} and I'll personally check availability and arrangements. I'll reply here shortly.`,
+    });
+
+    return enquiry;
+  }
+
+  async getEnquiries(): Promise<Enquiry[]> {
+    return Array.from(this.enquiries.values()).sort(
+      (a, b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime()
+    );
+  }
+
+  async getEnquiry(id: number): Promise<Enquiry | undefined> {
+    return this.enquiries.get(id);
+  }
+
+  async updateEnquiryStatus(id: number, status: string): Promise<Enquiry | undefined> {
+    const enquiry = this.enquiries.get(id);
+    if (!enquiry) return undefined;
+    const updated: Enquiry = { ...enquiry, status };
+    this.enquiries.set(id, updated);
+    return updated;
+  }
+
+  async getEnquiryMessages(enquiryId: number): Promise<EnquiryMessage[]> {
+    return Array.from(this.enquiryMessages.values())
+      .filter(m => m.enquiryId === enquiryId)
+      .sort((a, b) => (a.createdAt as Date).getTime() - (b.createdAt as Date).getTime());
+  }
+
+  async addEnquiryMessage(message: InsertEnquiryMessage): Promise<EnquiryMessage> {
+    const id = this.enquiryMessageIdCounter++;
+    const now = new Date();
+    const enquiryMessage: EnquiryMessage = { ...message, id, createdAt: now };
+    this.enquiryMessages.set(id, enquiryMessage);
+    return enquiryMessage;
   }
 }
 

@@ -1,6 +1,22 @@
 import { useLocation } from "wouter";
-import { ChevronLeft, FileText } from "lucide-react";
+import { ChevronLeft, FileText, Truck, Car, CheckCircle2 } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
+
+const SHIFTER_ACK = [
+  "My vehicle has valid registration (RC), comprehensive insurance, and is in roadworthy condition.",
+  "I have shared accurate vehicle details, photos, and pickup/drop locations.",
+  "I understand the traveler will document the vehicle's condition before the trip begins.",
+  "I authorise a verified Shiftzy traveler to drive my vehicle for the agreed route only.",
+  "I agree to the shared-cost model and that the platform (app) fee is collected by Shiftzy.",
+];
+
+const TRAVELER_ACK = [
+  "I hold a valid driving licence and am at least 18 years of age.",
+  "I will inspect the vehicle and document its condition with photos before starting.",
+  "I will drive responsibly, follow traffic laws, and use the vehicle only for the agreed route.",
+  "I am responsible for any damage, fines, or tolls incurred during the trip.",
+  "I agree to the displayed trip cost, app fee, and GST before confirming payment.",
+];
 
 const SECTIONS = [
   {
@@ -87,6 +103,51 @@ export default function Terms() {
             <p className="text-sm text-neutral-600 leading-relaxed">{s.body}</p>
           </div>
         ))}
+
+        {/* ── Acknowledgments ── */}
+        <div>
+          <h3 className="font-bold text-base text-neutral-900 mb-1">Acknowledgments</h3>
+          <p className="text-xs text-neutral-500 mb-3">
+            Depending on your role, you will be asked to accept the relevant points below before a shift or a booking.
+          </p>
+
+          {/* Shifter */}
+          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                <Truck className="w-4 h-4 text-white" />
+              </div>
+              <h4 className="font-bold text-sm text-blue-800">For Shifters (Vehicle Owners)</h4>
+            </div>
+            <ul className="space-y-2">
+              {SHIFTER_ACK.map((item) => (
+                <li key={item} className="flex gap-2 text-sm text-neutral-700">
+                  <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Traveler */}
+          <div className="rounded-xl border border-orange-200 bg-orange-50/50 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+                <Car className="w-4 h-4 text-white" />
+              </div>
+              <h4 className="font-bold text-sm text-orange-800">For Travelers (Goers)</h4>
+            </div>
+            <ul className="space-y-2">
+              {TRAVELER_ACK.map((item) => (
+                <li key={item} className="flex gap-2 text-sm text-neutral-700">
+                  <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
         <div className="bg-blue-50 rounded-xl p-4 text-center">
           <p className="text-xs text-blue-700 font-medium">Questions about our terms?</p>
           <button onClick={() => navigate("/help")} className="mt-2 text-sm font-bold text-blue-600 underline">

@@ -156,3 +156,46 @@ export type ChatConversation = typeof chatConversations.$inferSelect;
 export type InsertChatConversation = z.infer<typeof insertChatConversationSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+
+// Customer enquiries — direct line to the MD / Shiftzy support desk
+export const enquiries = pgTable("enquiries", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  pickup: text("pickup").notNull(),
+  drop: text("drop").notNull(),
+  vehicleType: text("vehicle_type").notNull(),
+  preferredDate: text("preferred_date"),
+  message: text("message").notNull(),
+  status: text("status").default("new"), // new, in_progress, resolved
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const enquiryMessages = pgTable("enquiry_messages", {
+  id: serial("id").primaryKey(),
+  enquiryId: integer("enquiry_id").references(() => enquiries.id).notNull(),
+  sender: text("sender").notNull(), // 'customer' | 'md'
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEnquirySchema = createInsertSchema(enquiries, {
+  name: z.string().min(1, "Name is required"),
+  phone: z.string().min(6, "A valid phone number is required"),
+  pickup: z.string().min(1, "Pickup is required"),
+  drop: z.string().min(1, "Drop is required"),
+  vehicleType: z.string().min(1, "Vehicle type is required"),
+  preferredDate: z.string().min(1, "Preferred date & time is required"),
+  message: z.string().min(1, "Please type your question"),
+}).omit({ id: true, createdAt: true, status: true });
+
+export const insertEnquiryMessageSchema = createInsertSchema(enquiryMessages, {
+  enquiryId: z.number(),
+  sender: z.enum(["customer", "md"]),
+  message: z.string().min(1),
+}).omit({ id: true, createdAt: true });
+
+export type Enquiry = typeof enquiries.$inferSelect;
+export type InsertEnquiry = z.infer<typeof insertEnquirySchema>;
+export type EnquiryMessage = typeof enquiryMessages.$inferSelect;
+export type InsertEnquiryMessage = z.infer<typeof insertEnquiryMessageSchema>;

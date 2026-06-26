@@ -164,6 +164,27 @@ export default function Home() {
         </button>
       </div>
 
+      {/* ── Chat with MD banner ── */}
+      <div className="px-4 mt-4">
+        <button
+          onClick={() => navigate("/support")}
+          className="w-full rounded-2xl p-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform shadow-md"
+          style={{ background: "linear-gradient(135deg,#1d4ed8 0%,#f97316 100%)" }}
+          data-tour="support-option"
+        >
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+            <MessageCircle className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-extrabold text-[15px] leading-tight">Have a question? Chat with us</p>
+            <p className="text-white/85 text-[11px] font-medium mt-0.5 leading-snug">
+              Talk directly to our MD's desk — custom routes, availability &amp; more
+            </p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-white shrink-0" />
+        </button>
+      </div>
+
       {/* ── Nearby Available Trips ── */}
       <div className="px-4 mt-6">
         <div className="flex items-center justify-between mb-1">

@@ -13,6 +13,7 @@ import Plan from "@/pages/Plan";
 import Track from "@/pages/Track";
 import Help from "@/pages/Help";
 import Chat from "@/pages/Chat";
+import SupportChat from "@/pages/SupportChat";
 import VehicleDetails from "@/pages/VehicleDetails";
 import Checkout from "@/pages/Checkout";
 import Nearby from "@/pages/Nearby";
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/track" component={Track} />
       <Route path="/help" component={Help} />
       <Route path="/chat" component={Chat} />
+      <Route path="/support" component={SupportChat} />
       <Route path="/vehicle/:id" component={VehicleDetails} />
       <Route path="/checkout/:vehicleId" component={Checkout} />
       <Route path="/nearby" component={Nearby} />

@@ -96,6 +96,7 @@ export default function ShiftRequest() {
   const [receiverPhone, setReceiverPhone] = useState("");
   const [deliveryAddr,  setDeliveryAddr]  = useState("");
   const [specialNote,   setSpecialNote]   = useState("");
+  const [agreedTerms,   setAgreedTerms]   = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -130,6 +131,10 @@ export default function ShiftRequest() {
     }
     if (driverType === "traveler" && !dropPref) {
       toast({ title: "Select drop preference", description: "Choose Common Hub or Home Drop.", variant: "destructive" });
+      return;
+    }
+    if (!agreedTerms) {
+      toast({ title: "Accept the shifter terms", description: "Please confirm the vehicle owner acknowledgment to continue.", variant: "destructive" });
       return;
     }
     try {
@@ -611,8 +616,24 @@ export default function ShiftRequest() {
               </div>
             </div>
 
+            {/* Shifter T&C acknowledgment */}
+            <label className="flex items-start gap-3 bg-blue-50/60 rounded-2xl border border-blue-200 p-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreedTerms}
+                onChange={(e) => setAgreedTerms(e.target.checked)}
+                className="mt-0.5 w-4 h-4 accent-blue-600 shrink-0"
+              />
+              <span className="text-xs text-neutral-600 leading-relaxed">
+                As the vehicle owner, I confirm my vehicle has valid RC &amp; insurance, is roadworthy, and the details
+                provided are accurate. I authorise a verified Shiftzy traveler to drive it for the agreed route and
+                accept the{" "}
+                <a href="/terms" className="text-blue-600 font-semibold underline">Terms &amp; Conditions</a>.
+              </span>
+            </label>
+
             {/* Submit */}
-            <Button type="submit" disabled={isUploading}
+            <Button type="submit" disabled={isUploading || !agreedTerms}
               className="w-full py-4 text-base font-bold rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg">
               {isUploading ? "Submitting…" : "Submit Shift Request 🚗"}
             </Button>
