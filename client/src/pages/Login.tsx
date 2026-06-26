@@ -343,10 +343,10 @@ export default function Login() {
 
                 {forgotSuccess ? (
                   <div className="text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-                      <CheckCircle2 className="w-9 h-9 text-green-600" />
+                    <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="w-9 h-9 text-blue-600" />
                     </div>
-                    <p className="text-sm text-green-700 font-medium">Your password has been reset. You can now sign in.</p>
+                    <p className="text-sm text-blue-700 font-medium">Your password has been reset. You can now sign in.</p>
                     <Button onClick={() => setMode("signIn")} className="w-full bg-blue-600 hover:bg-blue-700 h-11">Sign In Now</Button>
                   </div>
                 ) : !forgotOtpSent ? (
@@ -618,7 +618,7 @@ export default function Login() {
                       </button>
                     </div>
 
-                    <Button type="submit" className="w-full bg-gradient-to-r from-green-600 to-green-700 h-11 font-semibold" disabled={isLoading}>
+                    <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 h-11 font-semibold" disabled={isLoading}>
                       {isLoading ? "Verifying..." : "Verify & Create Account"}
                     </Button>
                     <Button type="button" variant="ghost" onClick={() => setStep("aadhaar")} className="w-full text-neutral-500">

@@ -81,24 +81,24 @@ const REVIEWS = [
 
 /* ─────────────────────────── HELPERS ───────────────────────── */
 const userStatusStyle: Record<UserStatus, string> = {
-  active: "bg-green-100 text-green-700",
+  active: "bg-blue-100 text-blue-700",
   suspended: "bg-yellow-100 text-yellow-700",
   banned: "bg-red-100 text-red-700",
 };
 const docStatusStyle: Record<DocStatus, string> = {
   pending: "bg-orange-100 text-orange-700",
-  verified: "bg-green-100 text-green-700",
+  verified: "bg-blue-100 text-blue-700",
   rejected: "bg-red-100 text-red-700",
 };
 const refundStatusStyle: Record<RefundStatus, string> = {
   pending: "bg-orange-100 text-orange-700",
-  approved: "bg-green-100 text-green-700",
+  approved: "bg-blue-100 text-blue-700",
   rejected: "bg-red-100 text-red-700",
 };
 const disputeStatusStyle: Record<DisputeStatus, string> = {
   open: "bg-orange-100 text-orange-700",
   escalated: "bg-red-100 text-red-700",
-  resolved: "bg-green-100 text-green-700",
+  resolved: "bg-blue-100 text-blue-700",
 };
 
 /* ─────────────────────────── COMPONENT ─────────────────────── */
@@ -164,13 +164,13 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
           {[
             { label: "Total Users", value: stats.totalUsers.toLocaleString(), icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-            { label: "Active Today", value: stats.activeUsers.toLocaleString(), icon: Activity, color: "text-green-600", bg: "bg-green-50" },
+            { label: "Active Today", value: stats.activeUsers.toLocaleString(), icon: Activity, color: "text-blue-600", bg: "bg-blue-50" },
             { label: "Ongoing Shifts", value: stats.ongoingShifts, icon: Car, color: "text-purple-600", bg: "bg-purple-50" },
             { label: "Revenue Today", value: "₹" + (stats.revenue.today / 1000).toFixed(0) + "k", icon: IndianRupee, color: "text-yellow-600", bg: "bg-yellow-50" },
-            { label: "Approvals", value: pendingCount, icon: CheckCircle2, color: pendingCount > 0 ? "text-orange-600" : "text-green-600", bg: pendingCount > 0 ? "bg-orange-50" : "bg-green-50" },
-            { label: "Doc Reviews", value: docPending, icon: FileText, color: docPending > 0 ? "text-orange-600" : "text-green-600", bg: docPending > 0 ? "bg-orange-50" : "bg-green-50" },
-            { label: "Open Reports", value: reportOpen, icon: Flag, color: reportOpen > 0 ? "text-red-600" : "text-green-600", bg: reportOpen > 0 ? "bg-red-50" : "bg-green-50" },
-            { label: "Refund Req.", value: refundPending, icon: CreditCard, color: refundPending > 0 ? "text-orange-600" : "text-green-600", bg: refundPending > 0 ? "bg-orange-50" : "bg-green-50" },
+            { label: "Approvals", value: pendingCount, icon: CheckCircle2, color: pendingCount > 0 ? "text-orange-600" : "text-blue-600", bg: pendingCount > 0 ? "bg-orange-50" : "bg-blue-50" },
+            { label: "Doc Reviews", value: docPending, icon: FileText, color: docPending > 0 ? "text-orange-600" : "text-blue-600", bg: docPending > 0 ? "bg-orange-50" : "bg-blue-50" },
+            { label: "Open Reports", value: reportOpen, icon: Flag, color: reportOpen > 0 ? "text-red-600" : "text-blue-600", bg: reportOpen > 0 ? "bg-red-50" : "bg-blue-50" },
+            { label: "Refund Req.", value: refundPending, icon: CreditCard, color: refundPending > 0 ? "text-orange-600" : "text-blue-600", bg: refundPending > 0 ? "bg-orange-50" : "bg-blue-50" },
           ].map(kpi => {
             const Icon = kpi.icon;
             return (
@@ -221,18 +221,18 @@ export default function AdminDashboard() {
               <div><h2 className="text-lg font-bold">Shift Request Approvals</h2><p className="text-sm text-gray-500">Review and approve or reject incoming shift requests</p></div>
               <div className="flex gap-2 text-xs">
                 <span className="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full">{requests.filter(r => r.status === "pending").length} Pending</span>
-                <span className="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full">{requests.filter(r => r.status === "approved").length} Approved</span>
+                <span className="bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded-full">{requests.filter(r => r.status === "approved").length} Approved</span>
                 <span className="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-full">{requests.filter(r => r.status === "rejected").length} Rejected</span>
               </div>
             </div>
             {requests.map(req => (
-              <Card key={req.id} className={req.status === "approved" ? "border-green-200 bg-green-50/40" : req.status === "rejected" ? "border-red-200 bg-red-50/40 opacity-70" : "border-orange-200"}>
+              <Card key={req.id} className={req.status === "approved" ? "border-blue-200 bg-blue-50/40" : req.status === "rejected" ? "border-red-200 bg-red-50/40 opacity-70" : "border-orange-200"}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="font-bold text-sm">{req.owner} — {req.vehicle}</p>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${req.status === "pending" ? "bg-orange-100 text-orange-700" : req.status === "approved" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${req.status === "pending" ? "bg-orange-100 text-orange-700" : req.status === "approved" ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"}`}>
                           {req.status === "pending" ? "⏳ Pending" : req.status === "approved" ? "✓ Approved" : "✗ Rejected"}
                         </span>
                         {req.insurance.includes("Expired") && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">⚠ Insurance Expired</span>}
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
                         <Button size="sm" variant="outline" onClick={() => rejectRequest(req.id)} className="border-red-300 text-red-600 hover:bg-red-50 gap-1 h-8 px-3"><XCircle className="w-3.5 h-3.5" /> Reject</Button>
                       </div>
                     )}
-                    {req.status === "approved" && <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />}
+                    {req.status === "approved" && <CheckCircle2 className="w-6 h-6 text-blue-500 shrink-0" />}
                     {req.status === "rejected" && <XCircle className="w-6 h-6 text-red-400 shrink-0" />}
                   </div>
                 </CardContent>
@@ -294,7 +294,7 @@ export default function AdminDashboard() {
                           </>
                         )}
                         {u.status === "suspended" && (
-                          <Button size="sm" onClick={() => updateUserStatus(u.id, "active")} className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs gap-1"><RefreshCw className="w-3 h-3" /> Reinstate</Button>
+                          <Button size="sm" onClick={() => updateUserStatus(u.id, "active")} className="bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs gap-1"><RefreshCw className="w-3 h-3" /> Reinstate</Button>
                         )}
                         {u.status === "banned" && (
                           <Button size="sm" onClick={() => updateUserStatus(u.id, "active")} className="bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs gap-1"><RefreshCw className="w-3 h-3" /> Unban</Button>
@@ -312,7 +312,7 @@ export default function AdminDashboard() {
             <div><h2 className="text-lg font-bold">Document Verification</h2><p className="text-sm text-gray-500">Review uploaded DL, Aadhaar, and RC documents before approving users</p></div>
             <div className="grid gap-3">
               {docs.map(d => (
-                <Card key={d.id} className={d.status === "verified" ? "border-green-200 bg-green-50/30" : d.status === "rejected" ? "border-red-200 bg-red-50/30 opacity-70" : ""}>
+                <Card key={d.id} className={d.status === "verified" ? "border-blue-200 bg-blue-50/30" : d.status === "rejected" ? "border-red-200 bg-red-50/30 opacity-70" : ""}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div>
@@ -330,7 +330,7 @@ export default function AdminDashboard() {
                           <Button size="sm" variant="outline" onClick={() => verifyDoc(d.id, false)} className="text-red-600 border-red-300 hover:bg-red-50 h-8 text-xs gap-1"><XCircle className="w-3.5 h-3.5" /> Reject</Button>
                         </div>
                       )}
-                      {d.status === "verified" && <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />}
+                      {d.status === "verified" && <CheckCircle2 className="w-6 h-6 text-blue-500 shrink-0" />}
                       {d.status === "rejected" && <XCircle className="w-6 h-6 text-red-400 shrink-0" />}
                     </div>
                   </CardContent>
@@ -344,7 +344,7 @@ export default function AdminDashboard() {
             <div><h2 className="text-lg font-bold">Reports & Disputes</h2><p className="text-sm text-gray-500">Handle complaints between users and take necessary action</p></div>
             <div className="grid gap-3">
               {reports.map(r => (
-                <Card key={r.id} className={r.status === "resolved" ? "border-green-200 bg-green-50/30 opacity-80" : r.status === "escalated" ? "border-red-200" : ""}>
+                <Card key={r.id} className={r.status === "resolved" ? "border-blue-200 bg-blue-50/30 opacity-80" : r.status === "escalated" ? "border-red-200" : ""}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                       <div className="flex-1">
@@ -359,12 +359,12 @@ export default function AdminDashboard() {
                       </div>
                       {r.status !== "resolved" && (
                         <div className="flex gap-2 shrink-0">
-                          <Button size="sm" onClick={() => resolveReport(r.id)} className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Resolve</Button>
+                          <Button size="sm" onClick={() => resolveReport(r.id)} className="bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Resolve</Button>
                           <Button size="sm" variant="outline" onClick={() => { updateUserStatus(users.find(u => u.name.startsWith(r.against.split(" ")[0]))?.id || 0, "suspended"); resolveReport(r.id); }}
                             className="text-orange-600 border-orange-300 hover:bg-orange-50 h-8 text-xs gap-1"><AlertTriangle className="w-3 h-3" /> Suspend User</Button>
                         </div>
                       )}
-                      {r.status === "resolved" && <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />}
+                      {r.status === "resolved" && <CheckCircle2 className="w-6 h-6 text-blue-500 shrink-0" />}
                     </div>
                   </CardContent>
                 </Card>
@@ -382,7 +382,7 @@ export default function AdminDashboard() {
             </div>
             <div className="grid gap-3">
               {refunds.map(r => (
-                <Card key={r.id} className={r.status === "approved" ? "border-green-200 bg-green-50/30" : r.status === "rejected" ? "border-red-200 bg-red-50/30 opacity-70" : ""}>
+                <Card key={r.id} className={r.status === "approved" ? "border-blue-200 bg-blue-50/30" : r.status === "rejected" ? "border-red-200 bg-red-50/30 opacity-70" : ""}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div>
@@ -580,7 +580,7 @@ export default function AdminDashboard() {
 
               {/* Allowed cities */}
               <Card>
-                <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Activity className="w-4 h-4 text-green-600" />Service Area</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Activity className="w-4 h-4 text-blue-600" />Service Area</CardTitle></CardHeader>
                 <CardContent>
                   <p className="text-xs text-gray-500 mb-3">Currently active cities</p>
                   <div className="flex flex-wrap gap-2">
@@ -624,7 +624,7 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="space-y-3">
                     {[
-                      { label: "Rajesh Kumar completed shift", sub: "Honda City · Chennai → Bangalore", time: "2 min ago", color: "bg-green-500" },
+                      { label: "Rajesh Kumar completed shift", sub: "Honda City · Chennai → Bangalore", time: "2 min ago", color: "bg-blue-500" },
                       { label: "Priya Sharma registered", sub: "Mumbai · New owner", time: "5 min ago", color: "bg-blue-500" },
                       { label: "Payment received ₹2,800", sub: "Amit Singh · BK-19400", time: "8 min ago", color: "bg-yellow-500" },
                       { label: "Shift started", sub: "Neha Gupta · Maruti Swift", time: "12 min ago", color: "bg-purple-500" },
@@ -643,7 +643,7 @@ export default function AdminDashboard() {
                 <CardHeader><CardTitle>Revenue Overview</CardTitle><CardDescription>Platform earnings at a glance</CardDescription></CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[{ label: "Today", value: "₹45,600", pct: "+8%", color: "text-green-600" }, { label: "This Week", value: "₹1,89,300", pct: "+12%", color: "text-green-600" }, { label: "This Month", value: "₹7,56,200", pct: "+15%", color: "text-green-600" }].map(r => (
+                    {[{ label: "Today", value: "₹45,600", pct: "+8%", color: "text-blue-600" }, { label: "This Week", value: "₹1,89,300", pct: "+12%", color: "text-blue-600" }, { label: "This Month", value: "₹7,56,200", pct: "+15%", color: "text-blue-600" }].map(r => (
                       <div key={r.label} className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0">
                         <span className="text-sm text-gray-600">{r.label}</span>
                         <div className="text-right"><span className="font-bold text-base">{r.value}</span><span className={`text-xs ml-2 font-semibold ${r.color}`}>{r.pct}</span></div>

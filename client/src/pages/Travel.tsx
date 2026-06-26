@@ -45,15 +45,15 @@ const VEHICLE_CATEGORIES = [
     emoji: "🚗",
     label: "Budget Car",
     tag: "Most Popular",
-    tagColor: "bg-green-100 text-green-700",
+    tagColor: "bg-orange-100 text-orange-700",
     desc: "Comfortable & Practical",
     detail: "Sedans & hatchbacks. Great for 1–4 passengers.",
     examples: ["Maruti Swift", "Honda City", "Tata Nexon", "Hyundai i20", "Kia Seltos", "Skoda Slavia"],
     pricePerKm: 6,
-    color: "from-green-500 to-emerald-600",
-    borderColor: "border-green-300",
-    bgLight: "bg-green-50",
-    textColor: "text-green-700",
+    color: "from-orange-500 to-orange-600",
+    borderColor: "border-orange-300",
+    bgLight: "bg-orange-50",
+    textColor: "text-orange-700",
     vehicles: AVAILABLE_VEHICLES.filter(v => v.type === "car"),
   },
   {
@@ -162,7 +162,7 @@ export default function Travel() {
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Step 2 — Select Your Route</p>
             {searched && (
-              <button onClick={resetSearch} className="text-xs text-red-500 font-semibold flex items-center gap-1">
+              <button onClick={resetSearch} className="text-xs text-blue-600 font-semibold flex items-center gap-1">
                 <X className="w-3 h-3" /> Change
               </button>
             )}
@@ -181,13 +181,13 @@ export default function Travel() {
             <div className="px-4 pb-4 flex gap-3">
               {/* Route line */}
               <div className="flex flex-col items-center pt-1" style={{ width: 28, minWidth: 28 }}>
-                <div className="w-6 h-6 rounded-full bg-green-500 border-2 border-white shadow-md flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-blue-600 border-2 border-white shadow-md flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-white" />
                 </div>
                 <div className="flex flex-col gap-1 my-1.5">
                   {[...Array(5)].map((_, i) => <div key={i} className="w-0.5 h-2 bg-neutral-300 rounded-full mx-auto" />)}
                 </div>
-                <div className="w-6 h-6 rounded-full bg-red-500 border-2 border-white shadow-md flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-orange-500 border-2 border-white shadow-md flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-white" />
                 </div>
               </div>
@@ -195,8 +195,8 @@ export default function Travel() {
               {/* Selects */}
               <div className="flex-1 flex flex-col gap-3">
                 {/* Pickup */}
-                <div className="bg-white rounded-xl shadow-sm border border-green-100 p-3">
-                  <p className="text-xs font-bold text-green-600 mb-1">● Pickup {mode === "outstation" ? "City" : "Area"}</p>
+                <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-3">
+                  <p className="text-xs font-bold text-blue-600 mb-1">● Pickup {mode === "outstation" ? "City" : "Area"}</p>
                   <select value={pickup} onChange={e => { setPickup(e.target.value); setSearched(false); }}
                     className="w-full text-sm font-medium text-neutral-800 bg-transparent border-none outline-none appearance-none cursor-pointer">
                     <option value="">Choose pickup {mode === "outstation" ? "city" : "area"}...</option>
@@ -205,8 +205,8 @@ export default function Travel() {
                 </div>
 
                 {/* Drop */}
-                <div className="bg-white rounded-xl shadow-sm border border-red-100 p-3">
-                  <p className="text-xs font-bold text-red-500 mb-1">● Drop {mode === "outstation" ? "City" : "Area"}</p>
+                <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-3">
+                  <p className="text-xs font-bold text-orange-500 mb-1">● Drop {mode === "outstation" ? "City" : "Area"}</p>
                   <select value={drop} onChange={e => { setDrop(e.target.value); setSearched(false); }}
                     className="w-full text-sm font-medium text-neutral-800 bg-transparent border-none outline-none appearance-none cursor-pointer">
                     <option value="">Choose drop {mode === "outstation" ? "city" : "area"}...</option>
@@ -219,13 +219,13 @@ export default function Travel() {
             {/* Route preview pill */}
             {pickup && drop && (
               <div className="mx-4 mb-4 px-3 py-2 rounded-xl bg-white border border-blue-100 shadow-inner flex items-center gap-2">
-                <span className="text-green-600 font-bold text-sm">{pickup}</span>
+                <span className="text-blue-600 font-bold text-sm">{pickup}</span>
                 <div className="flex-1 flex items-center gap-0.5">
                   {[...Array(5)].map((_, i) => <div key={i} className="flex-1 h-0.5 bg-blue-300 rounded-full" />)}
                   <span className="text-base">🚗</span>
                   {[...Array(5)].map((_, i) => <div key={i} className="flex-1 h-0.5 bg-blue-300 rounded-full" />)}
                 </div>
-                <span className="text-red-500 font-bold text-sm">{drop}</span>
+                <span className="text-orange-500 font-bold text-sm">{drop}</span>
               </div>
             )}
           </div>
@@ -271,7 +271,7 @@ export default function Travel() {
             <div>
               <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">Step 3 — Choose Your Vehicle Type</p>
               <p className="text-sm text-neutral-600">
-                <span className="font-bold text-blue-700">{pickup}</span> → <span className="font-bold text-red-600">{drop}</span>
+                <span className="font-bold text-blue-700">{pickup}</span> → <span className="font-bold text-orange-600">{drop}</span>
                 <span className="text-neutral-400 ml-2">· ~{distKm} km</span>
               </p>
             </div>
@@ -332,7 +332,7 @@ export default function Travel() {
                             <div className="flex items-center gap-1.5">
                               <p className="font-bold text-sm text-neutral-900">{v.make} {v.model}</p>
                               {v.availabilityStatus === "available" && (
-                                <span className="text-[9px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">● Available</span>
+                                <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">● Available</span>
                               )}
                             </div>
                             <p className="text-xs text-neutral-400">{v.ownerName} · ⭐ {v.rating}</p>

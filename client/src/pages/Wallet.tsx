@@ -19,7 +19,7 @@ const TRANSACTIONS = [
 ];
 
 const TAG_COLORS: Record<string, string> = {
-  Cashback: "bg-green-100 text-green-700",
+  Cashback: "bg-orange-100 text-orange-700",
   Booking: "bg-blue-100 text-blue-700",
   Refund: "bg-yellow-100 text-yellow-700",
   Bonus: "bg-orange-100 text-orange-700",
@@ -78,7 +78,7 @@ export default function Wallet() {
       {/* Stats */}
       <div className="mx-4 mt-4 grid grid-cols-3 gap-2">
         {[
-          { label: "Total Earned", value: "₹" + TRANSACTIONS.filter(t => t.type === "credit").reduce((s, t) => s + t.amount, 0).toLocaleString(), color: "text-green-600" },
+          { label: "Total Earned", value: "₹" + TRANSACTIONS.filter(t => t.type === "credit").reduce((s, t) => s + t.amount, 0).toLocaleString(), color: "text-blue-600" },
           { label: "Total Spent", value: "₹" + Math.abs(TRANSACTIONS.filter(t => t.type === "debit").reduce((s, t) => s + t.amount, 0)).toLocaleString(), color: "text-blue-600" },
           { label: "Cashback", value: "₹" + TRANSACTIONS.filter(t => t.tag === "Cashback" || t.tag === "Referral" || t.tag === "Bonus" || t.tag === "Reward").reduce((s, t) => s + t.amount, 0).toLocaleString(), color: "text-orange-600" },
         ].map(stat => (
@@ -106,15 +106,15 @@ export default function Wallet() {
         <div className="space-y-2">
           {filtered.map(tx => (
             <div key={tx.id} className="flex items-center gap-3 bg-neutral-50 rounded-xl p-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${tx.type === "credit" ? "bg-green-100" : "bg-red-50"}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${tx.type === "credit" ? "bg-blue-100" : "bg-orange-50"}`}>
                 {tx.type === "credit"
-                  ? <ArrowDownLeft className="w-5 h-5 text-green-600" />
-                  : <ArrowUpRight className="w-5 h-5 text-red-500" />}
+                  ? <ArrowDownLeft className="w-5 h-5 text-blue-600" />
+                  : <ArrowUpRight className="w-5 h-5 text-orange-500" />}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-sm truncate">{tx.title}</p>
-                  <p className={`font-bold text-sm shrink-0 ml-2 ${tx.type === "credit" ? "text-green-600" : "text-red-500"}`}>
+                  <p className={`font-bold text-sm shrink-0 ml-2 ${tx.type === "credit" ? "text-blue-600" : "text-orange-500"}`}>
                     {tx.type === "credit" ? "+" : ""}₹{Math.abs(tx.amount).toLocaleString()}
                   </p>
                 </div>

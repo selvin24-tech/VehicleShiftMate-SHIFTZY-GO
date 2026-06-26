@@ -12,7 +12,7 @@ export default function TripCard({ trip, showDetails = false }: TripCardProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-100 text-green-700 font-normal" variant="outline">Completed</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700 font-normal" variant="outline">Completed</Badge>;
       case 'in-transit':
         return <Badge className="bg-orange-100 text-orange-700 font-normal" variant="outline">In Transit</Badge>;
       case 'pending':
@@ -81,7 +81,7 @@ export default function TripCard({ trip, showDetails = false }: TripCardProps) {
           <div className="text-right">
             <div className="font-semibold text-primary-600">₹{trip.price}</div>
             <div className="text-xs text-neutral-500">{formattedDate}</div>
-            <div className="text-xs mt-2 inline-block px-2 py-1 bg-green-100 text-green-700 rounded-full">
+            <div className="text-xs mt-2 inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
               {trip.status.charAt(0).toUpperCase() + trip.status.slice(1).replace('-', ' ')}
             </div>
           </div>

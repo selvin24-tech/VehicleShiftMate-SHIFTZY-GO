@@ -168,7 +168,7 @@ export default function VehicleDetails() {
             variant="secondary" 
             className={`${
               vehicle.availabilityStatus === 'available' 
-              ? 'bg-green-500/90 text-white' 
+              ? 'bg-blue-600/90 text-white' 
               : 'bg-amber-500/90 text-white'
             } font-semibold`}
           >
@@ -212,7 +212,7 @@ export default function VehicleDetails() {
                 <p className="text-neutral-600">{vehicle.registrationNumber}</p>
               </div>
               <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                isPremium ? "bg-purple-100 text-purple-700 border border-purple-200" : "bg-green-100 text-green-700 border border-green-200"
+                isPremium ? "bg-purple-100 text-purple-700 border border-purple-200" : "bg-blue-100 text-blue-700 border border-blue-200"
               }`}>
                 {isPremium ? "✦ Premium" : "● Normal"}
               </span>
@@ -225,11 +225,11 @@ export default function VehicleDetails() {
                 <span className="font-bold text-neutral-800">₹{ownerPerKm + (fuelPerKm - ownerPerKm) + appFeePerKm}/km total</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                  <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-1">🏠 Owner Shares</p>
-                  <p className="text-xl font-bold text-green-700">₹{ownerPerKm}<span className="text-sm font-normal">/km</span></p>
-                  <p className="text-xs text-green-600 mt-1">~50% of trip cost</p>
-                  <p className="text-[10px] text-green-500 mt-0.5">Saves vs transport company</p>
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wider mb-1">🏠 Owner Shares</p>
+                  <p className="text-xl font-bold text-orange-700">₹{ownerPerKm}<span className="text-sm font-normal">/km</span></p>
+                  <p className="text-xs text-orange-600 mt-1">~50% of trip cost</p>
+                  <p className="text-[10px] text-orange-500 mt-0.5">Saves vs transport company</p>
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
                   <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-1">🚗 You Share</p>
@@ -309,8 +309,8 @@ export default function VehicleDetails() {
           <div className="flex flex-col h-full">
             <div className="text-neutral-500 mb-1 text-sm">Owner Rate</div>
             <div className="flex items-center">
-              <Banknote className="h-5 w-5 mr-2 text-green-500" />
-              <span className="font-medium text-green-700">
+              <Banknote className="h-5 w-5 mr-2 text-orange-500" />
+              <span className="font-medium text-orange-700">
                 ₹{["BMW","Mercedes","Audi","Jaguar","Lexus","Land Rover"].includes(vehicle.make) ? 20 : vehicle.type === "suv" ? 15 : vehicle.type === "bike" ? (["KTM","Royal Enfield"].includes(vehicle.make) ? 10 : 7) : 13}/km
               </span>
             </div>
@@ -338,26 +338,26 @@ export default function VehicleDetails() {
             {vehicle.features ? (
               vehicle.features.map((feature, index) => (
                 <div key={index} className="flex items-center">
-                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <CircleCheck className="h-4 w-4 mr-2 text-blue-600" />
                   <span className="text-sm">{feature}</span>
                 </div>
               ))
             ) : (
               <>
                 <div className="flex items-center">
-                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <CircleCheck className="h-4 w-4 mr-2 text-blue-600" />
                   <span className="text-sm">Air Conditioning</span>
                 </div>
                 <div className="flex items-center">
-                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <CircleCheck className="h-4 w-4 mr-2 text-blue-600" />
                   <span className="text-sm">Bluetooth</span>
                 </div>
                 <div className="flex items-center">
-                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <CircleCheck className="h-4 w-4 mr-2 text-blue-600" />
                   <span className="text-sm">Power Steering</span>
                 </div>
                 <div className="flex items-center">
-                  <CircleCheck className="h-4 w-4 mr-2 text-green-500" />
+                  <CircleCheck className="h-4 w-4 mr-2 text-blue-600" />
                   <span className="text-sm">Well Maintained</span>
                 </div>
               </>
@@ -590,8 +590,8 @@ export default function VehicleDetails() {
             </>
           ) : (
             <div className="py-6 flex flex-col items-center justify-center text-center">
-              <div className="bg-green-100 rounded-full p-3 mb-4">
-                <CircleCheck className="h-8 w-8 text-green-600" />
+              <div className="bg-blue-100 rounded-full p-3 mb-4">
+                <CircleCheck className="h-8 w-8 text-blue-600" />
               </div>
               <DialogTitle className="mb-2">Booking Confirmed!</DialogTitle>
               <DialogDescription className="mb-6">

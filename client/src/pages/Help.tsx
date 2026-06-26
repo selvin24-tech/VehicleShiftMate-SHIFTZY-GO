@@ -153,7 +153,7 @@ export default function Help() {
               Email: support@vehicleshift.com
             </Button>
             <Button variant="outline" className="justify-start">
-              <i className="fab fa-whatsapp mr-2 text-green-500"></i>
+              <i className="fab fa-whatsapp mr-2 text-blue-500"></i>
               WhatsApp Support
             </Button>
           </div>

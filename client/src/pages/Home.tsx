@@ -158,7 +158,7 @@ export default function Home() {
               GO
             </p>
             <p className="text-orange-200 text-[11px] font-medium mt-0.5 leading-snug">
-              I want to travel<br />&amp; earn
+              I want to travel<br />&amp; save
             </p>
           </div>
         </button>
@@ -292,7 +292,7 @@ export default function Home() {
                             <div className="bg-blue-50 rounded-xl p-2 text-center">
                               <IndianRupee className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
                               <p className="text-[11px] font-extrabold text-neutral-800">₹{req.reward.toLocaleString("en-IN")}</p>
-                              <p className="text-[9px] text-neutral-400">You Earn</p>
+                              <p className="text-[9px] text-neutral-400">You Save</p>
                             </div>
                           </div>
 

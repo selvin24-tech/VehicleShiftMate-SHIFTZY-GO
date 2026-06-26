@@ -34,7 +34,7 @@ const MY_BOOKINGS = [
 ];
 
 const STATUS_STYLE: Record<string, string> = {
-  completed: "bg-green-100 text-green-700",
+  completed: "bg-blue-100 text-blue-700",
   "in-transit": "bg-blue-100 text-blue-700",
   cancelled: "bg-red-100 text-red-700",
   pending: "bg-orange-100 text-orange-700",
@@ -136,7 +136,7 @@ export default function Profile() {
             { label: "Driving Licence", verified: profile.dlVerified },
             { label: "Vehicle", verified: profile.vehicleVerified },
           ].map(b => (
-            <div key={b.label} className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold border ${b.verified ? "bg-green-500/20 border-green-400/40 text-green-300" : "bg-white/10 border-white/20 text-white/60"}`}>
+            <div key={b.label} className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold border ${b.verified ? "bg-blue-500/20 border-blue-400/40 text-blue-300" : "bg-white/10 border-white/20 text-white/60"}`}>
               {b.verified ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
               {b.label}
             </div>
@@ -296,27 +296,27 @@ export default function Profile() {
             {/* Aadhaar */}
             <div className="bg-neutral-50 rounded-2xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="font-semibold text-sm">Aadhaar Card</p>
-                  <p className="text-xs text-green-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Verified</p>
+                  <p className="text-xs text-blue-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Verified</p>
                 </div>
               </div>
-              <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">✓ Done</span>
+              <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">✓ Done</span>
             </div>
 
             {/* Driving Licence */}
             <div className="bg-neutral-50 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${dlUploaded || profile.dlVerified ? "bg-green-100" : "bg-orange-100"}`}>
-                    <FileText className={`w-5 h-5 ${dlUploaded || profile.dlVerified ? "text-green-600" : "text-orange-500"}`} />
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${dlUploaded || profile.dlVerified ? "bg-blue-100" : "bg-orange-100"}`}>
+                    <FileText className={`w-5 h-5 ${dlUploaded || profile.dlVerified ? "text-blue-600" : "text-orange-500"}`} />
                   </div>
                   <div>
                     <p className="font-semibold text-sm">Driving Licence</p>
-                    <p className={`text-xs font-medium flex items-center gap-1 ${dlUploaded || profile.dlVerified ? "text-green-600" : "text-orange-500"}`}>
+                    <p className={`text-xs font-medium flex items-center gap-1 ${dlUploaded || profile.dlVerified ? "text-blue-600" : "text-orange-500"}`}>
                       {dlUploaded || profile.dlVerified ? <><CheckCircle2 className="w-3 h-3" /> Uploaded — Under Review</> : <><Clock className="w-3 h-3" /> Not Uploaded</>}
                     </p>
                   </div>
@@ -342,7 +342,7 @@ export default function Profile() {
                 </div>
                 <div>
                   <p className="font-semibold text-sm">Vehicle RC</p>
-                  <p className="text-xs text-green-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Verified</p>
+                  <p className="text-xs text-blue-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Verified</p>
                 </div>
               </div>
               <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">✓ Done</span>

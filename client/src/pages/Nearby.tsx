@@ -35,13 +35,13 @@ export default function Nearby() {
           <div className="flex-1">
             <h1 className="font-bold text-base leading-tight">Nearby Pickups</h1>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs text-green-600 font-semibold">Within 5 km of you</span>
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-xs text-blue-600 font-semibold">Within 5 km of you</span>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-3 py-1">
-            <Navigation className="w-3.5 h-3.5 text-green-600" />
-            <span className="text-xs font-bold text-green-700">{NEARBY_SHIFT_REQUESTS.length} near you</span>
+          <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-full px-3 py-1">
+            <Navigation className="w-3.5 h-3.5 text-blue-600" />
+            <span className="text-xs font-bold text-blue-700">{NEARBY_SHIFT_REQUESTS.length} near you</span>
           </div>
         </div>
 
@@ -53,8 +53,8 @@ export default function Nearby() {
               onClick={() => setActiveFilter(f.value)}
               className={`shrink-0 text-xs font-semibold px-4 py-1.5 rounded-full border transition-all active:scale-95 ${
                 activeFilter === f.value
-                  ? "bg-green-600 text-white border-green-600 shadow-sm"
-                  : "bg-white text-neutral-600 border-neutral-200 hover:border-green-300"
+                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                  : "bg-white text-neutral-600 border-neutral-200 hover:border-blue-300"
               }`}
             >
               {f.label}

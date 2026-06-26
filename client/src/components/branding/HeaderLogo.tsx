@@ -89,19 +89,19 @@ export default function HeaderLogo() {
       {/* Tagline */}
       <p className="text-[9px] text-neutral-400 font-medium tracking-wide -mt-0.5">Safe Shifts. Joyful Journeys.</p>
 
-      {/* Tiny road with car going right→left and bike going left→right */}
-      <div className="relative w-32 h-3 mt-0.5 overflow-hidden">
+      {/* Small road with a clearly visible car (right→left) and bike (left→right) */}
+      <div className="relative w-40 h-6 mt-1 overflow-hidden">
         {/* dashed road line */}
-        <div className="absolute top-1/2 left-0 right-0 flex gap-1 -translate-y-1/2">
-          {[...Array(10)].map((_, i) => (
-            <span key={i} className="h-[1.5px] w-2 bg-neutral-200 rounded-full" />
+        <div className="absolute top-1/2 left-0 right-0 flex gap-1.5 -translate-y-1/2">
+          {[...Array(11)].map((_, i) => (
+            <span key={i} className="h-[2px] w-2.5 bg-neutral-200 rounded-full" />
           ))}
         </div>
         {/* car: right → left */}
         <motion.span
           className="absolute top-1/2 -translate-y-1/2"
-          style={{ fontSize: "11px", lineHeight: 1 }}
-          animate={{ x: [128, -16] }}
+          style={{ fontSize: "18px", lineHeight: 1 }}
+          animate={{ x: [160, -22] }}
           transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
         >
           🚗
@@ -109,8 +109,8 @@ export default function HeaderLogo() {
         {/* bike: left → right */}
         <motion.span
           className="absolute top-1/2 -translate-y-1/2 scale-x-[-1]"
-          style={{ fontSize: "10px", lineHeight: 1 }}
-          animate={{ x: [-16, 128] }}
+          style={{ fontSize: "16px", lineHeight: 1 }}
+          animate={{ x: [-22, 160] }}
           transition={{ repeat: Infinity, duration: 7.5, ease: "linear", delay: 1 }}
         >
           🏍️

@@ -17,7 +17,7 @@ export default function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
 
   const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'available': return 'bg-green-100 text-green-700';
+      case 'available': return 'bg-blue-100 text-blue-700';
       case 'available-tomorrow': return 'bg-orange-100 text-orange-700';
       case 'unavailable': return 'bg-red-100 text-red-700';
       default: return 'bg-neutral-100 text-neutral-700';
@@ -72,7 +72,7 @@ export default function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                       isPremium
                         ? "bg-purple-100 text-purple-700 border border-purple-200"
-                        : "bg-green-100 text-green-700 border border-green-200"
+                        : "bg-blue-100 text-blue-700 border border-blue-200"
                     }`}>
                       {isPremium ? "✦ Premium" : "● Normal"}
                     </span>

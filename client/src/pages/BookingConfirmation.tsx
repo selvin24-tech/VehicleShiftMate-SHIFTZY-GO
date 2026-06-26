@@ -59,7 +59,7 @@ export default function BookingConfirmation() {
         </div>
         <div className="relative">
           <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center mx-auto mb-4 shadow-xl">
-            <CheckCircle2 className="w-12 h-12 text-green-500" />
+            <CheckCircle2 className="w-12 h-12 text-blue-500" />
           </div>
           <h1 className="text-white font-extrabold text-2xl">Booking Confirmed!</h1>
           <p className="text-blue-200 text-sm mt-1">Your vehicle shift is all set</p>
@@ -102,14 +102,14 @@ export default function BookingConfirmation() {
             </div>
           </div>
           <div className="flex gap-3">
-            <MapPin className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+            <MapPin className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
             <div>
               <p className="text-xs text-neutral-400">From</p>
               <p className="text-sm font-semibold">{booking.from}</p>
             </div>
           </div>
           <div className="flex gap-3">
-            <MapPin className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+            <MapPin className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-xs text-neutral-400">To</p>
               <p className="text-sm font-semibold">{booking.to}</p>

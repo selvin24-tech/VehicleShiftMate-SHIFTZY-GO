@@ -405,13 +405,13 @@ export default function ShiftRequest() {
                   {/* Home Drop */}
                   <SelectionCard active={dropPref === "home"} onClick={() => setDropPref("home")}>
                     <div className="flex items-start gap-3">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${dropPref === "home" ? "bg-green-600" : "bg-neutral-100"}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${dropPref === "home" ? "bg-orange-500" : "bg-neutral-100"}`}>
                         <Home className={`w-6 h-6 ${dropPref === "home" ? "text-white" : "text-neutral-500"}`} />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="font-bold text-neutral-900">Home Drop</p>
-                          <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Door to Door</span>
+                          <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Door to Door</span>
                         </div>
                         <p className="text-xs text-neutral-500 mt-0.5">The traveler delivers your vehicle directly to your home or office address. Provide your details below after selecting.</p>
                         <div className="flex gap-2 mt-2 flex-wrap">
@@ -420,7 +420,7 @@ export default function ShiftRequest() {
                           ))}
                         </div>
                       </div>
-                      {dropPref === "home" && <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-1" />}
+                      {dropPref === "home" && <CheckCircle2 className="w-5 h-5 text-orange-600 shrink-0 mt-1" />}
                     </div>
                   </SelectionCard>
                 </div>
@@ -482,11 +482,11 @@ export default function ShiftRequest() {
                 {/* Delivery Address */}
                 <div>
                   <Label className="text-neutral-700 font-medium mb-1 block flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-red-500" /> Delivery Address
+                    <MapPin className="w-4 h-4 text-orange-500" /> Delivery Address
                   </Label>
                   <textarea rows={3} value={deliveryAddr} onChange={e => setDeliveryAddr(e.target.value)}
                     placeholder="Enter full delivery address (house no., street, landmark, city, pin)..."
-                    className="w-full p-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-none" />
+                    className="w-full p-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none" />
                 </div>
 
                 {/* Preferred Time Slot */}
@@ -516,13 +516,13 @@ export default function ShiftRequest() {
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                       <Input value={receiverName} onChange={e => setReceiverName(e.target.value)}
                         placeholder="Receiver full name"
-                        className="pl-9 border-neutral-300 focus:ring-green-500" />
+                        className="pl-9 border-neutral-300 focus:ring-blue-500" />
                     </div>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                       <Input value={receiverPhone} onChange={e => setReceiverPhone(e.target.value)}
                         placeholder="Receiver phone number"
-                        className="pl-9 border-neutral-300 focus:ring-green-500" type="tel" />
+                        className="pl-9 border-neutral-300 focus:ring-blue-500" type="tel" />
                     </div>
                   </div>
                   <p className="text-xs text-neutral-400 mt-1">This person will receive the keys from the traveler</p>
@@ -536,13 +536,13 @@ export default function ShiftRequest() {
                   <div className="space-y-2">
                     {KEY_HANDOVER.map(opt => (
                       <button key={opt.id} type="button" onClick={() => setKeyHandover(opt.id)}
-                        className={`w-full text-left rounded-xl border-2 p-3 flex items-center gap-3 transition-all ${keyHandover === opt.id ? "border-green-500 bg-green-50" : "border-neutral-100 bg-white hover:border-green-200"}`}>
+                        className={`w-full text-left rounded-xl border-2 p-3 flex items-center gap-3 transition-all ${keyHandover === opt.id ? "border-blue-500 bg-blue-50" : "border-neutral-100 bg-white hover:border-blue-200"}`}>
                         <span className="text-xl shrink-0">{opt.emoji}</span>
                         <div className="flex-1">
                           <p className="font-semibold text-sm text-neutral-900">{opt.label}</p>
                           <p className="text-xs text-neutral-400">{opt.desc}</p>
                         </div>
-                        {keyHandover === opt.id && <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />}
+                        {keyHandover === opt.id && <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />}
                       </button>
                     ))}
                   </div>
@@ -600,8 +600,8 @@ export default function ShiftRequest() {
         <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CircleCheck className="w-9 h-9 text-green-600" />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <CircleCheck className="w-9 h-9 text-blue-600" />
               </div>
             </div>
             <DialogTitle className="text-center text-xl">Request Submitted! 🎉</DialogTitle>
@@ -614,9 +614,9 @@ export default function ShiftRequest() {
             </p>
           </DialogHeader>
           <div className="bg-neutral-50 rounded-xl p-3 space-y-1.5 text-xs text-neutral-600">
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> Request ID: <strong>SHF-{Math.floor(Math.random() * 90000) + 10000}</strong></div>
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> Driver type: <strong className="capitalize">{driverType}</strong></div>
-            {dropPref && <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> Drop preference: <strong>{dropPref === "hub" ? "Common Hub" : "Home Drop"}</strong></div>}
+            <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Request ID: <strong>SHF-{Math.floor(Math.random() * 90000) + 10000}</strong></div>
+            <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Driver type: <strong className="capitalize">{driverType}</strong></div>
+            {dropPref && <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Drop preference: <strong>{dropPref === "hub" ? "Common Hub" : "Home Drop"}</strong></div>}
           </div>
           <DialogFooter>
             <Button onClick={() => { setShowSuccessDialog(false); navigate("/"); }}

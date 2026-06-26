@@ -87,7 +87,7 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
       <div className={`px-4 py-1.5 flex items-center justify-between ${
         c.category === "Premium"
           ? "bg-gradient-to-r from-purple-600 to-indigo-600"
-          : "bg-gradient-to-r from-green-600 to-emerald-500"
+          : "bg-gradient-to-r from-orange-500 to-orange-600"
       }`}>
         <span className="text-white text-xs font-bold tracking-wider uppercase">
           {c.category} · {request.vehicle.type.toUpperCase()}
@@ -115,17 +115,17 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
         {/* Route */}
         <div className="flex items-stretch gap-3 mb-4 bg-neutral-50 rounded-xl p-3">
           <div className="flex flex-col items-center" style={{ width: 18 }}>
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white shadow" />
+            <div className="w-2.5 h-2.5 rounded-full bg-blue-600 border-2 border-white shadow" />
             <div className="flex-1 w-px border-l-2 border-dashed border-neutral-300 my-1" />
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white shadow" />
+            <div className="w-2.5 h-2.5 rounded-full bg-orange-500 border-2 border-white shadow" />
           </div>
           <div className="flex-1 flex flex-col justify-between gap-1">
             <div>
-              <p className="text-[10px] text-green-600 font-bold tracking-wide">FROM</p>
+              <p className="text-[10px] text-blue-600 font-bold tracking-wide">FROM</p>
               <p className="text-sm font-semibold text-neutral-800 leading-tight">{request.pickupLocation.name}</p>
             </div>
             <div>
-              <p className="text-[10px] text-red-500 font-bold tracking-wide">TO</p>
+              <p className="text-[10px] text-orange-500 font-bold tracking-wide">TO</p>
               <p className="text-sm font-semibold text-neutral-800 leading-tight">{request.dropLocation.name}</p>
             </div>
           </div>
@@ -154,12 +154,12 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
         {/* Split boxes */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           {/* Owner's share */}
-          <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-            <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-1">🏠 Owner Shares</p>
-            <p className="text-xl font-bold text-green-700">₹{c.ownerShare.toLocaleString()}</p>
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+            <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wider mb-1">🏠 Owner Shares</p>
+            <p className="text-xl font-bold text-orange-700">₹{c.ownerShare.toLocaleString()}</p>
             <div className="mt-1.5 space-y-0.5">
-              <p className="text-[10px] text-green-600">Saves ₹{c.ownerSaves.toLocaleString()} vs</p>
-              <p className="text-[10px] text-green-500">transport company (₹{c.ownerWouldPay.toLocaleString()})</p>
+              <p className="text-[10px] text-orange-600">Saves ₹{c.ownerSaves.toLocaleString()} vs</p>
+              <p className="text-[10px] text-orange-500">transport company (₹{c.ownerWouldPay.toLocaleString()})</p>
             </div>
           </div>
 

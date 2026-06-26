@@ -97,7 +97,7 @@ const BookingSummary = ({ vehicle, booking }: any) => {
         )}
         
         {booking.discount > 0 && (
-          <div className="flex justify-between text-green-600">
+          <div className="flex justify-between text-blue-600">
             <span className="text-sm">Discount</span>
             <span className="font-medium">- ₹{booking.discount.toLocaleString()}</span>
           </div>
@@ -187,7 +187,7 @@ const PaymentSuccess = ({ bookingDetails, onClose }: { bookingDetails: any, onCl
   return (
     <div className="text-center bg-white rounded-lg border border-neutral-200 p-6 space-y-4">
       <div className="flex justify-center">
-        <CheckCircle className="h-16 w-16 text-green-500" />
+        <CheckCircle className="h-16 w-16 text-blue-500" />
       </div>
       
       <h2 className="text-xl font-bold">Booking Confirmed!</h2>

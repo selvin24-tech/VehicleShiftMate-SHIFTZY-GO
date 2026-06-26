@@ -82,7 +82,7 @@ export default function Track() {
     toast({ title: "Photo Added", description: "Inspection photo uploaded successfully." });
   };
 
-  const progressColor = tripStatus === "completed" ? "bg-green-500" : "bg-blue-500";
+  const progressColor = tripStatus === "completed" ? "bg-orange-500" : "bg-blue-500";
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
@@ -129,7 +129,7 @@ export default function Track() {
                 <div>
                   <p className="font-bold text-blue-800">{trip.vehicle}</p>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <div className={`w-2 h-2 rounded-full animate-pulse ${tripStatus === "completed" ? "bg-green-500" : "bg-blue-500"}`} />
+                    <div className={`w-2 h-2 rounded-full animate-pulse ${tripStatus === "completed" ? "bg-orange-500" : "bg-blue-500"}`} />
                     <p className="text-xs font-semibold text-blue-600 capitalize">{tripStatus.replace("-", " ")}</p>
                   </div>
                 </div>
@@ -141,9 +141,9 @@ export default function Track() {
               {/* Route */}
               <div className="flex items-center gap-2 text-sm mb-3">
                 <div className="flex flex-col items-center gap-1">
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white shadow" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-600 border-2 border-white shadow" />
                   <div className="w-px h-6 bg-neutral-300 border-dashed" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white shadow" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-orange-500 border-2 border-white shadow" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <p className="font-semibold text-neutral-700 leading-none">{trip.from}</p>
@@ -182,7 +182,7 @@ export default function Track() {
                     </div>
                     <div className="pb-3">
                       <p className={`text-sm font-semibold ${isDone ? "text-blue-700" : "text-neutral-400"}`}>{stage.label}</p>
-                      {isDone && <p className="text-xs text-green-500 font-medium">✓ Done</p>}
+                      {isDone && <p className="text-xs text-blue-600 font-medium">✓ Done</p>}
                     </div>
                   </div>
                 );
@@ -239,15 +239,15 @@ export default function Track() {
               </Button>
             )}
             {tripStatus === "in-transit" && (
-              <Button onClick={handleEndTrip} className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-bold text-base gap-2">
+              <Button onClick={handleEndTrip} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base gap-2">
                 <CheckCircle2 className="w-5 h-5" /> Mark as Delivered
               </Button>
             )}
             {tripStatus === "completed" && (
-              <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
-                <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                <p className="font-bold text-green-700">Trip Completed!</p>
-                <p className="text-xs text-green-600 mt-1">Payment released. Thank you for using Shiftzy Go!</p>
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center">
+                <CheckCircle2 className="w-10 h-10 text-blue-500 mx-auto mb-2" />
+                <p className="font-bold text-blue-700">Trip Completed!</p>
+                <p className="text-xs text-blue-600 mt-1">Payment released. Thank you for using Shiftzy Go!</p>
               </div>
             )}
           </>
