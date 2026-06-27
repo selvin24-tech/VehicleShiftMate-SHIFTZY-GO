@@ -38,8 +38,7 @@ const HUBS = [
   { id: "h2", city: "Bangalore",  name: "Shiftzy Bangalore Hub",  address: "Electronic City Phase 1, Bangalore" },
   { id: "h3", city: "Coimbatore", name: "Shiftzy Coimbatore Hub", address: "Peelamedu, Coimbatore" },
   { id: "h4", city: "Madurai",    name: "Shiftzy Madurai Hub",    address: "Mattuthavani Bus Stand Area, Madurai" },
-  { id: "h5", city: "Hyderabad",  name: "Shiftzy Hyderabad Hub",  address: "Hitec City, Hyderabad" },
-  { id: "h6", city: "Salem",      name: "Shiftzy Salem Hub",      address: "Shevapet, Salem" },
+  { id: "h5", city: "Pondicherry", name: "Shiftzy Pondicherry Hub", address: "Beach Road, Pondicherry" },
 ];
 
 const TIME_SLOTS = [

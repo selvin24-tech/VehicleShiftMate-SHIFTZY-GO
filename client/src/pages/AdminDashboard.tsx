@@ -39,7 +39,7 @@ const ALL_USERS = [
   { id: 1, name: "Selvin Raj", username: "selvin_raj", phone: "+91 98765 43210", city: "Chennai", role: "owner", trips: 12, rating: 4.8, joinedOn: "Jan 2026", status: "active" as UserStatus, verified: true },
   { id: 2, name: "Karthik Rajan", username: "karthik_r", phone: "+91 87654 32109", city: "Bangalore", role: "traveler", trips: 28, rating: 4.9, joinedOn: "Feb 2026", status: "active" as UserStatus, verified: true },
   { id: 3, name: "Priya Sharma", username: "priya_s", phone: "+91 76543 21098", city: "Mumbai", role: "both", trips: 5, rating: 4.6, joinedOn: "Mar 2026", status: "active" as UserStatus, verified: false },
-  { id: 4, name: "Arjun Reddy", username: "arjun_r", phone: "+91 65432 10987", city: "Hyderabad", role: "owner", trips: 3, rating: 3.2, joinedOn: "Apr 2026", status: "suspended" as UserStatus, verified: true },
+  { id: 4, name: "Arjun Reddy", username: "arjun_r", phone: "+91 65432 10987", city: "Madurai", role: "owner", trips: 3, rating: 3.2, joinedOn: "Apr 2026", status: "suspended" as UserStatus, verified: true },
   { id: 5, name: "Deepika M.", username: "deepika_m", phone: "+91 54321 09876", city: "Chennai", role: "traveler", trips: 41, rating: 4.7, joinedOn: "Jan 2026", status: "active" as UserStatus, verified: true },
   { id: 6, name: "Vikram Patel", username: "vikram_p", phone: "+91 43210 98765", city: "Pune", role: "owner", trips: 0, rating: 0, joinedOn: "Jun 2026", status: "banned" as UserStatus, verified: false },
   { id: 7, name: "Neha Gupta", username: "neha_g", phone: "+91 32109 87654", city: "Delhi", role: "both", trips: 8, rating: 4.5, joinedOn: "May 2026", status: "active" as UserStatus, verified: true },
@@ -79,7 +79,7 @@ const VEHICLES = [
 
 const REVIEWS = [
   { id: 1, reviewer: "Selvin Raj", about: "Karthik Rajan", rating: 5, text: "Excellent driver, very professional!", trip: "Chennai → Bangalore", date: "Today", flagged: false },
-  { id: 2, reviewer: "Arjun Reddy", about: "Priya Sharma", rating: 1, text: "Scammer! Fake profile! DO NOT USE! @@@@", trip: "Hyderabad → Pune", date: "Yesterday", flagged: true },
+  { id: 2, reviewer: "Arjun Reddy", about: "Priya Sharma", rating: 1, text: "Scammer! Fake profile! DO NOT USE! @@@@", trip: "Coimbatore → Chennai", date: "Yesterday", flagged: true },
   { id: 3, reviewer: "Vikram Patel", about: "Deepika M.", rating: 2, text: "She cancelled last minute and wasted my whole day. Very bad.", trip: "Pune → Mumbai", date: "2 days ago", flagged: true },
   { id: 4, reviewer: "Neha Gupta", about: "Ramu Selvam", rating: 4, text: "Good driver, arrived on time. Slightly fast on highway.", trip: "Delhi → Gurgaon", date: "3 days ago", flagged: false },
 ];
@@ -698,7 +698,6 @@ export default function AdminDashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm"><span>Insurance Add-on</span><strong>₹499 flat</strong></div>
                     <div className="flex justify-between text-sm"><span>Cancellation Fee (&lt;24h)</span><strong>₹500</strong></div>
-                    <div className="flex justify-between text-sm"><span>Referral Bonus</span><strong>₹250</strong></div>
                   </div>
                   <Button onClick={() => toast({ title: "Settings Saved ✅", description: `Commission set to ${commissionPct}%.` })} className="w-full bg-blue-600 hover:bg-blue-700 text-white">Save Commission Settings</Button>
                 </CardContent>

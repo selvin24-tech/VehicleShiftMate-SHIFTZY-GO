@@ -18,7 +18,7 @@ const TRIP_STAGES = [
 const MOCK_TRIPS: Record<string, { vehicle: string; from: string; to: string; driver: string; phone: string; status: TripStatus; progress: number; eta: string }> = {
   "TRK-101": { vehicle: "Honda City · TN09AB1234", from: "Chennai (Perambur)", to: "Bangalore (Koramangala)", driver: "Karthik R.", phone: "+91 98765 43210", status: "in-transit", progress: 65, eta: "~3h 20m remaining" },
   "TRK-202": { vehicle: "Maruti Swift · TN22CD5678", from: "Coimbatore", to: "Chennai", driver: "Arjun V.", phone: "+91 87654 32109", status: "inspection", progress: 10, eta: "Departure in ~30 min" },
-  "TRK-303": { vehicle: "XUV700 · TN45EF9012", from: "Madurai", to: "Salem", driver: "Ramu S.", phone: "+91 76543 21098", status: "completed", progress: 100, eta: "Delivered" },
+  "TRK-303": { vehicle: "XUV700 · TN45EF9012", from: "Madurai", to: "Coimbatore", driver: "Ramu S.", phone: "+91 76543 21098", status: "completed", progress: 100, eta: "Delivered" },
 };
 
 export default function Track() {
