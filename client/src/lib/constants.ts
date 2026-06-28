@@ -111,6 +111,77 @@ export function computeFare(distanceKm: number, category: string): FareBreakdown
   return { distanceKm, fuelCost, tollCost, tripCost, platformFee, gst, total };
 }
 
+/* ─── Vehicle helpers (photos, availability window, fare category) ─── */
+
+// Premium makes drive the "premium" fare category & premium badge.
+export const PREMIUM_MAKES = ["BMW", "Mercedes", "Audi", "Jaguar", "Lexus", "Land Rover", "KTM", "Royal Enfield"];
+
+// Map a vehicle's type/make to a FARE_CATEGORIES key.
+export function vehicleTypeToFareCategory(type?: string, make?: string): string {
+  if (make && PREMIUM_MAKES.includes(make)) return type === "bike" ? "bike" : "premium";
+  if (type === "luxury") return "premium";
+  if (type === "suv") return "suv";
+  if (type === "bike") return "bike";
+  return "car";
+}
+
+// Build a small photo gallery (min 3, max 5) for a vehicle by reusing
+// same-type photos — simulates the owner uploading front / side / rear shots.
+export function getVehicleImages(vehicle: { type?: string; image?: string }): string[] {
+  const sameType = AVAILABLE_VEHICLES
+    .filter((v) => v.type === vehicle.type && v.image)
+    .map((v) => v.image as string);
+  const ordered = [vehicle.image, ...sameType].filter(Boolean) as string[];
+  const unique = Array.from(new Set(ordered));
+  const pool = unique.length ? unique : (vehicle.image ? [vehicle.image] : []);
+  const result = pool.slice(0, 5);
+  let i = 0;
+  while (result.length < 3 && pool.length) result.push(pool[i++ % pool.length]);
+  return result;
+}
+
+/* ─── Availability time windows (the shifter's allocated pickup range) ─── */
+const AVAILABILITY_WINDOWS = [
+  { from: "06:00", to: "09:00" },
+  { from: "08:00", to: "11:30" },
+  { from: "09:00", to: "12:00" },
+  { from: "11:00", to: "14:00" },
+  { from: "13:00", to: "16:00" },
+  { from: "15:00", to: "18:00" },
+  { from: "17:00", to: "20:00" },
+];
+
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+export function timeToMin(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+export function to12h(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+export function getAvailabilityWindow(id: string): { from: string; to: string; label: string } {
+  const w = AVAILABILITY_WINDOWS[hashStr(id) % AVAILABILITY_WINDOWS.length];
+  return { ...w, label: `${to12h(w.from)} – ${to12h(w.to)}` };
+}
+
+// Is a chosen "HH:MM" time inside a vehicle's availability window?
+export function isWithinWindow(id: string, time: string): boolean {
+  if (!time) return true;
+  const w = getAvailabilityWindow(id);
+  const t = timeToMin(time);
+  return t >= timeToMin(w.from) && t <= timeToMin(w.to);
+}
+
 export const VEHICLE_TYPES = [
   {
     id: "car",
@@ -797,7 +868,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Avadi",
       address: "Avadi, Chennai"
     },
-    pickupTime: "09:30 AM (Tomorrow)",
+    pickupTime: "9:30 – 11:30 AM (Tomorrow)",
     distance: "28 km",
     estimatedDuration: "50m",
     reward: 150,
@@ -827,7 +898,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "T Nagar",
       address: "T Nagar, Chennai"
     },
-    pickupTime: "08:00 AM",
+    pickupTime: "8:00 – 10:00 AM",
     distance: "22 km",
     estimatedDuration: "50m",
     reward: 150,
@@ -859,7 +930,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Thiruvallur",
       address: "Thiruvallur, Chennai"
     },
-    pickupTime: "11:00 AM",
+    pickupTime: "11:00 AM – 1:00 PM",
     distance: "45 km",
     estimatedDuration: "1h 15m",
     reward: 270,
@@ -889,7 +960,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Porur",
       address: "Porur, Chennai"
     },
-    pickupTime: "02:00 PM (Tomorrow)",
+    pickupTime: "2:00 – 4:00 PM (Tomorrow)",
     distance: "15 km",
     estimatedDuration: "40m",
     reward: 200,
@@ -921,7 +992,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Mylapore",
       address: "Mylapore, Chennai"
     },
-    pickupTime: "09:00 AM",
+    pickupTime: "9:00 – 11:00 AM",
     distance: "22 km",
     estimatedDuration: "50m",
     reward: 200,
@@ -951,7 +1022,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "ECR",
       address: "ECR, Chennai"
     },
-    pickupTime: "04:30 PM",
+    pickupTime: "4:30 – 6:30 PM",
     distance: "26 km",
     estimatedDuration: "1h",
     reward: 200,
@@ -983,7 +1054,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Chromepet",
       address: "Chromepet, Chennai"
     },
-    pickupTime: "10:30 AM",
+    pickupTime: "10:30 AM – 12:30 PM",
     distance: "15 km",
     estimatedDuration: "35m",
     reward: 200,
@@ -1013,7 +1084,7 @@ export const LOCAL_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Kodambakkam",
       address: "Kodambakkam, Chennai"
     },
-    pickupTime: "02:00 PM (Tomorrow)",
+    pickupTime: "2:00 – 4:00 PM (Tomorrow)",
     distance: "35 km",
     estimatedDuration: "1h 10m",
     reward: 280,
@@ -1046,7 +1117,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Bangalore",
       address: "Electronic City, Bangalore"
     },
-    pickupTime: "10:30 AM",
+    pickupTime: "10:30 AM – 12:30 PM",
     distance: "350 km",
     estimatedDuration: "5h 30m",
     reward: 2100,
@@ -1077,7 +1148,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Pondicherry",
       address: "White Town, Pondicherry"
     },
-    pickupTime: "12:45 PM",
+    pickupTime: "12:45 – 2:45 PM",
     distance: "160 km",
     estimatedDuration: "2h 45m",
     reward: 800,
@@ -1108,7 +1179,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Coimbatore",
       address: "Peelamedu, Coimbatore"
     },
-    pickupTime: "09:00 AM (Tomorrow)",
+    pickupTime: "9:00 – 11:00 AM (Tomorrow)",
     distance: "510 km",
     estimatedDuration: "7h 15m",
     reward: 3570,
@@ -1139,7 +1210,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Madurai",
       address: "Mattuthavani, Madurai"
     },
-    pickupTime: "08:15 AM",
+    pickupTime: "8:15 – 10:15 AM",
     distance: "450 km",
     estimatedDuration: "6h 45m",
     reward: 2700,
@@ -1170,7 +1241,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Bangalore",
       address: "MG Road, Bangalore"
     },
-    pickupTime: "11:00 AM (Tomorrow)",
+    pickupTime: "11:00 AM – 1:00 PM (Tomorrow)",
     distance: "350 km",
     estimatedDuration: "5h 30m",
     reward: 5480,
@@ -1201,7 +1272,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       name: "Coimbatore",
       address: "Gandhipuram, Coimbatore"
     },
-    pickupTime: "02:30 PM",
+    pickupTime: "2:30 – 4:30 PM",
     distance: "510 km",
     estimatedDuration: "7h 15m",
     reward: 1400,

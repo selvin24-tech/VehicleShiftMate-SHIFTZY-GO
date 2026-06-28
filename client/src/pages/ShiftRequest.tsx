@@ -62,9 +62,13 @@ const formSchema = z.object({
   pickupLocation:     z.string().min(2, "Pickup location is required"),
   dropLocation:       z.string().min(2, "Drop location is required"),
   travelDate:         z.string().min(1, "Travel date is required"),
-  pickupTime:         z.string().min(1, "Pickup time is required"),
+  pickupTimeFrom:     z.string().min(1, "Start time is required"),
+  pickupTimeTo:       z.string().min(1, "End time is required"),
   insuranceExpiryDate:z.string().min(2, "Insurance expiry date is required"),
   luxuryBrand:        z.string().optional(),
+}).refine((d) => d.pickupTimeTo > d.pickupTimeFrom, {
+  message: "End time must be after the start time",
+  path: ["pickupTimeTo"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -101,7 +105,7 @@ export default function ShiftRequest() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       vehicleType: undefined, vehicleModel: "", registrationNumber: "",
-      pickupLocation: "", dropLocation: "", travelDate: "", pickupTime: "", insuranceExpiryDate: "", luxuryBrand: "",
+      pickupLocation: "", dropLocation: "", travelDate: "", pickupTimeFrom: "", pickupTimeTo: "", insuranceExpiryDate: "", luxuryBrand: "",
     },
   });
 
@@ -310,28 +314,46 @@ export default function ShiftRequest() {
                 </FormItem>
               )} />
 
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                <FormField control={form.control} name="travelDate" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-neutral-700 font-medium">Travel Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field}
-                        className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-1" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+              <FormField control={form.control} name="travelDate" render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel className="text-neutral-700 font-medium">Travel Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field}
+                      className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-1" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
 
-                <FormField control={form.control} name="pickupTime" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-neutral-700 font-medium">Pickup Time</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field}
-                        className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-1" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+              <div className="mb-5">
+                <FormLabel className="text-neutral-700 font-medium flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-blue-600" /> Pickup Time Range
+                </FormLabel>
+                <p className="text-xs text-neutral-400 mb-2 mt-0.5">
+                  Set the window you're available for handover (e.g. 9:00 – 11:30). Drivers pick a slot inside it.
+                </p>
+                <div className="grid grid-cols-2 gap-3 items-end">
+                  <FormField control={form.control} name="pickupTimeFrom" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-neutral-500">From</FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field}
+                          className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-1" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="pickupTimeTo" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-neutral-500">To</FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field}
+                          className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-1" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
               </div>
 
               <FormField control={form.control} name="insuranceExpiryDate" render={({ field }) => (

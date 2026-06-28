@@ -42,11 +42,13 @@ import {
   AlertTriangle,
   Headphones,
   MessageCircle,
-  Loader2
+  Loader2,
+  Images
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { AVAILABLE_VEHICLES, computeFare, FUEL_PRICE_PER_LITRE, HUBS, DEFAULT_HUBS } from "@/lib/constants"; 
+import { AVAILABLE_VEHICLES, computeFare, FUEL_PRICE_PER_LITRE, HUBS, DEFAULT_HUBS, getVehicleImages, getAvailabilityWindow } from "@/lib/constants";
+import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery"; 
 import { addStoredNotif } from "@/lib/notificationsStore";
 import { useToast } from "@/hooks/use-toast";
 
@@ -68,6 +70,7 @@ export default function VehicleDetails() {
   const [pickupTime, setPickupTime] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [requestStage, setRequestStage] = useState<RequestStage>("form");
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -166,7 +169,10 @@ export default function VehicleDetails() {
       </div>
     );
   }
-  
+
+  const vehicleImages = getVehicleImages(vehicle);
+  const availWindow = getAvailabilityWindow(vehicle.id);
+
   return (
     <div className="max-w-lg mx-auto px-4 pb-24">
       <Header />
@@ -187,13 +193,23 @@ export default function VehicleDetails() {
       </div>
       
       {/* Vehicle Images */}
-      <div className="relative rounded-xl overflow-hidden bg-neutral-100 h-64 mb-4">
+      <div className="relative rounded-xl overflow-hidden bg-neutral-100 h-64 mb-2">
         {vehicle.image ? (
-          <img 
-            src={vehicle.image} 
-            alt={`${vehicle.make} ${vehicle.model}`} 
-            className="w-full h-full object-cover"
-          />
+          <button
+            type="button"
+            onClick={() => setGalleryOpen(true)}
+            className="w-full h-full group"
+            data-testid="button-open-gallery"
+          >
+            <img 
+              src={vehicle.image} 
+              alt={`${vehicle.make} ${vehicle.model}`} 
+              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+            />
+            <span className="absolute bottom-3 left-3 bg-black/65 text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5">
+              <Images className="w-3.5 h-3.5" /> {vehicleImages.length} photos
+            </span>
+          </button>
         ) : (
           <div className="flex items-center justify-center h-full">
             {vehicle.type === 'car' ? 
@@ -237,6 +253,28 @@ export default function VehicleDetails() {
             </Badge>
           </div>
         )}
+      </div>
+
+      {/* Thumbnail strip */}
+      <div className="flex gap-2 mb-3 overflow-x-auto">
+        {vehicleImages.map((img, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setGalleryOpen(true)}
+            className="shrink-0 h-14 w-20 rounded-lg overflow-hidden border border-neutral-200 active:scale-95 transition"
+            data-testid={`button-thumb-${i}`}
+          >
+            <img src={img} alt={`view ${i + 1}`} className="h-full w-full object-cover" />
+          </button>
+        ))}
+      </div>
+
+      {/* Available pickup window */}
+      <div className="flex items-center gap-2 mb-4 bg-primary-50 border border-primary-100 rounded-xl px-3 py-2">
+        <Clock className="w-4 h-4 text-primary-600" />
+        <span className="text-sm text-neutral-600">Available pickup window</span>
+        <span className="ml-auto text-sm font-bold text-primary-700">{availWindow.label}</span>
       </div>
       
       {/* Vehicle Info */}
@@ -693,6 +731,13 @@ export default function VehicleDetails() {
           )}
         </DialogContent>
       </Dialog>
+
+      <VehiclePhotoGallery
+        images={vehicleImages}
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+        title={`${vehicle.make} ${vehicle.model}`}
+      />
 
       <BottomNav />
     </div>

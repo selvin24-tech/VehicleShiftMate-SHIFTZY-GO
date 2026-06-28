@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import { AVAILABLE_VEHICLES, LOCATIONS, CHENNAI_LOCALITIES, computeFare, FUEL_PRICE_PER_LITRE } from "@/lib/constants";
-import { ChevronLeft, ChevronRight, Star, CheckCircle2, X } from "lucide-react";
+import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
+import {
+  AVAILABLE_VEHICLES, LOCATIONS, CHENNAI_LOCALITIES, computeFare, FUEL_PRICE_PER_LITRE,
+  getVehicleImages, getAvailabilityWindow, isWithinWindow,
+} from "@/lib/constants";
+import { Vehicle } from "@/lib/types";
+import { ChevronLeft, Star, X, Clock, Images, Camera, Check } from "lucide-react";
 
 /* ─── Approx distances (km) between outstation cities ─── */
 const CITY_DISTANCES: Record<string, Record<string, number>> = {
@@ -18,56 +23,24 @@ const CITY_DISTANCES: Record<string, Record<string, number>> = {
 /* ─── Local area distance estimate (flat) ─── */
 const LOCAL_DISTANCE_KM = 18;
 
-/* ─── 3 Vehicle categories ─── */
-const VEHICLE_CATEGORIES = [
-  {
-    id: "bike",
-    emoji: "🏍️",
-    label: "Bike",
-    tag: "Budget Friendly",
-    tagColor: "bg-blue-100 text-blue-700",
-    desc: "Quick & Economical",
-    detail: "Ideal for solo travellers. Fastest for short distances.",
-    examples: ["Bajaj Pulsar", "TVS Apache", "Royal Enfield", "Yamaha R15", "KTM Duke", "Hero Xpulse"],
-    pricePerKm: 4,          // legacy reference only (fares now via computeFare)
-    color: "from-blue-500 to-blue-700",
-    borderColor: "border-blue-300",
-    bgLight: "bg-blue-50",
-    textColor: "text-blue-700",
-    vehicles: AVAILABLE_VEHICLES.filter(v => v.type === "bike"),
-  },
-  {
-    id: "car",
-    emoji: "🚗",
-    label: "Budget Car",
-    tag: "Most Popular",
-    tagColor: "bg-orange-100 text-orange-700",
-    desc: "Comfortable & Practical",
-    detail: "Sedans & hatchbacks. Great for 1–4 passengers.",
-    examples: ["Maruti Swift", "Honda City", "Tata Nexon", "Hyundai i20", "Kia Seltos", "Skoda Slavia"],
-    pricePerKm: 6,
-    color: "from-orange-500 to-orange-600",
-    borderColor: "border-orange-300",
-    bgLight: "bg-orange-50",
-    textColor: "text-orange-700",
-    vehicles: AVAILABLE_VEHICLES.filter(v => v.type === "car"),
-  },
-  {
-    id: "premium",
-    emoji: "👑",
-    label: "Premium / SUV",
-    tag: "Top Comfort",
-    tagColor: "bg-orange-100 text-orange-700",
-    desc: "Spacious & Luxurious",
-    detail: "SUVs & luxury cars. Perfect for long routes & families.",
-    examples: ["Mahindra XUV700", "BMW 5 Series", "Mercedes E-Class", "Audi A6", "Range Rover", "Toyota Fortuner"],
-    pricePerKm: 8,
-    color: "from-orange-500 to-orange-600",
-    borderColor: "border-orange-300",
-    bgLight: "bg-orange-50",
-    textColor: "text-orange-700",
-    vehicles: AVAILABLE_VEHICLES.filter(v => v.type === "suv" || v.type === "luxury"),
-  },
+/* ─── Vehicle TYPE choices (chosen FIRST, in a draggable selector) ─── */
+type TypeId = "car" | "bike" | "suv" | "premium";
+const VEHICLE_TYPE_OPTIONS: {
+  id: TypeId;
+  emoji: string;
+  label: string;
+  desc: string;
+  fareCat: string;
+  filter: (v: Vehicle) => boolean;
+  gradient: string;
+  accent: string;
+  border: string;
+  bgLight: string;
+}[] = [
+  { id: "car",     emoji: "🚗", label: "Car",     desc: "Sedans & hatchbacks",  fareCat: "car",     filter: (v) => v.type === "car",    gradient: "from-orange-500 to-orange-600", accent: "text-orange-700", border: "border-orange-400", bgLight: "bg-orange-50" },
+  { id: "bike",    emoji: "🏍️", label: "Bike",    desc: "Quick & economical",   fareCat: "bike",    filter: (v) => v.type === "bike",   gradient: "from-blue-500 to-blue-700",     accent: "text-blue-700",   border: "border-blue-400",   bgLight: "bg-blue-50" },
+  { id: "suv",     emoji: "🚙", label: "SUV",     desc: "Spacious for families", fareCat: "suv",     filter: (v) => v.type === "suv",    gradient: "from-emerald-500 to-emerald-700", accent: "text-emerald-700", border: "border-emerald-400", bgLight: "bg-emerald-50" },
+  { id: "premium", emoji: "👑", label: "Premium", desc: "Luxury & top comfort",  fareCat: "premium", filter: (v) => v.type === "luxury", gradient: "from-purple-600 to-indigo-600", accent: "text-purple-700", border: "border-purple-400", bgLight: "bg-purple-50" },
 ];
 
 /* ─── helpers ─── */
@@ -81,32 +54,63 @@ export default function Travel() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
+  const [selectedType, setSelectedType] = useState<TypeId | null>(null);
   const [mode, setMode] = useState<"outstation" | "local">("outstation");
   const [pickup, setPickup] = useState("");
   const [drop, setDrop] = useState("");
   const [travelDate, setTravelDate] = useState(new Date(Date.now() + 86400000).toISOString().split("T")[0]);
   const [travelTime, setTravelTime] = useState("09:00");
   const [searched, setSearched] = useState(false);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
+  /* photo gallery popup */
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryVehicle, setGalleryVehicle] = useState<Vehicle | null>(null);
+
+  /* draggable type selector */
+  const trackRef = useRef<HTMLDivElement>(null);
+  const drag = useRef({ down: false, startX: 0, scroll: 0, moved: false });
+  const onPointerDown = (e: React.PointerEvent) => {
+    const el = trackRef.current; if (!el) return;
+    drag.current = { down: true, startX: e.clientX, scroll: el.scrollLeft, moved: false };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const el = trackRef.current; if (!el || !drag.current.down) return;
+    const dx = e.clientX - drag.current.startX;
+    if (Math.abs(dx) > 4) drag.current.moved = true;
+    el.scrollLeft = drag.current.scroll - dx;
+  };
+  const endDrag = () => { drag.current.down = false; };
+
+  const typeOpt = VEHICLE_TYPE_OPTIONS.find(t => t.id === selectedType) ?? null;
   const locations = mode === "outstation" ? LOCATIONS : CHENNAI_LOCALITIES;
-  const canSearch = pickup && drop && pickup !== drop;
+  const canSearch = !!selectedType && pickup && drop && pickup !== drop;
   const distKm = searched ? getDistance(pickup, drop, mode === "local") : 0;
 
+  const baseVehicles = typeOpt ? AVAILABLE_VEHICLES.filter(typeOpt.filter) : [];
+  const matchingVehicles = baseVehicles.filter(v => isWithinWindow(v.id, travelTime));
+  const fareTotal = typeOpt ? computeFare(distKm, typeOpt.fareCat).total : 0;
+
+  const openGallery = (v: Vehicle) => {
+    setGalleryVehicle(v);
+    setGalleryOpen(true);
+  };
+
   const handleSearch = () => {
+    if (!selectedType) {
+      toast({ title: "Pick a vehicle type", description: "Choose Car, Bike, SUV or Premium first.", variant: "destructive" });
+      return;
+    }
     if (!canSearch) {
       toast({ title: "Select pickup & drop", description: "Please choose two different locations.", variant: "destructive" });
       return;
     }
     setSearched(true);
-    setExpandedCategory(null);
   };
 
   const resetSearch = () => {
     setSearched(false);
     setPickup("");
     setDrop("");
-    setExpandedCategory(null);
   };
 
   return (
@@ -126,32 +130,75 @@ export default function Travel() {
         {/* Hero banner */}
         <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-2xl px-4 py-4 border border-blue-100">
           <p className="text-lg font-bold text-blue-900 leading-snug">Planning to travel somewhere? 🚀</p>
-          <p className="text-sm text-blue-600 mt-1">Pick your route → choose your vehicle → start your journey</p>
+          <p className="text-sm text-blue-600 mt-1">Choose a vehicle → pick travel type → set your route</p>
         </div>
 
-        {/* ─── STEP 1: Mode toggle ─── */}
+        {/* ─── STEP 1: Vehicle type (DRAGGABLE) ─── */}
         <div>
-          <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Step 1 — Select Travel Type</p>
-          <div className="bg-neutral-100 rounded-xl p-1 flex w-full">
-            {[
-              { val: "outstation", emoji: "🛣️", label: "Outstation" },
-              { val: "local",      emoji: "📍", label: "Local" },
-            ].map(tab => (
-              <button key={tab.val} type="button"
-                onClick={() => { setMode(tab.val as any); setSearched(false); setPickup(""); setDrop(""); setExpandedCategory(null); }}
-                className={`flex-1 py-3 rounded-lg font-semibold text-sm flex flex-col items-center gap-0.5 transition-all duration-200
-                  ${mode === tab.val ? "bg-white shadow text-blue-700 border-b-2 border-blue-600" : "text-neutral-500"}`}>
-                <span className="text-2xl">{tab.emoji}</span>
-                {tab.label}
-              </button>
-            ))}
+          <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+            Step 1 — Choose Your Vehicle
+            <span className="ml-2 normal-case text-neutral-300">← swipe / drag →</span>
+          </p>
+          <div
+            ref={trackRef}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={endDrag}
+            onPointerLeave={endDrag}
+            className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none scrollbar-hide"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {VEHICLE_TYPE_OPTIONS.map(opt => {
+              const active = selectedType === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => { if (drag.current.moved) return; setSelectedType(opt.id); setSearched(false); }}
+                  className={`snap-center shrink-0 w-36 rounded-2xl border-2 p-4 text-left transition-all duration-200
+                    ${active ? `${opt.border} ${opt.bgLight} shadow-md scale-[1.02]` : "border-neutral-100 bg-white"}`}
+                  data-testid={`button-type-${opt.id}`}
+                >
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${opt.gradient} flex items-center justify-center text-3xl shadow mb-2`}>
+                    {opt.emoji}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-extrabold text-base text-neutral-900">{opt.label}</p>
+                    {active && <Check className={`w-4 h-4 ${opt.accent}`} />}
+                  </div>
+                  <p className="text-xs text-neutral-500 leading-tight">{opt.desc}</p>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* ─── STEP 2: Route picker ─── */}
+        {/* ─── STEP 2: Travel type (after a vehicle is chosen) ─── */}
+        {selectedType && (
+          <div>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Step 2 — Select Travel Type</p>
+            <div className="bg-neutral-100 rounded-xl p-1 flex w-full">
+              {[
+                { val: "outstation", emoji: "🛣️", label: "Outstation" },
+                { val: "local",      emoji: "📍", label: "Local" },
+              ].map(tab => (
+                <button key={tab.val} type="button"
+                  onClick={() => { setMode(tab.val as any); setSearched(false); setPickup(""); setDrop(""); }}
+                  className={`flex-1 py-3 rounded-lg font-semibold text-sm flex flex-col items-center gap-0.5 transition-all duration-200
+                    ${mode === tab.val ? "bg-white shadow text-blue-700 border-b-2 border-blue-600" : "text-neutral-500"}`}>
+                  <span className="text-2xl">{tab.emoji}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ─── STEP 3: Route picker ─── */}
+        {selectedType && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Step 2 — Select Your Route</p>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Step 3 — Select Your Route & Time</p>
             {searched && (
               <button onClick={resetSearch} className="text-xs text-blue-600 font-semibold flex items-center gap-1">
                 <X className="w-3 h-3" /> Change
@@ -213,7 +260,7 @@ export default function Travel() {
                 <span className="text-blue-600 font-bold text-sm">{pickup}</span>
                 <div className="flex-1 flex items-center gap-0.5">
                   {[...Array(5)].map((_, i) => <div key={i} className="flex-1 h-0.5 bg-blue-300 rounded-full" />)}
-                  <span className="text-base">🚗</span>
+                  <span className="text-base">{typeOpt?.emoji ?? "🚗"}</span>
                   {[...Array(5)].map((_, i) => <div key={i} className="flex-1 h-0.5 bg-blue-300 rounded-full" />)}
                 </div>
                 <span className="text-orange-500 font-bold text-sm">{drop}</span>
@@ -221,22 +268,23 @@ export default function Travel() {
             )}
           </div>
 
-          {/* Date & Time (outstation only) */}
-          {mode === "outstation" && (
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <div className="bg-white border border-blue-100 rounded-xl p-3 shadow-sm">
-                <p className="text-xs font-bold text-blue-600 mb-1">📅 Travel Date</p>
-                <input type="date" min={new Date().toISOString().split("T")[0]} value={travelDate}
-                  onChange={e => setTravelDate(e.target.value)}
-                  className="w-full text-sm font-medium text-neutral-800 border-none outline-none bg-transparent" />
-              </div>
-              <div className="bg-white border border-orange-100 rounded-xl p-3 shadow-sm">
-                <p className="text-xs font-bold text-orange-500 mb-1">🕐 Pickup Time</p>
-                <input type="time" value={travelTime} onChange={e => setTravelTime(e.target.value)}
-                  className="w-full text-sm font-medium text-neutral-800 border-none outline-none bg-transparent" />
-              </div>
+          {/* Date & Time (drives the time-range filtering) */}
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div className="bg-white border border-blue-100 rounded-xl p-3 shadow-sm">
+              <p className="text-xs font-bold text-blue-600 mb-1">📅 Travel Date</p>
+              <input type="date" min={new Date().toISOString().split("T")[0]} value={travelDate}
+                onChange={e => setTravelDate(e.target.value)}
+                className="w-full text-sm font-medium text-neutral-800 border-none outline-none bg-transparent" />
             </div>
-          )}
+            <div className="bg-white border border-orange-100 rounded-xl p-3 shadow-sm">
+              <p className="text-xs font-bold text-orange-500 mb-1">🕐 Pickup Time</p>
+              <input type="time" value={travelTime} onChange={e => { setTravelTime(e.target.value); }}
+                className="w-full text-sm font-medium text-neutral-800 border-none outline-none bg-transparent" />
+            </div>
+          </div>
+          <p className="text-[11px] text-neutral-400 mt-1.5 px-1">
+            We only show vehicles whose owner is available around <span className="font-semibold text-neutral-600">{travelTime}</span>.
+          </p>
 
           {/* Search button */}
           {!searched && (
@@ -255,108 +303,84 @@ export default function Travel() {
             </button>
           )}
         </div>
+        )}
 
-        {/* ─── STEP 3: 3 Vehicle Categories ─── */}
-        {searched && (
+        {/* ─── RESULTS: vehicles of chosen type available in time range ─── */}
+        {searched && typeOpt && (
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">Step 3 — Choose Your Vehicle Type</p>
               <p className="text-sm text-neutral-600">
                 <span className="font-bold text-blue-700">{pickup}</span> → <span className="font-bold text-orange-600">{drop}</span>
                 <span className="text-neutral-400 ml-2">· ~{distKm} km</span>
               </p>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                {matchingVehicles.length} {typeOpt.label.toLowerCase()}{matchingVehicles.length === 1 ? "" : "s"} available around {travelTime}
+                <span className="text-neutral-400"> · est. fare ₹{fareTotal.toLocaleString("en-IN")}</span>
+              </p>
             </div>
 
-            {VEHICLE_CATEGORIES.map(cat => {
-              const estPrice = computeFare(distKm, cat.id).total;
-              const isExpanded = expandedCategory === cat.id;
-
-              return (
-                <div key={cat.id} className={`rounded-2xl border-2 overflow-hidden transition-all duration-300 ${isExpanded ? cat.borderColor : "border-neutral-100"}`}>
-
-                  {/* Category header card */}
-                  <button className={`w-full text-left ${isExpanded ? cat.bgLight : "bg-white"} p-4 flex items-center gap-4 transition-colors`}
-                    onClick={() => setExpandedCategory(isExpanded ? null : cat.id)}>
-
-                    {/* Icon bubble */}
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-3xl shadow-md shrink-0`}>
-                      {cat.emoji}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="font-extrabold text-base text-neutral-900">{cat.label}</p>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cat.tagColor}`}>{cat.tag}</span>
-                      </div>
-                      <p className="text-xs text-neutral-500 mb-1">{cat.detail}</p>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-lg font-extrabold ${cat.textColor}`}>₹{estPrice.toLocaleString("en-IN")}</span>
-                        <span className="text-xs text-neutral-400">est. total fare</span>
-                      </div>
-                      <p className="text-[10px] text-neutral-400 mt-0.5">{distKm} km · incl. app fee + GST · petrol ₹{FUEL_PRICE_PER_LITRE}/L</p>
-                    </div>
-
-                    {/* Chevron */}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${isExpanded ? "bg-blue-600 text-white rotate-90" : "bg-neutral-100 text-neutral-400"}`}>
-                      <ChevronRight className="w-4 h-4" />
-                    </div>
-                  </button>
-
-                  {/* Example models strip */}
-                  {!isExpanded && (
-                    <div className="px-4 pb-3 flex gap-2 overflow-x-auto">
-                      {cat.examples.map(ex => (
-                        <span key={ex} className="text-[10px] font-semibold text-neutral-500 bg-neutral-50 border border-neutral-100 px-2 py-1 rounded-full whitespace-nowrap">{ex}</span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Expanded: vehicle list */}
-                  {isExpanded && (
-                    <div className="divide-y divide-neutral-100">
-                      {cat.vehicles.map(v => (
-                        <div key={v.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white transition-colors">
-                          <img src={v.image} alt={v.model}
-                            className="w-16 h-12 object-cover rounded-xl shrink-0 border border-neutral-100" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <p className="font-bold text-sm text-neutral-900">{v.make} {v.model}</p>
-                              {v.availabilityStatus === "available" && (
-                                <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">● Available</span>
-                              )}
-                            </div>
-                            <p className="text-xs text-neutral-400">{v.ownerName} · ⭐ {v.rating}</p>
-                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                              {v.features?.slice(0, 2).map(f => (
-                                <span key={f} className="text-[9px] text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-full">{f}</span>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className={`font-extrabold text-sm ${cat.textColor}`}>₹{estPrice.toLocaleString("en-IN")}</p>
-                            <p className="text-[10px] text-neutral-400">est. fare</p>
-                            <button
-                              onClick={() => navigate(`/vehicle/${v.id}?distance=${distKm}&category=${cat.id}&pickup=${encodeURIComponent(pickup)}&drop=${encodeURIComponent(drop)}`)}
-                              className={`mt-1.5 text-[11px] font-bold text-white px-3 py-1.5 rounded-xl bg-gradient-to-r ${cat.color} active:scale-95`}>
-                              Book
-                            </button>
-                          </div>
+            {matchingVehicles.length === 0 ? (
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 text-center">
+                <p className="text-3xl mb-2">🕐</p>
+                <p className="text-sm font-bold text-amber-800">No {typeOpt.label.toLowerCase()}s free at {travelTime}</p>
+                <p className="text-xs text-amber-600 mt-1">Owners allocate their own pickup windows. Try a different time or vehicle type.</p>
+              </div>
+            ) : (
+              <div className="rounded-2xl border-2 border-neutral-100 overflow-hidden divide-y divide-neutral-100">
+                {matchingVehicles.map(v => {
+                  const win = getAvailabilityWindow(v.id);
+                  const imgs = getVehicleImages(v);
+                  return (
+                    <div key={v.id} className="flex items-center gap-3 px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => openGallery(v)}
+                        className="relative w-20 h-16 rounded-xl overflow-hidden shrink-0 border border-neutral-100 group"
+                        data-testid={`button-vehicle-photo-${v.id}`}
+                      >
+                        <img src={v.image} alt={v.model} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        <span className="absolute bottom-0 right-0 bg-black/65 text-white text-[10px] px-1 py-0.5 rounded-tl-md flex items-center gap-0.5">
+                          <Images className="w-2.5 h-2.5" /> {imgs.length}
+                        </span>
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-bold text-sm text-neutral-900 truncate">{v.make} {v.model}</p>
                         </div>
-                      ))}
+                        <p className="text-xs text-neutral-400">{v.ownerName} · ⭐ {v.rating}</p>
+                        <p className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-0.5">
+                          <Clock className="w-3 h-3" /> {win.label}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => openGallery(v)}
+                          className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-blue-600 font-medium"
+                        >
+                          <Camera className="w-3 h-3" /> View photos
+                        </button>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className={`font-extrabold text-sm ${typeOpt.accent}`}>₹{fareTotal.toLocaleString("en-IN")}</p>
+                        <p className="text-[10px] text-neutral-400">est. fare</p>
+                        <button
+                          onClick={() => navigate(`/vehicle/${v.id}?distance=${distKm}&category=${typeOpt.fareCat}&pickup=${encodeURIComponent(pickup)}&drop=${encodeURIComponent(drop)}`)}
+                          className={`mt-1.5 text-[11px] font-bold text-white px-3 py-1.5 rounded-xl bg-gradient-to-r ${typeOpt.gradient} active:scale-95`}>
+                          Book
+                        </button>
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
 
             {/* Summary info */}
             <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-2xl p-4 border border-blue-100">
               <p className="text-xs font-bold text-blue-700 mb-2">💡 How Shiftzy Go Pricing Works</p>
               <div className="space-y-1">
                 <p className="text-xs text-neutral-600">• Fares are calculated from the <strong>current petrol price ₹{FUEL_PRICE_PER_LITRE}/L</strong> &amp; distance</p>
-                <p className="text-xs text-neutral-600">• You pay far less than a bus, train, or cab alone</p>
-                <p className="text-xs text-neutral-600">• Price shown above is the <strong>estimated total fare</strong> (incl. app fee &amp; GST)</p>
+                <p className="text-xs text-neutral-600">• You only see vehicles whose owner is <strong>available in your time range</strong></p>
+                <p className="text-xs text-neutral-600">• Price shown is the <strong>estimated total fare</strong> (incl. app fee &amp; GST)</p>
                 <p className="text-xs text-neutral-600">• Final amount is confirmed at checkout</p>
               </div>
             </div>
@@ -364,6 +388,13 @@ export default function Travel() {
         )}
 
       </div>
+
+      <VehiclePhotoGallery
+        images={galleryVehicle ? getVehicleImages(galleryVehicle) : []}
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+        title={galleryVehicle ? `${galleryVehicle.make} ${galleryVehicle.model}` : "Vehicle photos"}
+      />
 
       <BottomNav />
     </div>

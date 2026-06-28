@@ -1,77 +1,38 @@
+import { useState } from "react";
 import { ShiftRequest } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import ChatButton from "@/components/common/ChatButton";
-import { Clock, Fuel, Landmark, BadgePercent } from "lucide-react";
+import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
+import {
+  Clock, Fuel, Landmark, BadgePercent, Receipt, Camera, Images,
+} from "lucide-react";
+import {
+  computeFare, vehicleTypeToFareCategory, getVehicleImages, getAvailabilityWindow,
+  FARE_CATEGORIES,
+} from "@/lib/constants";
 
 interface ShiftRequestCardProps {
   request: ShiftRequest;
   showDetails?: boolean;
 }
 
-// Premium makes — determines category
 const PREMIUM_MAKES = ["BMW", "Mercedes", "Audi", "Jaguar", "Lexus", "Land Rover", "KTM", "Royal Enfield"];
-
-// Cost-sharing model: both owner & traveler split the trip cost equally
-// Trip cost = fuel + tolls + platform fee
-// Each party contributes ~50% → both save vs their alternative
-function getTripCostModel(vehicleType: string, vehicleMake: string, distanceStr: string) {
-  const km = parseInt(distanceStr.replace(/[^0-9]/g, "")) || 0;
-  const isPremium = PREMIUM_MAKES.includes(vehicleMake);
-  const isBike = vehicleType === "bike";
-  const isSuv = vehicleType === "suv";
-
-  // Total cost per km (fuel + toll + platform fee)
-  // Owner & traveler each pay half → total ÷ 2
-  let totalPerKm: number, transportCoPerKm: number, travelerAltPerKm: number;
-
-  if (isBike) {
-    totalPerKm = isPremium ? 10 : 8;
-    transportCoPerKm = isPremium ? 22 : 15;
-    travelerAltPerKm = 8; // bike taxi / bus equivalent
-  } else if (isSuv) {
-    totalPerKm = 14;
-    transportCoPerKm = 40;
-    travelerAltPerKm = 10;
-  } else if (isPremium) {
-    totalPerKm = 16;
-    transportCoPerKm = 50;
-    travelerAltPerKm = 10;
-  } else {
-    totalPerKm = 12;
-    transportCoPerKm = 32;
-    travelerAltPerKm = 8;
-  }
-
-  const tripCost = Math.max(km * totalPerKm, 200);
-  const ownerShare = Math.round(tripCost / 2);
-  const travelerShare = tripCost - ownerShare;
-  const ownerWouldPay = km * transportCoPerKm;
-  const travelerWouldPay = km * travelerAltPerKm;
-  const ownerSaves = ownerWouldPay - ownerShare;
-  const travelerSaves = Math.max(travelerWouldPay - travelerShare, 0);
-
-  return {
-    category: isPremium ? "Premium" : "Normal",
-    tripCost,
-    ownerShare,
-    travelerShare,
-    ownerWouldPay,
-    travelerWouldPay,
-    ownerSaves,
-    travelerSaves,
-    km,
-    fuelCost: Math.round(km * (isBike ? (isPremium ? 4 : 3) : (isSuv ? 10 : 8))),
-    tollCost: Math.round(km * 1.5),
-    platformFee: Math.round(tripCost * 0.12),
-  };
-}
 
 export default function ShiftRequestCard({ request, showDetails = false }: ShiftRequestCardProps) {
   const { toast } = useToast();
-  const c = getTripCostModel(request.vehicle.type, request.vehicle.make, request.distance);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+
+  const km = parseInt(request.distance.replace(/[^0-9]/g, "")) || 0;
+  const category = vehicleTypeToFareCategory(request.vehicle.type, request.vehicle.make);
+  const fare = computeFare(km, category);
+  const isPremium = PREMIUM_MAKES.includes(request.vehicle.make) || request.vehicle.type === "luxury";
+  const categoryLabel = isPremium ? "Premium" : (FARE_CATEGORIES[category]?.label ?? "Normal");
+
+  const images = getVehicleImages(request.vehicle);
+  const window = getAvailabilityWindow(request.vehicle.id || request.id);
 
   const handleAccept = () => {
     toast({
@@ -85,30 +46,51 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
 
       {/* Category strip */}
       <div className={`px-4 py-1.5 flex items-center justify-between ${
-        c.category === "Premium"
+        isPremium
           ? "bg-gradient-to-r from-purple-600 to-indigo-600"
           : "bg-gradient-to-r from-orange-500 to-orange-600"
       }`}>
         <span className="text-white text-xs font-bold tracking-wider uppercase">
-          {c.category} · {request.vehicle.type.toUpperCase()}
+          {categoryLabel} · {request.vehicle.type.toUpperCase()}
         </span>
         <span className="text-white/90 text-xs">{request.distance} · {request.estimatedDuration}</span>
       </div>
 
       <div className="p-4">
-        {/* Owner + vehicle row */}
+        {/* Owner + tappable vehicle photo row */}
         <div className="flex items-center gap-3 mb-3">
-          <Avatar className="h-9 w-9 shrink-0">
-            <AvatarImage src={request.userAvatar} />
-            <AvatarFallback>{request.userName.charAt(0)}</AvatarFallback>
-          </Avatar>
+          <button
+            type="button"
+            onClick={() => setGalleryOpen(true)}
+            className="relative h-14 w-20 rounded-lg overflow-hidden shrink-0 border border-neutral-200 group"
+            data-testid={`button-vehicle-photo-${request.id}`}
+          >
+            <img
+              src={request.vehicle.image || images[0]}
+              alt={`${request.vehicle.make} ${request.vehicle.model}`}
+              className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+            />
+            <span className="absolute bottom-0 right-0 bg-black/65 text-white text-[10px] px-1.5 py-0.5 rounded-tl-md flex items-center gap-0.5">
+              <Images className="w-2.5 h-2.5" /> {images.length}
+            </span>
+          </button>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm leading-tight truncate">{request.userName}</p>
-            <p className="text-xs text-neutral-400">{request.postedTime}</p>
-          </div>
-          <div className="text-right shrink-0">
-            <p className="font-bold text-sm text-neutral-800">{request.vehicle.make} {request.vehicle.model}</p>
+            <p className="font-bold text-sm text-neutral-800 leading-tight truncate">{request.vehicle.make} {request.vehicle.model}</p>
             <p className="text-xs text-neutral-400">{request.vehicle.registrationNumber}</p>
+            <button
+              type="button"
+              onClick={() => setGalleryOpen(true)}
+              className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-primary-600 font-medium"
+              data-testid={`button-view-photos-${request.id}`}
+            >
+              <Camera className="w-3 h-3" /> View photos
+            </button>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={request.userAvatar} />
+              <AvatarFallback>{request.userName.charAt(0)}</AvatarFallback>
+            </Avatar>
           </div>
         </div>
 
@@ -129,55 +111,49 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
               <p className="text-sm font-semibold text-neutral-800 leading-tight">{request.dropLocation.name}</p>
             </div>
           </div>
-          <div className="flex items-center text-xs text-neutral-400 gap-1 shrink-0">
-            <Clock className="w-3 h-3" />
-            <span>{request.pickupTime}</span>
-          </div>
         </div>
 
-        {/* ── SHARED COST MODEL ── */}
-        {/* Total trip cost pill */}
-        <div className="text-center mb-3">
-          <div className="inline-flex items-center gap-2 bg-neutral-100 rounded-full px-4 py-1.5">
-            <span className="text-xs text-neutral-500 font-medium">Total Trip Cost</span>
-            <span className="text-base font-bold text-neutral-800">₹{c.tripCost.toLocaleString()}</span>
-          </div>
-          <div className="flex items-center justify-center gap-3 mt-1.5 text-xs text-neutral-400">
-            <span className="flex items-center gap-1"><Fuel className="w-3 h-3" /> ₹{c.fuelCost.toLocaleString()} fuel</span>
-            <span>·</span>
-            <span className="flex items-center gap-1"><Landmark className="w-3 h-3" /> ₹{c.tollCost.toLocaleString()} toll</span>
-            <span>·</span>
-            <span className="flex items-center gap-1"><BadgePercent className="w-3 h-3" /> ₹{c.platformFee.toLocaleString()} fee</span>
-          </div>
+        {/* Available time range */}
+        <div className="flex items-center justify-center gap-2 mb-3 text-xs">
+          <Clock className="w-3.5 h-3.5 text-primary-600" />
+          <span className="text-neutral-500">Available pickup window</span>
+          <span className="font-semibold text-neutral-800">{request.pickupTime}</span>
         </div>
 
-        {/* Split boxes */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          {/* Owner's share */}
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
-            <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wider mb-1">🏠 Owner Shares</p>
-            <p className="text-xl font-bold text-orange-700">₹{c.ownerShare.toLocaleString()}</p>
-            <div className="mt-1.5 space-y-0.5">
-              <p className="text-[10px] text-orange-600">Saves ₹{c.ownerSaves.toLocaleString()} vs</p>
-              <p className="text-[10px] text-orange-500">transport company (₹{c.ownerWouldPay.toLocaleString()})</p>
+        {/* ── TRANSPARENT FARE BREAKDOWN ── */}
+        <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 mb-3">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Receipt className="w-3.5 h-3.5 text-neutral-500" />
+            <span className="text-xs font-bold text-neutral-700 uppercase tracking-wide">Cost breakdown</span>
+          </div>
+          <div className="space-y-1.5 text-sm">
+            <div className="flex items-center justify-between text-neutral-600">
+              <span className="flex items-center gap-1.5"><Fuel className="w-3.5 h-3.5" /> Fuel</span>
+              <span>₹{fare.fuelCost.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between text-neutral-600">
+              <span className="flex items-center gap-1.5"><Landmark className="w-3.5 h-3.5" /> Toll</span>
+              <span>₹{fare.tollCost.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between text-neutral-700 font-medium pt-1 border-t border-neutral-200">
+              <span>Trip cost</span>
+              <span>₹{fare.tripCost.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between text-neutral-600">
+              <span className="flex items-center gap-1.5"><BadgePercent className="w-3.5 h-3.5" /> Platform fee (10%)</span>
+              <span>₹{fare.platformFee.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between text-neutral-600">
+              <span>GST (18% on fee)</span>
+              <span>₹{fare.gst.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between pt-2 mt-1 border-t border-neutral-300">
+              <span className="text-sm font-bold text-neutral-900">Total payable</span>
+              <span className="text-lg font-bold text-primary-600">₹{fare.total.toLocaleString()}</span>
             </div>
           </div>
-
-          {/* Traveler's share */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-            <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-1">🚗 You Share</p>
-            <p className="text-xl font-bold text-blue-700">₹{c.travelerShare.toLocaleString()}</p>
-            <div className="mt-1.5 space-y-0.5">
-              <p className="text-[10px] text-blue-600">Saves ₹{c.travelerSaves.toLocaleString()} vs</p>
-              <p className="text-[10px] text-blue-500">your own travel (₹{c.travelerWouldPay.toLocaleString()})</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Insight tag */}
-        <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-3">
-          <p className="text-xs text-amber-800 font-medium text-center">
-            ✅ Both pay less than going alone — because both receive value from one trip
+          <p className="text-[10px] text-neutral-400 mt-2 text-center">
+            Fully transparent — trip cost goes to fuel & tolls, platform fee + GST keep Shiftzy running.
           </p>
         </div>
 
@@ -185,7 +161,7 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
         {showDetails ? (
           <div className="flex gap-2">
             <Button className="flex-1 bg-primary-500 hover:bg-primary-600 text-white" onClick={handleAccept}>
-              Accept & Share Cost
+              Accept Shift
             </Button>
             <ChatButton
               userId={Number(request.userId)}
@@ -200,6 +176,13 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
           </Button>
         )}
       </div>
+
+      <VehiclePhotoGallery
+        images={images}
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+        title={`${request.vehicle.make} ${request.vehicle.model}`}
+      />
     </Card>
   );
 }
