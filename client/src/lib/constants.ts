@@ -136,7 +136,7 @@ export function getVehicleImages(vehicle: { type?: string; image?: string }): st
   const pool = unique.length ? unique : (vehicle.image ? [vehicle.image] : []);
   const result = pool.slice(0, 5);
   let i = 0;
-  while (result.length < 3 && pool.length) result.push(pool[i++ % pool.length]);
+  while (result.length < 5 && pool.length) result.push(pool[i++ % pool.length]);
   return result;
 }
 

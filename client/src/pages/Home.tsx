@@ -3,11 +3,16 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import { NEARBY_SHIFT_REQUESTS } from "@/lib/constants";
+import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
+import {
+  NEARBY_SHIFT_REQUESTS, computeFare, vehicleTypeToFareCategory,
+  getVehicleImages, getAvailabilityWindow,
+} from "@/lib/constants";
 import {
   MapPin, ChevronRight, Star, Briefcase, CalendarDays, Clock,
   Shield, Navigation, Lock, ChevronDown, Route, Timer,
-  IndianRupee, Phone, MessageCircle
+  Phone, MessageCircle, Images, Camera,
+  Fuel, Landmark, BadgePercent, Receipt,
 } from "lucide-react";
 
 const VEHICLE_BADGE: Record<string, { label: string; color: string }> = {
@@ -31,6 +36,7 @@ const SAMPLE_RATINGS = [4.8, 4.7, 4.9, 4.6, 4.8];
 export default function Home() {
   const [, navigate] = useLocation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [galleryId, setGalleryId] = useState<string | null>(null);
 
   return (
     <div className="max-w-lg mx-auto bg-white min-h-screen pb-20">
@@ -204,6 +210,10 @@ export default function Home() {
             const sample = SAMPLE_DATES[i % SAMPLE_DATES.length];
             const rating = SAMPLE_RATINGS[i % SAMPLE_RATINGS.length];
             const isOpen = expandedId === req.id;
+            const images = getVehicleImages(req.vehicle);
+            const km = parseInt(String(req.distance).replace(/[^0-9]/g, ""), 10) || 0;
+            const fare = computeFare(km, vehicleTypeToFareCategory(req.vehicle.type, req.vehicle.make));
+            const window = getAvailabilityWindow(req.vehicle.id || req.id);
             return (
               <motion.div
                 key={req.id}
@@ -212,13 +222,18 @@ export default function Home() {
                 className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${isOpen ? "border-blue-300 shadow-md" : "border-neutral-100"}`}
               >
                 {/* ── Summary row (always visible) ── */}
-                <motion.button
+                <motion.div
                   layout="position"
-                  onClick={() => setExpandedId(isOpen ? null : req.id)}
-                  className="w-full p-3 flex items-center gap-3 text-left active:bg-neutral-50 transition-colors"
+                  className="w-full p-3 flex items-center gap-3"
                 >
-                  {/* Vehicle thumbnail */}
-                  <div className="relative shrink-0">
+                  {/* Vehicle thumbnail — TAP to open photo gallery */}
+                  <button
+                    type="button"
+                    onClick={() => setGalleryId(req.id)}
+                    aria-label={`View photos of ${req.vehicle.make} ${req.vehicle.model}`}
+                    className="relative shrink-0 group active:scale-95 transition-transform"
+                    data-testid={`button-home-photo-${req.id}`}
+                  >
                     <img
                       src={`${req.vehicle.image}?w=80&h=60&q=70&fit=crop`}
                       alt={req.vehicle.model}
@@ -227,48 +242,60 @@ export default function Home() {
                     <span className={`absolute -bottom-1 -right-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${badge.color}`}>
                       {badge.label}
                     </span>
-                  </div>
+                    <span className="absolute top-1 left-1 bg-black/65 text-white text-[8px] font-bold px-1 py-0.5 rounded-md flex items-center gap-0.5">
+                      <Images className="w-2 h-2" /> {images.length}
+                    </span>
+                  </button>
 
-                  {/* Main info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-extrabold text-neutral-900 text-sm leading-tight">
-                      {req.pickupLocation.name} → {req.dropLocation.name}
-                    </p>
-                    <p className="text-[11px] text-neutral-500 mt-0.5 truncate">
-                      {req.vehicle.make} {req.vehicle.model} · {req.vehicle.registrationNumber}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex items-center gap-1 text-neutral-400">
-                        <CalendarDays className="w-3 h-3 shrink-0" />
-                        <span className="text-[10px]">{sample.date}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-neutral-400">
-                        <Clock className="w-3 h-3 shrink-0" />
-                        <span className="text-[10px]">{sample.time}</span>
+                  {/* Tappable area — toggles inline details */}
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isOpen ? null : req.id)}
+                    aria-label={isOpen ? "Hide trip details" : "Show trip details"}
+                    aria-expanded={isOpen}
+                    className="flex-1 flex items-center gap-3 text-left min-w-0 active:opacity-80 transition-opacity"
+                  >
+                    {/* Main info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-extrabold text-neutral-900 text-sm leading-tight">
+                        {req.pickupLocation.name} → {req.dropLocation.name}
+                      </p>
+                      <p className="text-[11px] text-neutral-500 mt-0.5 truncate">
+                        {req.vehicle.make} {req.vehicle.model} · {req.vehicle.registrationNumber}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-1 text-neutral-400">
+                          <CalendarDays className="w-3 h-3 shrink-0" />
+                          <span className="text-[10px]">{sample.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-neutral-400">
+                          <Clock className="w-3 h-3 shrink-0" />
+                          <span className="text-[10px]">{sample.time}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Right: price + rating + chevron */}
-                  <div className="shrink-0 flex flex-col items-end gap-1">
-                    <p className="font-extrabold text-neutral-900 text-sm">
-                      ₹{req.reward.toLocaleString("en-IN")}
-                    </p>
-                    <p className="text-[9px] text-neutral-400 font-medium">One Way</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <img
-                        src={`${req.userAvatar}?w=24&h=24&q=60&fit=crop&face`}
-                        alt={req.userName}
-                        className="w-5 h-5 rounded-full object-cover border border-neutral-200"
-                      />
-                      <Star className="w-3 h-3 text-orange-400 fill-orange-400" />
-                      <span className="text-[10px] font-bold text-neutral-700">{rating}</span>
+                    {/* Right: price + rating + chevron */}
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                      <p className="font-extrabold text-neutral-900 text-sm">
+                        ₹{fare.total.toLocaleString("en-IN")}
+                      </p>
+                      <p className="text-[9px] text-neutral-400 font-medium">Total payable</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <img
+                          src={`${req.userAvatar}?w=24&h=24&q=60&fit=crop&face`}
+                          alt={req.userName}
+                          className="w-5 h-5 rounded-full object-cover border border-neutral-200"
+                        />
+                        <Star className="w-3 h-3 text-orange-400 fill-orange-400" />
+                        <span className="text-[10px] font-bold text-neutral-700">{rating}</span>
+                      </div>
+                      <motion.div animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.3 }} className="mt-0.5">
+                        <ChevronRight className="w-4 h-4 text-blue-500" />
+                      </motion.div>
                     </div>
-                    <motion.div animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.3 }} className="mt-0.5">
-                      <ChevronRight className="w-4 h-4 text-blue-500" />
-                    </motion.div>
-                  </div>
-                </motion.button>
+                  </button>
+                </motion.div>
 
                 {/* ── Expanded detail panel (smooth slide-down) ── */}
                 <AnimatePresence initial={false}>
@@ -283,6 +310,31 @@ export default function Home() {
                     >
                       <div className="px-3 pb-3">
                         <div className="border-t border-dashed border-neutral-200 pt-3">
+                          {/* Photo strip — tap any to open gallery */}
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide">Vehicle photos</p>
+                            <button
+                              type="button"
+                              onClick={() => setGalleryId(req.id)}
+                              className="flex items-center gap-1 text-[11px] font-bold text-blue-600 active:opacity-70"
+                              data-testid={`button-home-viewall-${req.id}`}
+                            >
+                              <Camera className="w-3 h-3" /> View all {images.length}
+                            </button>
+                          </div>
+                          <div className="flex gap-2 mb-3 overflow-x-auto no-scrollbar">
+                            {images.map((img, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => setGalleryId(req.id)}
+                                className="relative shrink-0 w-20 h-14 rounded-lg overflow-hidden border border-neutral-200 active:scale-95 transition-transform"
+                              >
+                                <img src={`${img}?w=120&h=90&q=70&fit=crop`} alt={`${req.vehicle.model} ${idx + 1}`} className="w-full h-full object-cover" />
+                              </button>
+                            ))}
+                          </div>
+
                           {/* Route detail */}
                           <div className="flex items-start gap-3 mb-3">
                             <div className="flex flex-col items-center pt-1">
@@ -311,10 +363,47 @@ export default function Home() {
                               <p className="text-[9px] text-neutral-400">Duration</p>
                             </div>
                             <div className="bg-blue-50 rounded-xl p-2 text-center">
-                              <IndianRupee className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
-                              <p className="text-[11px] font-extrabold text-neutral-800">₹{req.reward.toLocaleString("en-IN")}</p>
-                              <p className="text-[9px] text-neutral-400">You Save</p>
+                              <Clock className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
+                              <p className="text-[10px] font-extrabold text-neutral-800 leading-tight">{window.label}</p>
+                              <p className="text-[9px] text-neutral-400">Pickup window</p>
                             </div>
+                          </div>
+
+                          {/* ── TRANSPARENT TARIFF BREAKDOWN ── */}
+                          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 mb-3">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <Receipt className="w-3.5 h-3.5 text-neutral-500" />
+                              <span className="text-[11px] font-bold text-neutral-700 uppercase tracking-wide">Cost breakdown</span>
+                            </div>
+                            <div className="space-y-1.5 text-xs">
+                              <div className="flex items-center justify-between text-neutral-600">
+                                <span className="flex items-center gap-1.5"><Fuel className="w-3 h-3" /> Fuel</span>
+                                <span>₹{fare.fuelCost.toLocaleString("en-IN")}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-neutral-600">
+                                <span className="flex items-center gap-1.5"><Landmark className="w-3 h-3" /> Toll</span>
+                                <span>₹{fare.tollCost.toLocaleString("en-IN")}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-neutral-700 font-semibold pt-1 border-t border-neutral-200">
+                                <span>Trip cost</span>
+                                <span>₹{fare.tripCost.toLocaleString("en-IN")}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-neutral-600">
+                                <span className="flex items-center gap-1.5"><BadgePercent className="w-3 h-3" /> Platform fee (10%)</span>
+                                <span>₹{fare.platformFee.toLocaleString("en-IN")}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-neutral-600">
+                                <span>GST (18% on fee)</span>
+                                <span>₹{fare.gst.toLocaleString("en-IN")}</span>
+                              </div>
+                              <div className="flex items-center justify-between pt-2 mt-1 border-t border-neutral-300">
+                                <span className="text-sm font-extrabold text-neutral-900">Total payable</span>
+                                <span className="text-base font-extrabold text-blue-600">₹{fare.total.toLocaleString("en-IN")}</span>
+                              </div>
+                            </div>
+                            <p className="text-[9px] text-neutral-400 mt-2 text-center">
+                              Transparent pricing — trip cost covers fuel &amp; tolls; platform fee + GST keep Shiftzy running.
+                            </p>
                           </div>
 
                           {/* Owner row */}
@@ -362,6 +451,20 @@ export default function Home() {
           })}
         </div>
       </div>
+
+      {/* ── Vehicle photo gallery popup (shared) ── */}
+      {(() => {
+        const galleryReq = NEARBY_SHIFT_REQUESTS.find((r) => r.id === galleryId);
+        if (!galleryReq) return null;
+        return (
+          <VehiclePhotoGallery
+            images={getVehicleImages(galleryReq.vehicle)}
+            open={!!galleryId}
+            onOpenChange={(o) => !o && setGalleryId(null)}
+            title={`${galleryReq.vehicle.make} ${galleryReq.vehicle.model}`}
+          />
+        );
+      })()}
 
       {/* ── Trust Indicators ── */}
       <div className="px-4 mt-5 mb-4">
