@@ -26,6 +26,35 @@ function read<T>(key: string, fallback: T): T {
     return fallback;
   }
 }
+
+// Cached read for reactive store getters used with useSyncExternalStore.
+// getSnapshot must return a STABLE reference when the underlying data has
+// not changed, otherwise React detects a "changed" store every render and
+// loops forever (crashing the page to a white screen). We cache the parsed
+// value keyed by the raw serialized string and only reparse when it changes.
+const snapshotCache = new Map<string, { raw: string | null; value: unknown }>();
+// Shared stable empty-array reference for the "no data yet" case, so the
+// snapshot stays identical across renders until real data is written.
+const EMPTY_ARR = Object.freeze([]) as never[];
+function readCached<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  let raw: string | null = null;
+  try {
+    raw = window.localStorage.getItem(key);
+  } catch {
+    return fallback;
+  }
+  const cached = snapshotCache.get(key);
+  if (cached && cached.raw === raw) return cached.value as T;
+  let value: T;
+  try {
+    value = raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    value = fallback;
+  }
+  snapshotCache.set(key, { raw, value });
+  return value;
+}
 function write<T>(key: string, value: T) {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
@@ -72,7 +101,7 @@ export interface ShiftRequestRecord {
 const SHIFT_KEY = "shiftzy_shift_requests";
 
 export function getShiftRequests(): ShiftRequestRecord[] {
-  return read<ShiftRequestRecord[]>(SHIFT_KEY, []);
+  return readCached<ShiftRequestRecord[]>(SHIFT_KEY, EMPTY_ARR);
 }
 export function addShiftRequest(
   r: Omit<ShiftRequestRecord, "id" | "createdAt" | "status"> & { status?: ShiftStatus }
@@ -126,7 +155,7 @@ export interface GoRequestRecord {
 const GO_KEY = "shiftzy_go_requests";
 
 export function getGoRequests(): GoRequestRecord[] {
-  return read<GoRequestRecord[]>(GO_KEY, []);
+  return readCached<GoRequestRecord[]>(GO_KEY, EMPTY_ARR);
 }
 export function addGoRequest(
   r: Omit<GoRequestRecord, "id" | "createdAt" | "status"> & { status?: GoStatus }
@@ -171,7 +200,7 @@ export interface PaymentRecord {
 const PAY_KEY = "shiftzy_payments";
 
 export function getPayments(): PaymentRecord[] {
-  return read<PaymentRecord[]>(PAY_KEY, []);
+  return readCached<PaymentRecord[]>(PAY_KEY, EMPTY_ARR);
 }
 export function addPayment(
   p: Omit<PaymentRecord, "id" | "createdAt" | "date"> & { date?: string }
@@ -195,7 +224,7 @@ export interface EmergencyContact {
 const SOS_KEY = "shiftzy_emergency_contacts";
 
 export function getEmergencyContacts(): EmergencyContact[] {
-  return read<EmergencyContact[]>(SOS_KEY, []);
+  return readCached<EmergencyContact[]>(SOS_KEY, EMPTY_ARR);
 }
 export function setEmergencyContacts(contacts: EmergencyContact[]) {
   write(SOS_KEY, contacts.slice(0, 2));
