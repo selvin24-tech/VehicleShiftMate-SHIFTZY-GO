@@ -6,8 +6,110 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { Bot, Send, Sparkles } from "lucide-react";
 import ChatFloatingButton from "@/components/common/ChatFloatingButton";
+
+// ── Simple in-app assistant knowledge base (keyword matched, no external API) ──
+const ASSISTANT_KB: { keywords: string[]; answer: string }[] = [
+  { keywords: ["shift", "transport", "move my", "send vehicle", "send my car"], answer: "To shift a vehicle, tap the blue SHIFT card on Home, enter your pickup & drop, choose a professional driver or a verified traveler, and submit. You can watch it live under My Rides." },
+  { keywords: ["go", "travel", "drive", "earn"], answer: "Tap the orange GO card to find a vehicle to drive on your route. Enter your route, see the estimated fare, and send a request to the owner." },
+  { keywords: ["track", "where is", "status", "my ride", "my rides"], answer: "Open My Rides to see the live status of every request — pending, driver assigned, in transit, and completed." },
+  { keywords: ["fare", "price", "cost", "charge", "rate", "how much"], answer: "Fares depend on distance, vehicle type, and any extra services. You always see a full breakdown before you confirm a booking." },
+  { keywords: ["cancel", "refund"], answer: "You can cancel an active booking from My Rides. Approved refunds go back to your original payment method within 5–7 days." },
+  { keywords: ["payment", "pay ", "invoice", "upi", "card", "history"], answer: "Every payment, refund, and invoice is saved in Payment History, which you can open from your Profile." },
+  { keywords: ["document", "rc", "licence", "license", "kyc"], answer: "You'll need your vehicle RC, insurance, and a valid ID. Upload them in Profile → Documents; verification takes up to 24 hours." },
+  { keywords: ["aadhaar", "otp", "verify", "verification", "sign up", "register"], answer: "New accounts verify with Aadhaar plus a 6-digit OTP. For this demo, the OTP is 123456." },
+  { keywords: ["safe", "safety", "sos", "emergency", "accident"], answer: "Tap the red SOS button anytime to reach Ambulance, Police, Fire, and your saved emergency contacts. Add your contacts in your Profile." },
+  { keywords: ["driver", "become", "partner"], answer: "To drive with us, choose GO / Travel and apply as a driver partner with your licence and address proof after a quick verification." },
+  { keywords: ["insurance", "damage", "claim"], answer: "All shifts are covered by transit insurance. Report any damage in the app with photos and our team will guide you through the claim." },
+];
+
+function answerFor(query: string): string {
+  const q = query.toLowerCase();
+  const hit = ASSISTANT_KB.find(entry => entry.keywords.some(k => q.includes(k)));
+  if (hit) return hit.answer;
+  return "I'm not fully sure about that one. You can check the FAQs below, or send us a message using the Contact Support form — our team replies fast.";
+}
+
+const QUICK_QUESTIONS = [
+  "How do I shift my vehicle?",
+  "How are fares calculated?",
+  "How do I track my ride?",
+  "Cancellation & refunds",
+  "Is my trip safe?",
+];
+
+interface AssistantMsg { role: "user" | "bot"; text: string; }
+
+function HelpAssistant() {
+  const [messages, setMessages] = useState<AssistantMsg[]>([
+    { role: "bot", text: "Hi! I'm the Shiftzy Assistant 🤖 Ask me anything about shifting, fares, tracking, payments, or safety." },
+  ]);
+  const [input, setInput] = useState("");
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
+
+  const ask = (text: string) => {
+    const q = text.trim();
+    if (!q) return;
+    const reply = answerFor(q);
+    setMessages(m => [...m, { role: "user", text: q }, { role: "bot", text: reply }]);
+    setInput("");
+  };
+
+  return (
+    <div className="mb-6 rounded-2xl border border-blue-200 overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+          <Bot className="w-4 h-4 text-white" />
+        </div>
+        <div>
+          <p className="text-white font-bold text-sm flex items-center gap-1">Shiftzy Assistant <Sparkles className="w-3.5 h-3.5 text-yellow-300" /></p>
+          <p className="text-blue-100 text-[11px]">Instant answers, 24/7</p>
+        </div>
+      </div>
+
+      <div className="bg-neutral-50 max-h-72 overflow-y-auto p-3 space-y-2">
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.role === "user" ? "bg-blue-600 text-white" : "bg-white border border-neutral-200 text-neutral-700"}`}>
+              {m.text}
+            </div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+
+      <div className="bg-white px-3 pt-2 pb-1 flex flex-wrap gap-1.5 border-t border-neutral-100">
+        {QUICK_QUESTIONS.map(q => (
+          <button key={q} onClick={() => ask(q)}
+            className="text-[11px] font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2.5 py-1 hover:bg-blue-100 transition-colors">
+            {q}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-white p-2 border-t border-neutral-100">
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Type your question…"
+            className="flex-1"
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && input.trim()) { e.preventDefault(); ask(input); } }}
+          />
+          <Button size="icon" disabled={!input.trim()} onClick={() => ask(input)} className="bg-blue-600 hover:bg-blue-700">
+            <Send size={18} />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const faqItems = [
   {
@@ -76,6 +178,8 @@ export default function Help() {
       <Header title="Help & Support" variant="primary" />
       
       <div className="px-4 py-6">
+        <HelpAssistant />
+
         <div className="mb-6">
           <h2 className="font-bold text-xl mb-4">Frequently Asked Questions</h2>
           <Accordion type="single" collapsible className="w-full">

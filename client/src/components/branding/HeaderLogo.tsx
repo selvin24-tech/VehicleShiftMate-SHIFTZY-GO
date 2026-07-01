@@ -123,7 +123,7 @@ function AnimatedLogo() {
       <Wordmark key={cycle} />
 
       {/* Tagline */}
-      <p className="text-[11px] text-neutral-400 font-medium tracking-wide -mt-0.5">Safe Shifts. Joyful Journeys.</p>
+      <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-medium tracking-wide -mt-0.5">Safe Shift. Joyful Journey.</p>
 
       {/* One vehicle glides smoothly across, after the wordmark settles */}
       <div className="relative w-64 h-11 mt-1 overflow-hidden">
@@ -176,7 +176,7 @@ export default function HeaderLogo() {
           <span style={{ color: "#f97316", margin: "0 1px" }}>ZY</span>
           <span style={{ color: "#111827" }} className="ml-1">GO</span>
         </div>
-        <p className="text-[11px] text-neutral-400 font-medium tracking-wide -mt-0.5">Safe Shifts. Joyful Journeys.</p>
+        <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-medium tracking-wide -mt-0.5">Safe Shift. Joyful Journey.</p>
       </div>
     );
   }

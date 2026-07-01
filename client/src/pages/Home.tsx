@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/layout/Header";
@@ -14,6 +14,8 @@ import {
   Phone, MessageCircle, Images, Camera,
   Fuel, Landmark, BadgePercent, Receipt,
 } from "lucide-react";
+import { useShiftRequests, SHIFT_STATUS_LABEL } from "@/lib/appStore";
+import OnboardingTour from "@/components/tour/OnboardingTour";
 
 const VEHICLE_BADGE: Record<string, { label: string; color: string }> = {
   car:  { label: "CAR",  color: "bg-blue-100 text-blue-700" },
@@ -37,20 +39,36 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [galleryId, setGalleryId] = useState<string | null>(null);
+  const shiftRequests = useShiftRequests();
+  const activeShift = shiftRequests.find(r => r.status !== "completed" && r.status !== "cancelled");
+  const [showTour, setShowTour] = useState(false);
+
+  useEffect(() => {
+    const firstLogin = localStorage.getItem("isFirstLogin") === "true";
+    const seenTour = localStorage.getItem("hasSeenTour") === "true";
+    if (firstLogin && !seenTour) setShowTour(true);
+  }, []);
 
   return (
-    <div className="max-w-lg mx-auto bg-white min-h-screen pb-20">
+    <div className="max-w-lg mx-auto bg-white dark:bg-neutral-950 min-h-screen pb-20">
+      <OnboardingTour
+        isVisible={showTour}
+        onComplete={() => {
+          setShowTour(false);
+          localStorage.removeItem("isFirstLogin");
+        }}
+      />
       <Header />
 
       {/* ── Location bar ── */}
-      <div className="px-4 py-3 flex items-center justify-between bg-white border-b border-neutral-100">
-        <button className="flex items-center gap-1.5 text-sm font-semibold text-neutral-800 hover:opacity-80 transition-opacity">
+      <div className="px-4 py-3 flex items-center justify-between bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
+        <button className="flex items-center gap-1.5 text-sm font-semibold text-neutral-800 dark:text-neutral-200 hover:opacity-80 transition-opacity">
           <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
           Chennai, Tamil Nadu
           <ChevronDown className="w-3.5 h-3.5 text-neutral-400 ml-0.5" />
         </button>
         <button
-          onClick={() => navigate("/track")}
+          onClick={() => navigate("/my-rides")}
           className="flex items-center gap-1.5 border border-blue-200 rounded-lg px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
         >
           <Briefcase className="w-3.5 h-3.5" />
@@ -170,6 +188,46 @@ export default function Home() {
         </button>
       </div>
 
+      {/* ── Active Shift Request ── */}
+      <AnimatePresence>
+        {activeShift && (
+          <motion.div
+            key={activeShift.id}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+            className="px-4 mt-4 overflow-hidden"
+          >
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                  <p className="text-xs font-bold text-blue-700 uppercase tracking-wide">Your active shift request</p>
+                </div>
+                <span className="text-[10px] font-bold bg-white text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">
+                  {SHIFT_STATUS_LABEL[activeShift.status]}
+                </span>
+              </div>
+              <p className="font-extrabold text-neutral-900 text-sm">{activeShift.pickup} → {activeShift.drop}</p>
+              <p className="text-[11px] text-neutral-500 mt-0.5">
+                {activeShift.vehicleModel} · {activeShift.driverType === "professional" ? "Professional Driver" : "Traveler"}
+              </p>
+              <div className="flex items-center gap-3 mt-1.5 text-neutral-400">
+                <span className="flex items-center gap-1 text-[10px]"><CalendarDays className="w-3 h-3" />{activeShift.date}</span>
+                <span className="flex items-center gap-1 text-[10px]"><Clock className="w-3 h-3" />{activeShift.timeRange}</span>
+              </div>
+              <button
+                onClick={() => navigate("/my-rides")}
+                className="w-full mt-3 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs active:scale-95 transition-all flex items-center justify-center gap-1"
+              >
+                View in My Rides <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Chat with MD banner ── */}
       <div className="px-4 mt-4">
         <button
@@ -194,7 +252,7 @@ export default function Home() {
       {/* ── Nearby Available Trips ── */}
       <div className="px-4 mt-6">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-base font-extrabold text-neutral-900">Nearby available trips</h2>
+          <h2 className="text-base font-extrabold text-neutral-900 dark:text-neutral-100">Nearby available trips</h2>
           <button
             onClick={() => navigate("/nearby")}
             className="flex items-center gap-0.5 text-xs font-bold text-blue-600"
@@ -219,7 +277,7 @@ export default function Home() {
                 key={req.id}
                 layout
                 transition={{ layout: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } }}
-                className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${isOpen ? "border-blue-300 shadow-md" : "border-neutral-100"}`}
+                className={`bg-white dark:bg-neutral-900 border rounded-2xl overflow-hidden shadow-sm ${isOpen ? "border-blue-300 dark:border-blue-700 shadow-md" : "border-neutral-100 dark:border-neutral-800"}`}
               >
                 {/* ── Summary row (always visible) ── */}
                 <motion.div
@@ -257,7 +315,7 @@ export default function Home() {
                   >
                     {/* Main info */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-extrabold text-neutral-900 text-sm leading-tight">
+                      <p className="font-extrabold text-neutral-900 dark:text-neutral-100 text-sm leading-tight">
                         {req.pickupLocation.name} → {req.dropLocation.name}
                       </p>
                       <p className="text-[11px] text-neutral-500 mt-0.5 truncate">
@@ -277,7 +335,7 @@ export default function Home() {
 
                     {/* Right: price + rating + chevron */}
                     <div className="shrink-0 flex flex-col items-end gap-1">
-                      <p className="font-extrabold text-neutral-900 text-sm">
+                      <p className="font-extrabold text-neutral-900 dark:text-neutral-100 text-sm">
                         ₹{fare.total.toLocaleString("en-IN")}
                       </p>
                       <p className="text-[9px] text-neutral-400 font-medium">Total payable</p>
@@ -468,8 +526,8 @@ export default function Home() {
 
       {/* ── Trust Indicators ── */}
       <div className="px-4 mt-5 mb-4">
-        <div className="bg-white border border-neutral-100 rounded-2xl shadow-sm">
-          <div className="grid grid-cols-4 divide-x divide-neutral-100">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl shadow-sm">
+          <div className="grid grid-cols-4 divide-x divide-neutral-100 dark:divide-neutral-800">
             {[
               { icon: <Shield className="w-4 h-4 text-blue-600" />, line1: "Verified", line2: "Users", line3: "100% Safe" },
               { icon: <Navigation className="w-4 h-4 text-blue-600" />, line1: "Live", line2: "Tracking", line3: "Always On" },

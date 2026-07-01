@@ -24,6 +24,7 @@ export default function LoadingScreen({ fullScreen = true, message = "Loading" }
           <span style={{ color: "#f97316", margin: "0 2px" }}>ZY</span>
           <span style={{ color: "#111827", marginLeft: "4px" }}>GO</span>
         </div>
+        <p className="text-[11px] text-neutral-400 font-medium tracking-wide">Safe Shift. Joyful Journey.</p>
         <div className="h-1 w-32 rounded-full bg-neutral-100 overflow-hidden">
           <div className="h-full w-1/3 rounded-full bg-blue-600 animate-pulse" />
         </div>
@@ -66,6 +67,15 @@ export default function LoadingScreen({ fullScreen = true, message = "Loading" }
           GO
         </motion.span>
       </div>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="text-[11px] text-neutral-400 font-medium tracking-wide mb-1"
+      >
+        Safe Shift. Joyful Journey.
+      </motion.p>
 
       {/* Pencil-sketch road being drawn, with a car driving along it */}
       <div className="relative" style={{ width: 200, height: 50 }}>

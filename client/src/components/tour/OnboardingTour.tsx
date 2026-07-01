@@ -14,44 +14,58 @@ interface TourStep {
 const tourSteps: TourStep[] = [
   {
     id: "welcome",
-    title: "Welcome to Shiftzy Go!",
-    description: "Your complete vehicle transportation solution! Let's show you how to connect with drivers and vehicle owners in your area.",
+    title: "Welcome to Shiftzy Go! 👋",
+    description: "Safe Shift. Joyful Journey. Here's a quick 60-second tour of everything you can do. You can skip anytime.",
     target: "body",
     position: "bottom"
   },
   {
     id: "shift-option",
-    title: "🚗 Shift Your Vehicle",
-    description: "Need to transport your car or bike to another city? Click here to post a shift request and find trusted drivers who can move your vehicle safely.",
+    title: "🚛 Shift Your Vehicle",
+    description: "Tap the blue SHIFT card to send your car or bike to another place. Choose a professional driver or a verified traveler going your way.",
     target: "[data-tour='shift-option']",
     position: "bottom"
   },
   {
     id: "go-option",
-    title: "🛣️ Go & Drive",
-    description: "Love driving and want to earn while traveling? Browse available vehicles that need to be transported and choose your next driving adventure.",
+    title: "🛞 Go & Travel",
+    description: "Tap the orange GO card to find a vehicle to drive on your route — travel and save by sharing the trip cost.",
     target: "[data-tour='go-option']",
     position: "bottom"
   },
   {
-    id: "reviews",
-    title: "⭐ Customer Stories",
-    description: "Read real experiences from our community. These reviews help you make informed decisions and build trust with other users.",
-    target: "[data-tour='reviews']",
+    id: "my-rides",
+    title: "🧳 My Rides",
+    description: "All your Shift and Go requests live here with live status — pending, driver assigned, in transit and completed.",
+    target: "body",
+    position: "bottom"
+  },
+  {
+    id: "payments",
+    title: "🧾 Payment History",
+    description: "Every payment, refund and invoice is saved in Payment History, which you can open from your Profile.",
+    target: "body",
+    position: "bottom"
+  },
+  {
+    id: "assistant",
+    title: "🤖 AI Help Assistant",
+    description: "Have a doubt? The in-app assistant answers common questions about shifting, fares, safety and bookings instantly.",
+    target: "[data-tour='support-option']",
     position: "top"
   },
   {
-    id: "plan",
-    title: "🗺️ Plan Your Journey",
-    description: "Get route suggestions, cost estimates, and timing guidance for your vehicle transportation needs. Smart planning saves time and money.",
-    target: "[data-tour='plan']",
+    id: "support",
+    title: "💬 Talk to the MD's Desk",
+    description: "Need a custom route or special help? Message our team directly and share your exact pickup and drop.",
+    target: "[data-tour='support-option']",
     position: "top"
   },
   {
-    id: "emergency",
-    title: "🚨 24/7 Emergency Support",
-    description: "Your safety is our priority. Get immediate help during your trip with our round-the-clock emergency assistance team.",
-    target: "[data-tour='emergency']",
+    id: "safety",
+    title: "🚨 Safety & SOS",
+    description: "The red SOS button reaches Ambulance, Police, Fire and your saved emergency contacts. Add them in your Profile.",
+    target: "body",
     position: "top"
   }
 ];

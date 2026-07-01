@@ -26,6 +26,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { LOCATIONS, DETAILED_VEHICLE_TYPES } from "@/lib/constants";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { addShiftRequest } from "@/lib/appStore";
 import {
   ChevronLeft, CircleCheck, ChevronRight,
   Shield, Users, Building2, Home, Clock, User, Phone,
@@ -100,6 +101,7 @@ export default function ShiftRequest() {
   const [deliveryAddr,  setDeliveryAddr]  = useState("");
   const [specialNote,   setSpecialNote]   = useState("");
   const [agreedTerms,   setAgreedTerms]   = useState(false);
+  const [attempted,     setAttempted]     = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -128,6 +130,7 @@ export default function ShiftRequest() {
   };
 
   const onSubmit = async (data: FormValues) => {
+    setAttempted(true);
     if (!driverType) {
       toast({ title: "Select driver type", description: "Choose Professional Driver or Traveler.", variant: "destructive" });
       return;
@@ -153,6 +156,15 @@ export default function ShiftRequest() {
       };
       if (data.vehicleType !== "luxury") delete payload.luxuryBrand;
       await apiRequest("POST", "/api/shift-requests", payload);
+      addShiftRequest({
+        pickup: data.pickupLocation,
+        drop: data.dropLocation,
+        vehicleType: data.vehicleType ?? selectedVehicleType ?? "car",
+        vehicleModel: data.vehicleModel,
+        driverType,
+        date: data.travelDate,
+        timeRange: `${data.pickupTimeFrom} – ${data.pickupTimeTo}`,
+      });
       setShowSuccessDialog(true);
       queryClient.invalidateQueries({ queryKey: ["/api/shift-requests"] });
     } catch {
@@ -406,7 +418,7 @@ export default function ShiftRequest() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-bold text-neutral-900">Traveler</p>
+                        <p className="font-bold text-neutral-900">Traveler / Professional Driver</p>
                         <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Shared Cost · Save More</span>
                       </div>
                       <p className="text-xs text-neutral-500 mt-0.5">A verified traveler going the same route drives your vehicle. Both of you share the trip cost — saving you up to 80%.</p>
@@ -420,6 +432,9 @@ export default function ShiftRequest() {
                   </div>
                 </SelectionCard>
               </div>
+              {attempted && !driverType && (
+                <p className="text-xs text-red-500 mt-2">Please choose who will drive your vehicle.</p>
+              )}
             </div>
 
             {/* ════════════════════════════════
@@ -476,6 +491,9 @@ export default function ShiftRequest() {
                     </div>
                   </SelectionCard>
                 </div>
+                {attempted && driverType === "traveler" && !dropPref && (
+                  <p className="text-xs text-red-500 mt-2">Please choose a drop preference.</p>
+                )}
               </div>
             )}
 
@@ -652,6 +670,9 @@ export default function ShiftRequest() {
                 <a href="/terms" className="text-blue-600 font-semibold underline">Terms &amp; Conditions</a>.
               </span>
             </label>
+            {attempted && !agreedTerms && (
+              <p className="text-xs text-red-500 -mt-3">Please confirm the owner acknowledgment to continue.</p>
+            )}
 
             {/* Submit */}
             <Button type="submit" disabled={isUploading || !agreedTerms}

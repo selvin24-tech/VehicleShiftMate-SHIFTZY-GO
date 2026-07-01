@@ -211,7 +211,8 @@ export default function Login() {
             <span className="text-orange-500">zy</span>
             <span className="text-blue-600"> Go</span>
           </h1>
-          <p className="text-neutral-500 mt-1 text-sm">Your Vehicle Transportation Partner</p>
+          <p className="text-neutral-600 mt-1 text-sm font-medium">India's Smart Vehicle Shifting &amp; Travel Platform</p>
+          <p className="text-neutral-400 text-xs tracking-wide mt-0.5">Safe Shift. Joyful Journey.</p>
         </div>
 
         {/* ── Sign-up verification steps ─────────────────────────────────── */}

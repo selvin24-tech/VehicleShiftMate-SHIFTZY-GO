@@ -2,6 +2,7 @@ import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useEmergencyContacts } from "@/lib/appStore";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +32,8 @@ type EmergencyService = {
   animationDelay: string;
 };
 
-// Services data
-const emergencyServices: Record<string, EmergencyService> = {
+// Fixed public emergency services
+const baseServices: Record<string, EmergencyService> = {
   ambulance: {
     name: "Ambulance",
     number: "108",
@@ -61,13 +62,6 @@ const emergencyServices: Record<string, EmergencyService> = {
     color: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-300",
     animationDelay: "delay-[800ms]"
   },
-  emergencyContact: {
-    name: "Emergency Contact",
-    number: "+91 98765 43210",
-    icon: <PhoneCall size={22} />,
-    color: "bg-orange-500 hover:bg-orange-600 text-white border-2 border-orange-200",
-    animationDelay: "delay-[1000ms]"
-  }
 };
 
 const navItems: NavItem[] = [
@@ -88,6 +82,26 @@ export default function BottomNav() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const { toast } = useToast();
+  const savedContacts = useEmergencyContacts();
+
+  // Merge the fixed public services with the user's saved emergency contacts.
+  const emergencyServices: Record<string, EmergencyService> = {
+    ...baseServices,
+    ...Object.fromEntries(
+      savedContacts
+        .filter((c) => c.phone)
+        .map((c, i) => [
+          `contact${i}`,
+          {
+            name: c.name || `Emergency Contact ${i + 1}`,
+            number: c.phone,
+            icon: <PhoneCall size={22} />,
+            color: "bg-orange-500 hover:bg-orange-600 text-white border-2 border-orange-200",
+            animationDelay: `delay-[${1000 + i * 200}ms]`,
+          } as EmergencyService,
+        ])
+    ),
+  };
   
   // Create a bouncing animation effect every 30 seconds
   useEffect(() => {
@@ -202,7 +216,7 @@ export default function BottomNav() {
       {/* Quick-help panel above the navigation bar */}
       {isOpen && (
         <div className="fixed left-0 right-0 bottom-20 mx-auto max-w-md z-[60] px-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-neutral-100 p-3 flex justify-between gap-1.5">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl border border-neutral-100 dark:border-neutral-700 p-3 flex justify-between gap-1.5">
             {Object.entries(emergencyServices).map(([key, svc]) => (
               <button
                 key={key}
@@ -291,7 +305,7 @@ export default function BottomNav() {
   const rightNavItems = navItems.slice(2); // Track and Help
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 py-3 max-w-md mx-auto z-10">
+    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 py-3 max-w-md mx-auto z-10">
       <div className="flex justify-between items-center px-4">
         {/* All navigation items evenly spaced in a row */}
         {leftNavItems.map((item) => (

@@ -9,8 +9,9 @@ import {
   ChevronLeft, ChevronRight, Camera, Edit3, Save, X, Star,
   CreditCard, FileText, Car, Bell, Shield, HelpCircle,
   LogOut, Upload, CheckCircle2, Clock, Flag, Phone, Mail, MapPin,
-  Package, BookOpen
+  Package, BookOpen, Receipt, PhoneCall
 } from "lucide-react";
+import { getEmergencyContacts, setEmergencyContacts, type EmergencyContact } from "@/lib/appStore";
 
 const INITIAL_PROFILE = {
   name: "Selvin Raj",
@@ -53,6 +54,16 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<"profile" | "bookings" | "docs">("profile");
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const [contactDraft, setContactDraft] = useState<EmergencyContact[]>(() => {
+    const base = getEmergencyContacts();
+    return [base[0] ?? { name: "", phone: "" }, base[1] ?? { name: "", phone: "" }];
+  });
+
+  const handleSaveContacts = () => {
+    const cleaned = contactDraft.filter(c => c.phone.trim());
+    setEmergencyContacts(cleaned);
+    toast({ title: "Emergency contacts saved", description: "These people can be reached from the SOS button." });
+  };
 
   const handleSave = () => {
     setProfile(p => ({ ...p, firstName: editData.firstName, lastName: editData.lastName, name: `${editData.firstName} ${editData.lastName}`, phone: editData.phone, email: editData.email, city: editData.city }));
@@ -210,6 +221,8 @@ export default function Profile() {
             {/* Quick links */}
             <div className="space-y-2">
               {[
+                { icon: Package, label: "My Rides", sub: "Shift & Go requests", color: "text-blue-600", action: () => navigate("/my-rides") },
+                { icon: Receipt, label: "Payment History", sub: "Transactions & invoices", color: "text-blue-600", action: () => navigate("/payment-history") },
                 { icon: Bell, label: "Notifications", sub: "Alerts & updates", color: "text-orange-500", action: () => navigate("/notifications") },
                 { icon: HelpCircle, label: "Help & Support", sub: "FAQs and emergency", color: "text-blue-600", action: () => navigate("/help") },
                 { icon: BookOpen, label: "Terms & Conditions", sub: "Usage policy", color: "text-neutral-500", action: () => navigate("/terms") },
@@ -224,6 +237,32 @@ export default function Profile() {
                   <ChevronRight className="w-4 h-4 text-neutral-300" />
                 </button>
               ))}
+            </div>
+
+            {/* Emergency SOS contacts */}
+            <div className="bg-neutral-50 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <PhoneCall className="w-4 h-4 text-red-500" />
+                <p className="font-semibold text-sm">Emergency SOS Contacts</p>
+              </div>
+              <p className="text-xs text-neutral-400">Add up to 2 people we can alert from the SOS button during a trip.</p>
+              {contactDraft.map((c, i) => (
+                <div key={i} className="grid grid-cols-2 gap-2">
+                  <Input
+                    placeholder={`Contact ${i + 1} name`}
+                    value={c.name}
+                    onChange={e => setContactDraft(d => d.map((x, idx) => idx === i ? { ...x, name: e.target.value } : x))}
+                  />
+                  <Input
+                    placeholder="Phone number"
+                    value={c.phone}
+                    onChange={e => setContactDraft(d => d.map((x, idx) => idx === i ? { ...x, phone: e.target.value } : x))}
+                  />
+                </div>
+              ))}
+              <Button onClick={handleSaveContacts} className="w-full bg-red-600 hover:bg-red-700 text-white gap-2">
+                <Save className="w-4 h-4" /> Save Emergency Contacts
+              </Button>
             </div>
 
             {/* Report & Logout */}

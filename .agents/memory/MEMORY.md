@@ -1,2 +1,3 @@
 - [Query key fetcher](query-key-fetcher.md) — default getQueryFn uses queryKey[0] ONLY; nested GETs need an explicit queryFn or full-URL first key.
 - [Simulated async lifecycle](simulated-async-lifecycle.md) — demo request->confirm setTimeout must NOT be cleared on modal close; fire confirmation regardless of dialog visibility.
+- [Dark mode scope](dark-mode-scope.md) — dark theming intentionally covers only shell + Home primary surfaces; extend outward, not all at once.

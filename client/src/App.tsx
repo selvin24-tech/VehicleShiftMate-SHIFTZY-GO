@@ -21,8 +21,11 @@ import Notifications from "@/pages/Notifications";
 import BookingConfirmation from "@/pages/BookingConfirmation";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
+import MyRides from "@/pages/MyRides";
+import PaymentHistory from "@/pages/PaymentHistory";
 import { ChatProvider } from "@/contexts/ChatContext";
 import LoadingScreen from "@/components/branding/LoadingScreen";
+import { ensureSeed } from "@/lib/appStore";
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,6 +40,7 @@ function Router() {
       setUserType(storedUserType);
       setIsLoading(false);
     };
+    ensureSeed();
     checkAuth();
   }, []);
 
@@ -54,6 +58,8 @@ function Router() {
       <Route path="/shift-request" component={ShiftRequest} />
       <Route path="/travel" component={Travel} />
       <Route path="/profile" component={Profile} />
+      <Route path="/my-rides" component={MyRides} />
+      <Route path="/payment-history" component={PaymentHistory} />
       <Route path="/plan" component={Plan} />
       <Route path="/track" component={Track} />
       <Route path="/help" component={Help} />

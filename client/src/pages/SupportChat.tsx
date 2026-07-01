@@ -166,27 +166,24 @@ export default function SupportChat() {
                 <FormField control={form.control} name="pickup" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs">Pickup</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="From" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        {LOCATIONS.map((l: string) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Input list="support-locations" placeholder="Type any address / area" {...field} value={field.value ?? ""} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="drop" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs">Drop</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="To" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        {LOCATIONS.map((l: string) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Input list="support-locations" placeholder="Type any address / area" {...field} value={field.value ?? ""} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
+                <datalist id="support-locations">
+                  {LOCATIONS.map((l: string) => <option key={l} value={l} />)}
+                </datalist>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

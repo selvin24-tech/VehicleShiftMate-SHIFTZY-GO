@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
@@ -9,7 +10,8 @@ import {
   getVehicleImages, getAvailabilityWindow, isWithinWindow,
 } from "@/lib/constants";
 import { Vehicle } from "@/lib/types";
-import { ChevronLeft, Star, X, Clock, Images, Camera, Check } from "lucide-react";
+import { addGoRequest, GO_STATUS_LABEL, type GoRequestRecord } from "@/lib/appStore";
+import { ChevronLeft, Star, X, Clock, Images, Camera, Check, CheckCircle2, Send } from "lucide-react";
 
 /* ─── Approx distances (km) between outstation cities ─── */
 const CITY_DISTANCES: Record<string, Record<string, number>> = {
@@ -61,6 +63,8 @@ export default function Travel() {
   const [travelDate, setTravelDate] = useState(new Date(Date.now() + 86400000).toISOString().split("T")[0]);
   const [travelTime, setTravelTime] = useState("09:00");
   const [searched, setSearched] = useState(false);
+  const [attempted, setAttempted] = useState(false);
+  const [goRequest, setGoRequest] = useState<GoRequestRecord | null>(null);
 
   /* photo gallery popup */
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -96,6 +100,8 @@ export default function Travel() {
   };
 
   const handleSearch = () => {
+    setAttempted(true);
+    setGoRequest(null);
     if (!selectedType) {
       toast({ title: "Pick a vehicle type", description: "Choose Car, Bike, SUV or Premium first.", variant: "destructive" });
       return;
@@ -107,10 +113,30 @@ export default function Travel() {
     setSearched(true);
   };
 
+  const submitGoRequest = () => {
+    if (!typeOpt) return;
+    const rec = addGoRequest({
+      pickup,
+      drop,
+      vehicleType: typeOpt.label,
+      mode,
+      date: travelDate,
+      time: travelTime,
+      distanceKm: distKm,
+      estFare: fareTotal,
+    });
+    setGoRequest(rec);
+    toast({
+      title: "Go request sent! 🚗",
+      description: "We'll match you with a vehicle owner shortly. Track it under My Rides.",
+    });
+  };
+
   const resetSearch = () => {
     setSearched(false);
     setPickup("");
     setDrop("");
+    setGoRequest(null);
   };
 
   return (
@@ -171,6 +197,9 @@ export default function Travel() {
               );
             })}
           </div>
+          {attempted && !selectedType && (
+            <p className="text-xs text-red-500 mt-1">Please choose a vehicle type to continue.</p>
+          )}
         </div>
 
         {/* ─── STEP 2: Travel type (after a vehicle is chosen) ─── */}
@@ -286,6 +315,14 @@ export default function Travel() {
             We only show vehicles whose owner is available around <span className="font-semibold text-neutral-600">{travelTime}</span>.
           </p>
 
+          {/* Field validation */}
+          {attempted && selectedType && (!pickup || !drop) && (
+            <p className="text-xs text-red-500 mt-3">Please select both a pickup and a drop location.</p>
+          )}
+          {attempted && selectedType && pickup && drop && pickup === drop && (
+            <p className="text-xs text-red-500 mt-3">Pickup and drop must be different.</p>
+          )}
+
           {/* Search button */}
           {!searched && (
             <button type="button" disabled={!canSearch} onClick={handleSearch}
@@ -306,8 +343,16 @@ export default function Travel() {
         )}
 
         {/* ─── RESULTS: vehicles of chosen type available in time range ─── */}
+        <AnimatePresence>
         {searched && typeOpt && (
-          <div className="space-y-4">
+          <motion.div
+            key="go-results"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+            className="space-y-4 overflow-hidden"
+          >
             <div>
               <p className="text-sm text-neutral-600">
                 <span className="font-bold text-blue-700">{pickup}</span> → <span className="font-bold text-orange-600">{drop}</span>
@@ -374,6 +419,44 @@ export default function Travel() {
               </div>
             )}
 
+            {/* ─── GO REQUEST (confirmation + status) ─── */}
+            {goRequest ? (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-extrabold text-emerald-800 text-sm">Go request sent!</p>
+                    <p className="text-xs text-emerald-700 mt-0.5">
+                      {goRequest.pickup} → {goRequest.drop} · {goRequest.vehicleType}
+                    </p>
+                    <div className="inline-flex items-center gap-1.5 mt-2 bg-white border border-emerald-200 rounded-full px-2.5 py-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="text-[11px] font-bold text-emerald-700">{GO_STATUS_LABEL[goRequest.status]}</span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate("/my-rides")}
+                  className="w-full mt-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm active:scale-95 transition-all"
+                >
+                  Track in My Rides
+                </button>
+              </motion.div>
+            ) : (
+              <button
+                onClick={submitGoRequest}
+                className="w-full py-3.5 rounded-2xl font-bold text-white flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-orange-500 active:scale-95 transition-all shadow-md"
+              >
+                <Send className="w-4 h-4" /> Send Go Request for this route
+              </button>
+            )}
+
             {/* Summary info */}
             <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-2xl p-4 border border-blue-100">
               <p className="text-xs font-bold text-blue-700 mb-2">💡 How Shiftzy Go Pricing Works</p>
@@ -384,8 +467,9 @@ export default function Travel() {
                 <p className="text-xs text-neutral-600">• Final amount is confirmed at checkout</p>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
       </div>
 
