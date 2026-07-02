@@ -11,7 +11,7 @@ import {
 } from "@/lib/constants";
 import { Vehicle } from "@/lib/types";
 import { addGoRequest, GO_STATUS_LABEL, type GoRequestRecord } from "@/lib/appStore";
-import { ChevronLeft, Star, X, Clock, Images, Camera, Check, CheckCircle2, Send } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, X, Clock, Images, Camera, Check, CheckCircle2, Send, Route, Timer, Receipt, Fuel, Landmark, BadgePercent, CalendarDays } from "lucide-react";
 
 /* ─── Approx distances (km) between outstation cities ─── */
 const CITY_DISTANCES: Record<string, Record<string, number>> = {
@@ -65,6 +65,7 @@ export default function Travel() {
   const [searched, setSearched] = useState(false);
   const [attempted, setAttempted] = useState(false);
   const [goRequest, setGoRequest] = useState<GoRequestRecord | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   /* photo gallery popup */
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -92,7 +93,8 @@ export default function Travel() {
 
   const baseVehicles = typeOpt ? AVAILABLE_VEHICLES.filter(typeOpt.filter) : [];
   const matchingVehicles = baseVehicles.filter(v => isWithinWindow(v.id, travelTime));
-  const fareTotal = typeOpt ? computeFare(distKm, typeOpt.fareCat).total : 0;
+  const fare = typeOpt ? computeFare(distKm, typeOpt.fareCat) : null;
+  const fareTotal = fare?.total ?? 0;
 
   const openGallery = (v: Vehicle) => {
     setGalleryVehicle(v);
@@ -102,6 +104,7 @@ export default function Travel() {
   const handleSearch = () => {
     setAttempted(true);
     setGoRequest(null);
+    setExpandedId(null);
     if (!selectedType) {
       toast({ title: "Pick a vehicle type", description: "Choose Car, Bike, SUV or Premium first.", variant: "destructive" });
       return;
@@ -137,6 +140,7 @@ export default function Travel() {
     setPickup("");
     setDrop("");
     setGoRequest(null);
+    setExpandedId(null);
   };
 
   return (
@@ -371,49 +375,207 @@ export default function Travel() {
                 <p className="text-xs text-amber-600 mt-1">Owners allocate their own pickup windows. Try a different time or vehicle type.</p>
               </div>
             ) : (
-              <div className="rounded-2xl border-2 border-neutral-100 overflow-hidden divide-y divide-neutral-100">
+              <div className="space-y-2">
                 {matchingVehicles.map(v => {
                   const win = getAvailabilityWindow(v.id);
                   const imgs = getVehicleImages(v);
+                  const isOpen = expandedId === v.id;
+                  const durMins = Math.round((distKm / 50) * 60);
+                  const durLabel = durMins >= 60 ? `${Math.floor(durMins / 60)}h ${durMins % 60}m` : `${durMins}m`;
+                  const dateLabel = (() => {
+                    try { return new Date(travelDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" }); }
+                    catch { return travelDate; }
+                  })();
                   return (
-                    <div key={v.id} className="flex items-center gap-3 px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => openGallery(v)}
-                        className="relative w-20 h-16 rounded-xl overflow-hidden shrink-0 border border-neutral-100 group"
-                        data-testid={`button-vehicle-photo-${v.id}`}
-                      >
-                        <img src={v.image} alt={v.model} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                        <span className="absolute bottom-0 right-0 bg-black/65 text-white text-[10px] px-1 py-0.5 rounded-tl-md flex items-center gap-0.5">
-                          <Images className="w-2.5 h-2.5" /> {imgs.length}
-                        </span>
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="font-bold text-sm text-neutral-900 truncate">{v.make} {v.model}</p>
-                        </div>
-                        <p className="text-xs text-neutral-400">{v.ownerName} · ⭐ {v.rating}</p>
-                        <p className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-0.5">
-                          <Clock className="w-3 h-3" /> {win.label}
-                        </p>
+                    <motion.div
+                      key={v.id}
+                      layout
+                      transition={{ layout: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } }}
+                      className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${isOpen ? "border-blue-300 shadow-md" : "border-neutral-100"}`}
+                    >
+                      {/* ── Summary row (always visible) ── */}
+                      <motion.div layout="position" className="w-full p-3 flex items-center gap-3">
+                        {/* Vehicle thumbnail — TAP to open photo gallery */}
                         <button
                           type="button"
                           onClick={() => openGallery(v)}
-                          className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-blue-600 font-medium"
+                          aria-label={`View photos of ${v.make} ${v.model}`}
+                          className="relative shrink-0 active:scale-95 transition-transform"
+                          data-testid={`button-vehicle-photo-${v.id}`}
                         >
-                          <Camera className="w-3 h-3" /> View photos
+                          <img src={`${v.image}?w=80&h=60&q=70&fit=crop`} alt={v.model} className="w-16 h-12 rounded-xl object-cover" />
+                          <span className={`absolute -bottom-1 -right-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${typeOpt.bgLight} ${typeOpt.accent}`}>
+                            {typeOpt.label.toUpperCase()}
+                          </span>
+                          <span className="absolute top-1 left-1 bg-black/65 text-white text-[8px] font-bold px-1 py-0.5 rounded-md flex items-center gap-0.5">
+                            <Images className="w-2 h-2" /> {imgs.length}
+                          </span>
                         </button>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className={`font-extrabold text-sm ${typeOpt.accent}`}>₹{fareTotal.toLocaleString("en-IN")}</p>
-                        <p className="text-[10px] text-neutral-400">est. fare</p>
+
+                        {/* Tappable area — toggles inline details */}
                         <button
-                          onClick={() => navigate(`/vehicle/${v.id}?distance=${distKm}&category=${typeOpt.fareCat}&pickup=${encodeURIComponent(pickup)}&drop=${encodeURIComponent(drop)}`)}
-                          className={`mt-1.5 text-[11px] font-bold text-white px-3 py-1.5 rounded-xl bg-gradient-to-r ${typeOpt.gradient} active:scale-95`}>
-                          Book
+                          type="button"
+                          onClick={() => setExpandedId(isOpen ? null : v.id)}
+                          aria-expanded={isOpen}
+                          aria-label={isOpen ? "Hide trip details" : "Show trip details"}
+                          className="flex-1 flex items-center gap-3 text-left min-w-0 active:opacity-80 transition-opacity"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="font-extrabold text-neutral-900 text-sm leading-tight">{pickup} → {drop}</p>
+                            <p className="text-[11px] text-neutral-500 mt-0.5 truncate">{v.make} {v.model} · {v.ownerName}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="flex items-center gap-1 text-neutral-400">
+                                <CalendarDays className="w-3 h-3 shrink-0" />
+                                <span className="text-[10px]">{dateLabel}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-neutral-400">
+                                <Clock className="w-3 h-3 shrink-0" />
+                                <span className="text-[10px]">{travelTime}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="shrink-0 flex flex-col items-end gap-1">
+                            <p className="font-extrabold text-neutral-900 text-sm">₹{fareTotal.toLocaleString("en-IN")}</p>
+                            <p className="text-[9px] text-neutral-400 font-medium">Total payable</p>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Star className="w-3 h-3 text-orange-400 fill-orange-400" />
+                              <span className="text-[10px] font-bold text-neutral-700">{v.rating}</span>
+                            </div>
+                            <motion.div animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.3 }} className="mt-0.5">
+                              <ChevronRight className="w-4 h-4 text-blue-500" />
+                            </motion.div>
+                          </div>
                         </button>
-                      </div>
-                    </div>
+                      </motion.div>
+
+                      {/* ── Expanded detail panel (smooth slide-down) ── */}
+                      <AnimatePresence initial={false}>
+                        {isOpen && fare && (
+                          <motion.div
+                            key="detail"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-3 pb-3">
+                              <div className="border-t border-dashed border-neutral-200 pt-3">
+                                {/* Photo strip — tap any to open gallery */}
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide">Vehicle photos</p>
+                                  <button type="button" onClick={() => openGallery(v)} className="flex items-center gap-1 text-[11px] font-bold text-blue-600 active:opacity-70">
+                                    <Camera className="w-3 h-3" /> View all {imgs.length}
+                                  </button>
+                                </div>
+                                <div className="flex gap-2 mb-3 overflow-x-auto no-scrollbar">
+                                  {imgs.map((img, idx) => (
+                                    <button key={idx} type="button" onClick={() => openGallery(v)} className="relative shrink-0 w-20 h-14 rounded-lg overflow-hidden border border-neutral-200 active:scale-95 transition-transform">
+                                      <img src={`${img}?w=120&h=90&q=70&fit=crop`} alt={`${v.model} ${idx + 1}`} className="w-full h-full object-cover" />
+                                    </button>
+                                  ))}
+                                </div>
+
+                                {/* Route detail */}
+                                <div className="flex items-start gap-3 mb-3">
+                                  <div className="flex flex-col items-center pt-1">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                                    <div className="w-0.5 h-7 bg-gradient-to-b from-blue-600 to-orange-500" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-xs font-bold text-neutral-800">{pickup}</p>
+                                    <p className="text-[10px] text-neutral-400 mb-2">{mode === "outstation" ? "Pickup city" : "Pickup area"}</p>
+                                    <p className="text-xs font-bold text-neutral-800">{drop}</p>
+                                    <p className="text-[10px] text-neutral-400">{mode === "outstation" ? "Destination city" : "Drop area"}</p>
+                                  </div>
+                                </div>
+
+                                {/* Stat grid */}
+                                <div className="grid grid-cols-3 gap-2 mb-3">
+                                  <div className="bg-blue-50 rounded-xl p-2 text-center">
+                                    <Route className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
+                                    <p className="text-[11px] font-extrabold text-neutral-800">{distKm} km</p>
+                                    <p className="text-[9px] text-neutral-400">Distance</p>
+                                  </div>
+                                  <div className="bg-orange-50 rounded-xl p-2 text-center">
+                                    <Timer className="w-3.5 h-3.5 text-orange-600 mx-auto mb-0.5" />
+                                    <p className="text-[11px] font-extrabold text-neutral-800">~{durLabel}</p>
+                                    <p className="text-[9px] text-neutral-400">Est. time</p>
+                                  </div>
+                                  <div className="bg-blue-50 rounded-xl p-2 text-center">
+                                    <Clock className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
+                                    <p className="text-[10px] font-extrabold text-neutral-800 leading-tight">{win.label}</p>
+                                    <p className="text-[9px] text-neutral-400">Pickup window</p>
+                                  </div>
+                                </div>
+
+                                {/* ── TRANSPARENT TARIFF BREAKDOWN ── */}
+                                <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 mb-3">
+                                  <div className="flex items-center gap-1.5 mb-2">
+                                    <Receipt className="w-3.5 h-3.5 text-neutral-500" />
+                                    <span className="text-[11px] font-bold text-neutral-700 uppercase tracking-wide">Cost breakdown</span>
+                                  </div>
+                                  <div className="space-y-1.5 text-xs">
+                                    <div className="flex items-center justify-between text-neutral-600">
+                                      <span className="flex items-center gap-1.5"><Fuel className="w-3 h-3" /> Fuel</span>
+                                      <span>₹{fare.fuelCost.toLocaleString("en-IN")}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-neutral-600">
+                                      <span className="flex items-center gap-1.5"><Landmark className="w-3 h-3" /> Toll</span>
+                                      <span>₹{fare.tollCost.toLocaleString("en-IN")}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-neutral-700 font-semibold pt-1 border-t border-neutral-200">
+                                      <span>Trip cost</span>
+                                      <span>₹{fare.tripCost.toLocaleString("en-IN")}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-neutral-600">
+                                      <span className="flex items-center gap-1.5"><BadgePercent className="w-3 h-3" /> Platform fee (10%)</span>
+                                      <span>₹{fare.platformFee.toLocaleString("en-IN")}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-neutral-600">
+                                      <span>GST (18% on fee)</span>
+                                      <span>₹{fare.gst.toLocaleString("en-IN")}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-neutral-300">
+                                      <span className="text-sm font-extrabold text-neutral-900">Total payable</span>
+                                      <span className="text-base font-extrabold text-blue-600">₹{fare.total.toLocaleString("en-IN")}</span>
+                                    </div>
+                                  </div>
+                                  <p className="text-[9px] text-neutral-400 mt-2 text-center">
+                                    Transparent pricing — trip cost covers fuel &amp; tolls; platform fee + GST keep Shiftzy running.
+                                  </p>
+                                </div>
+
+                                {/* Owner row */}
+                                <div className="flex items-center gap-2 bg-neutral-50 rounded-xl p-2 mb-3">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-orange-100 flex items-center justify-center text-sm font-bold text-neutral-600 border border-neutral-200">
+                                    {v.ownerName?.charAt(0) ?? "?"}
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-xs font-bold text-neutral-800">{v.ownerName}</p>
+                                    <p className="text-[10px] text-neutral-400 flex items-center gap-1"><Clock className="w-2.5 h-2.5" /> {win.label}</p>
+                                  </div>
+                                  <div className="flex items-center gap-0.5 bg-white border border-neutral-200 rounded-full px-2 py-0.5">
+                                    <Star className="w-3 h-3 text-orange-400 fill-orange-400" />
+                                    <span className="text-[10px] font-bold text-neutral-700">{v.rating}</span>
+                                  </div>
+                                </div>
+
+                                {/* Book action */}
+                                <button
+                                  onClick={() => navigate(`/vehicle/${v.id}?distance=${distKm}&category=${typeOpt.fareCat}&pickup=${encodeURIComponent(pickup)}&drop=${encodeURIComponent(drop)}`)}
+                                  className={`w-full text-white font-bold text-xs py-2.5 rounded-xl active:scale-95 transition-all bg-gradient-to-r ${typeOpt.gradient}`}
+                                >
+                                  Book this vehicle
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
                   );
                 })}
               </div>
