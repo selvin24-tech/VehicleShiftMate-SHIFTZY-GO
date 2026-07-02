@@ -8,6 +8,7 @@ import {
 import { USER_PROFILE } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import HeaderLogo from "@/components/branding/HeaderLogo";
+import BrandName from "@/components/branding/BrandName";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
@@ -62,7 +63,7 @@ export default function Header({
       <SheetContent side="left" className="w-72 p-0 dark:bg-neutral-900">
         <SheetHeader className="bg-gradient-to-br from-blue-600 to-blue-700 px-5 pt-6 pb-5 text-left">
           <SheetTitle className="text-white text-lg">
-            <span>Shift</span><span className="text-orange-300">zy</span><span> Go</span>
+            <BrandName go onDark />
           </SheetTitle>
           <p className="text-blue-100 text-xs">Safe Shift. Joyful Journey.</p>
         </SheetHeader>
@@ -168,7 +169,9 @@ export default function Header({
         <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center">
           <span className="text-white text-[10px] font-black">S</span>
         </div>
-        <h1 className="font-bold text-base text-neutral-900 dark:text-neutral-100">{title}</h1>
+        <h1 className="font-bold text-base text-neutral-900 dark:text-neutral-100">
+          {title === "Shiftzy Go" ? <BrandName go /> : title}
+        </h1>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <button

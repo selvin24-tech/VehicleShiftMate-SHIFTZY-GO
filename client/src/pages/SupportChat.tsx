@@ -15,6 +15,7 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import BrandName from "@/components/branding/BrandName";
 import { formatDistanceToNow } from "date-fns";
 
 const VEHICLE_TYPES = ["Bike", "Car", "SUV", "Premium"];
@@ -117,7 +118,7 @@ export default function SupportChat() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="font-bold text-lg">Chat with Shiftzy</h1>
+            <h1 className="font-bold text-lg">Chat with <BrandName onDark /></h1>
             <p className="text-blue-100 text-xs flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" /> Direct line to our MD's desk
             </p>
@@ -260,7 +261,7 @@ export default function SupportChat() {
                   return (
                     <div key={m.id} className={`flex ${isCustomer ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[80%] rounded-2xl px-3 py-2 ${isCustomer ? "bg-blue-600 text-white" : "bg-white border border-neutral-200 text-neutral-800"}`}>
-                        {!isCustomer && <p className="text-[10px] font-bold text-orange-600 mb-0.5">Shiftzy · MD Desk</p>}
+                        {!isCustomer && <p className="text-[10px] font-bold mb-0.5"><BrandName /> · MD Desk</p>}
                         <p className="text-sm">{m.message}</p>
                         <p className={`text-[10px] mt-1 ${isCustomer ? "text-blue-100" : "text-neutral-400"}`}>
                           {(() => { try { return formatDistanceToNow(new Date(m.createdAt as any), { addSuffix: true }); } catch { return ""; } })()}

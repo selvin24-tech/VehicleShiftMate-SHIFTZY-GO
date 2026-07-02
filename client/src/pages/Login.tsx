@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Lock, User, CreditCard, Phone, CheckCircle2, ArrowLeft, UserPlus, LogIn, Car, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import BrandName from "@/components/branding/BrandName";
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 const signInSchema = z.object({
@@ -318,7 +319,7 @@ export default function Login() {
 
                 {/* Prominent Sign Up nudge */}
                 <div className="mt-5 p-4 bg-orange-50 border border-orange-200 rounded-xl text-center">
-                  <p className="text-sm text-orange-800 font-medium mb-2">New to Shiftzy Go?</p>
+                  <p className="text-sm text-orange-800 font-medium mb-2">New to <BrandName go />?</p>
                   <button
                     onClick={() => switchMode("signUp")}
                     className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-sm active:scale-95 transition-all flex items-center justify-center gap-2"

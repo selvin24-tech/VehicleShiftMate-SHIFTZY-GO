@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useRef, useEffect } from "react";
 import { Bot, Send, Sparkles } from "lucide-react";
 import ChatFloatingButton from "@/components/common/ChatFloatingButton";
+import BrandName from "@/components/branding/BrandName";
 
 // ── Simple in-app assistant knowledge base (keyword matched, no external API) ──
 const ASSISTANT_KB: { keywords: string[]; answer: string }[] = [
@@ -68,7 +69,7 @@ function HelpAssistant() {
           <Bot className="w-4 h-4 text-white" />
         </div>
         <div>
-          <p className="text-white font-bold text-sm flex items-center gap-1">Shiftzy Assistant <Sparkles className="w-3.5 h-3.5 text-yellow-300" /></p>
+          <p className="text-white font-bold text-sm flex items-center gap-1"><BrandName onDark /> Assistant <Sparkles className="w-3.5 h-3.5 text-yellow-300" /></p>
           <p className="text-blue-100 text-[11px]">Instant answers, 24/7</p>
         </div>
       </div>

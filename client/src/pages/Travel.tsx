@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
+import BrandName from "@/components/branding/BrandName";
 import {
   AVAILABLE_VEHICLES, LOCATIONS, CHENNAI_LOCALITIES, computeFare, FUEL_PRICE_PER_LITRE,
   getVehicleImages, getAvailabilityWindow, isWithinWindow,
@@ -36,13 +37,12 @@ const VEHICLE_TYPE_OPTIONS: {
   filter: (v: Vehicle) => boolean;
   gradient: string;
   accent: string;
-  border: string;
   bgLight: string;
 }[] = [
-  { id: "car",     emoji: "🚗", label: "Car",     desc: "Sedans & hatchbacks",  fareCat: "car",     filter: (v) => v.type === "car",    gradient: "from-orange-500 to-orange-600", accent: "text-orange-700", border: "border-orange-400", bgLight: "bg-orange-50" },
-  { id: "bike",    emoji: "🏍️", label: "Bike",    desc: "Quick & economical",   fareCat: "bike",    filter: (v) => v.type === "bike",   gradient: "from-blue-500 to-blue-700",     accent: "text-blue-700",   border: "border-blue-400",   bgLight: "bg-blue-50" },
-  { id: "suv",     emoji: "🚙", label: "SUV",     desc: "Spacious for families", fareCat: "suv",     filter: (v) => v.type === "suv",    gradient: "from-emerald-500 to-emerald-700", accent: "text-emerald-700", border: "border-emerald-400", bgLight: "bg-emerald-50" },
-  { id: "premium", emoji: "👑", label: "Premium", desc: "Luxury & top comfort",  fareCat: "premium", filter: (v) => v.type === "luxury", gradient: "from-purple-600 to-indigo-600", accent: "text-purple-700", border: "border-purple-400", bgLight: "bg-purple-50" },
+  { id: "car",     emoji: "🚗", label: "Car",     desc: "Sedans & hatchbacks",  fareCat: "car",     filter: (v) => v.type === "car",    gradient: "from-orange-500 to-orange-600", accent: "text-orange-700", bgLight: "bg-orange-50" },
+  { id: "bike",    emoji: "🏍️", label: "Bike",    desc: "Quick & economical",   fareCat: "bike",    filter: (v) => v.type === "bike",   gradient: "from-blue-500 to-blue-700",     accent: "text-blue-700",   bgLight: "bg-blue-50" },
+  { id: "suv",     emoji: "🚙", label: "SUV",     desc: "Spacious for families", fareCat: "suv",     filter: (v) => v.type === "suv",    gradient: "from-emerald-500 to-emerald-700", accent: "text-emerald-700", bgLight: "bg-emerald-50" },
+  { id: "premium", emoji: "👑", label: "Premium", desc: "Luxury & top comfort",  fareCat: "premium", filter: (v) => v.type === "luxury", gradient: "from-purple-600 to-indigo-600", accent: "text-purple-700", bgLight: "bg-purple-50" },
 ];
 
 /* ─── helpers ─── */
@@ -70,21 +70,6 @@ export default function Travel() {
   /* photo gallery popup */
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryVehicle, setGalleryVehicle] = useState<Vehicle | null>(null);
-
-  /* draggable type selector */
-  const trackRef = useRef<HTMLDivElement>(null);
-  const drag = useRef({ down: false, startX: 0, scroll: 0, moved: false });
-  const onPointerDown = (e: React.PointerEvent) => {
-    const el = trackRef.current; if (!el) return;
-    drag.current = { down: true, startX: e.clientX, scroll: el.scrollLeft, moved: false };
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    const el = trackRef.current; if (!el || !drag.current.down) return;
-    const dx = e.clientX - drag.current.startX;
-    if (Math.abs(dx) > 4) drag.current.moved = true;
-    el.scrollLeft = drag.current.scroll - dx;
-  };
-  const endDrag = () => { drag.current.down = false; };
 
   const typeOpt = VEHICLE_TYPE_OPTIONS.find(t => t.id === selectedType) ?? null;
   const locations = mode === "outstation" ? LOCATIONS : CHENNAI_LOCALITIES;
@@ -163,40 +148,29 @@ export default function Travel() {
           <p className="text-sm text-blue-600 mt-1">Choose a vehicle → pick travel type → set your route</p>
         </div>
 
-        {/* ─── STEP 1: Vehicle type (DRAGGABLE) ─── */}
+        {/* ─── STEP 1: Vehicle type (four boxes, matching the Shift page) ─── */}
         <div>
           <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
             Step 1 — Choose Your Vehicle
-            <span className="ml-2 normal-case text-neutral-300">← swipe / drag →</span>
           </p>
-          <div
-            ref={trackRef}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={endDrag}
-            onPointerLeave={endDrag}
-            className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none scrollbar-hide"
-            style={{ scrollbarWidth: "none" }}
-          >
+          <div className="grid grid-cols-2 gap-3">
             {VEHICLE_TYPE_OPTIONS.map(opt => {
               const active = selectedType === opt.id;
               return (
                 <button
                   key={opt.id}
                   type="button"
-                  onClick={() => { if (drag.current.moved) return; setSelectedType(opt.id); setSearched(false); }}
-                  className={`snap-center shrink-0 w-36 rounded-2xl border-2 p-4 text-left transition-all duration-200
-                    ${active ? `${opt.border} ${opt.bgLight} shadow-md scale-[1.02]` : "border-neutral-100 bg-white"}`}
+                  onClick={() => { setSelectedType(opt.id); setSearched(false); }}
+                  className={`rounded-xl p-4 flex flex-col items-center text-center shadow-sm active:scale-95 transition-all border
+                    ${active ? "border-blue-400 bg-blue-50" : "border-neutral-200 bg-white hover:border-blue-400 hover:bg-blue-50"}`}
                   data-testid={`button-type-${opt.id}`}
                 >
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${opt.gradient} flex items-center justify-center text-3xl shadow mb-2`}>
-                    {opt.emoji}
+                  <span className="text-3xl mb-1">{opt.emoji}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="font-semibold text-sm">{opt.label}</span>
+                    {active && <Check className="w-3.5 h-3.5 text-blue-600" />}
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-extrabold text-base text-neutral-900">{opt.label}</p>
-                    {active && <Check className={`w-4 h-4 ${opt.accent}`} />}
-                  </div>
-                  <p className="text-xs text-neutral-500 leading-tight">{opt.desc}</p>
+                  <span className="text-xs text-neutral-500 mt-0.5">{opt.desc}</span>
                 </button>
               );
             })}
@@ -621,7 +595,7 @@ export default function Travel() {
 
             {/* Summary info */}
             <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-2xl p-4 border border-blue-100">
-              <p className="text-xs font-bold text-blue-700 mb-2">💡 How Shiftzy Go Pricing Works</p>
+              <p className="text-xs font-bold text-blue-700 mb-2">💡 How <BrandName go /> Pricing Works</p>
               <div className="space-y-1">
                 <p className="text-xs text-neutral-600">• Fares are calculated from the <strong>current petrol price ₹{FUEL_PRICE_PER_LITRE}/L</strong> &amp; distance</p>
                 <p className="text-xs text-neutral-600">• You only see vehicles whose owner is <strong>available in your time range</strong></p>
