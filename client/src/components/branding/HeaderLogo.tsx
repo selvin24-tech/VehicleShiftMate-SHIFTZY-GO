@@ -69,7 +69,7 @@ function Wordmark() {
           initial={{ x: 0, opacity: 0 }}
           animate={{ x: [0, 14, 0], opacity: 1 }}
           transition={{ duration: 0.9, delay: 1.3, times: [0, 0.45, 1], ease: [0.25, 0.1, 0.25, 1] }}
-          style={{ color: "#111827", display: "inline-block" }}
+          style={{ color: "#1d4ed8", display: "inline-block" }}
         >
           GO
         </motion.span>
@@ -174,7 +174,7 @@ export default function HeaderLogo() {
         >
           <span style={{ color: "#1d4ed8" }}>SHIFT</span>
           <span style={{ color: "#f97316", margin: "0 1px" }}>ZY</span>
-          <span style={{ color: "#111827" }} className="ml-1">GO</span>
+          <span style={{ color: "#1d4ed8" }} className="ml-1">GO</span>
         </div>
         <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-medium tracking-wide -mt-0.5">Safe Shift. Joyful Journey.</p>
       </div>
