@@ -6,3 +6,9 @@ id = "bHjIKvc9bpQ9e-29vOnGf"
 uri = "file://shiftzygo-source.tar.gz"
 type = "unspecified"
 title = "ShiftzyGo Source Code"
+
+[[outputs]]
+id = "Bc5zpzS-s6dq6u4XdXs2v"
+uri = "file://Shiftzy-Go-full-source.txt"
+type = "text"
+title = "Shiftzy Go — Complete Source Code (single file)"
