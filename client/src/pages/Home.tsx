@@ -3,7 +3,9 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import ChatFloatingButton from "@/components/common/ChatFloatingButton";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
+import heroBanner from "@assets/file_00000000b280720988e7255eb04daace_1783322892934.png";
 import {
   NEARBY_SHIFT_REQUESTS, computeFare, vehicleTypeToFareCategory,
   getVehicleImages, getAvailabilityWindow,
@@ -76,55 +78,24 @@ export default function Home() {
         </button>
       </div>
 
-      {/* ── Hero Banner ── */}
-      <div
-        className="mx-4 mt-4 rounded-2xl overflow-hidden relative"
-        style={{
-          background: "linear-gradient(135deg, #e8f1fd 0%, #f0f7ff 40%, #dbeafe 100%)",
-          minHeight: "140px",
-        }}
-      >
-        {/* City skyline silhouette */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-12 opacity-10"
-          style={{
-            background: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 60'%3E%3Crect x='10' y='20' width='20' height='40' fill='%231d4ed8'/%3E%3Crect x='35' y='10' width='15' height='50' fill='%231d4ed8'/%3E%3Crect x='55' y='25' width='25' height='35' fill='%231d4ed8'/%3E%3Crect x='85' y='5' width='18' height='55' fill='%231d4ed8'/%3E%3Crect x='108' y='18' width='22' height='42' fill='%231d4ed8'/%3E%3Crect x='250' y='15' width='20' height='45' fill='%231d4ed8'/%3E%3Crect x='275' y='8' width='15' height='52' fill='%231d4ed8'/%3E%3Crect x='295' y='22' width='25' height='38' fill='%231d4ed8'/%3E%3Crect x='325' y='5' width='18' height='55' fill='%231d4ed8'/%3E%3Crect x='348' y='18' width='22' height='42' fill='%231d4ed8'/%3E%3C/svg%3E\") center bottom / cover no-repeat"
-          }}
+      {/* ── Hero Banner: India's Smart Vehicle Shifting App ── */}
+      <div className="mx-4 mt-4 rounded-2xl overflow-hidden relative shadow-sm border border-blue-100 dark:border-neutral-800">
+        <img
+          src={heroBanner}
+          alt="India's Smart Vehicle Shifting App — Drop your vehicle details or check available vehicle to travel"
+          className="w-full block"
         />
-
-        <div className="relative flex items-center justify-between px-4 py-5">
-          {/* Left: tagline */}
-          <div className="flex-1 pr-2">
-            <h2 className="text-xl font-extrabold text-neutral-900 leading-snug">
-              Move your vehicle.
-            </h2>
-            <h2 className="text-xl font-extrabold text-orange-500 leading-snug">
-              Enjoy the journey.
-            </h2>
-            <p className="text-xs text-neutral-500 mt-2 font-medium">
-              Trusted travelers. Safe delivery.
-            </p>
-          </div>
-
-          {/* Right: car + phone illustration */}
-          <div className="relative w-36 h-28 shrink-0">
-            <img
-              src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=200&q=80"
-              alt="Vehicle"
-              className="absolute bottom-0 right-0 w-32 h-20 object-cover rounded-xl shadow-md"
-              style={{ objectPosition: "center 60%" }}
-            />
-            {/* Phone with map pin overlay */}
-            <div className="absolute top-0 right-0 w-10 h-14 bg-white rounded-lg shadow-lg border border-neutral-200 flex flex-col items-center justify-center gap-1">
-              <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
-                <MapPin className="w-3.5 h-3.5 text-blue-600" />
-              </div>
-              <div className="w-5 h-0.5 bg-orange-400 rounded-full" />
-              <div className="w-4 h-0.5 bg-blue-300 rounded-full" />
-              <div className="w-5 h-0.5 bg-orange-300 rounded-full" />
-            </div>
-          </div>
-        </div>
+        {/* Tap zones over the two concept sides */}
+        <button
+          onClick={() => navigate("/shift-request")}
+          aria-label="Drop your vehicle details"
+          className="absolute inset-y-0 left-0 w-1/2 active:bg-blue-900/5 transition-colors"
+        />
+        <button
+          onClick={() => navigate("/travel")}
+          aria-label="Check available vehicle to travel"
+          className="absolute inset-y-0 right-0 w-1/2 active:bg-orange-900/5 transition-colors"
+        />
       </div>
 
       {/* ── SHIFT + GO side-by-side ── */}
@@ -252,7 +223,7 @@ export default function Home() {
       {/* ── Nearby Available Trips ── */}
       <div className="px-4 mt-6">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-base font-extrabold text-neutral-900 dark:text-neutral-100">Nearby available trips</h2>
+          <h2 data-tour="nearby-trips" className="text-base font-extrabold text-neutral-900 dark:text-neutral-100">Nearby available trips</h2>
           <button
             onClick={() => navigate("/nearby")}
             className="flex items-center gap-0.5 text-xs font-bold text-blue-600"
@@ -546,6 +517,7 @@ export default function Home() {
         </div>
       </div>
 
+      <ChatFloatingButton />
       <BottomNav />
     </div>
   );

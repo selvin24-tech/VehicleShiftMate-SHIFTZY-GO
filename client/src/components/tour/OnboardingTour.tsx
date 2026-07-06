@@ -1,74 +1,54 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { X, ArrowRight, ArrowLeft } from "lucide-react";
+import { useState, useEffect, useLayoutEffect } from "react";
+import { X, ArrowRight } from "lucide-react";
 
 interface TourStep {
   id: string;
   title: string;
   description: string;
   target: string;
-  position: "top" | "bottom" | "left" | "right";
 }
 
 const tourSteps: TourStep[] = [
   {
-    id: "welcome",
-    title: "Welcome to Shiftzy Go! 👋",
-    description: "Safe Shift. Joyful Journey. Here's a quick 60-second tour of everything you can do. You can skip anytime.",
-    target: "body",
-    position: "bottom"
-  },
-  {
-    id: "shift-option",
-    title: "🚛 Shift Your Vehicle",
-    description: "Tap the blue SHIFT card to send your car or bike to another place. Choose a professional driver or a verified traveler going your way.",
+    id: "shift",
+    title: "Shift",
+    description: "Send your car or bike to another city.",
     target: "[data-tour='shift-option']",
-    position: "bottom"
   },
   {
-    id: "go-option",
-    title: "🛞 Go & Travel",
-    description: "Tap the orange GO card to find a vehicle to drive on your route — travel and save by sharing the trip cost.",
+    id: "go",
+    title: "Go",
+    description: "Find a vehicle to drive and save on travel.",
     target: "[data-tour='go-option']",
-    position: "bottom"
   },
   {
-    id: "my-rides",
-    title: "🧳 My Rides",
-    description: "All your Shift and Go requests live here with live status — pending, driver assigned, in transit and completed.",
-    target: "body",
-    position: "bottom"
+    id: "nearby",
+    title: "Nearby Rides",
+    description: "See live trips available around you.",
+    target: "[data-tour='nearby-trips']",
   },
   {
-    id: "payments",
-    title: "🧾 Payment History",
-    description: "Every payment, refund and invoice is saved in Payment History, which you can open from your Profile.",
-    target: "body",
-    position: "bottom"
+    id: "profile",
+    title: "Profile",
+    description: "Manage your account and saved details.",
+    target: "[data-tour='profile']",
   },
   {
     id: "assistant",
-    title: "🤖 AI Help Assistant",
-    description: "Have a doubt? The in-app assistant answers common questions about shifting, fares, safety and bookings instantly.",
-    target: "[data-tour='support-option']",
-    position: "top"
+    title: "AI Assistant",
+    description: "Tap here anytime for instant help.",
+    target: "[data-tour='ai-assistant']",
   },
   {
-    id: "support",
-    title: "💬 Talk to the MD's Desk",
-    description: "Need a custom route or special help? Message our team directly and share your exact pickup and drop.",
-    target: "[data-tour='support-option']",
-    position: "top"
+    id: "tracking",
+    title: "Live Tracking",
+    description: "Follow your trip on the map in real time.",
+    target: "[data-tour='track-nav']",
   },
-  {
-    id: "safety",
-    title: "🚨 Safety & SOS",
-    description: "The red SOS button reaches Ambulance, Police, Fire and your saved emergency contacts. Add them in your Profile.",
-    target: "body",
-    position: "top"
-  }
 ];
+
+const TOOLTIP_W = 244;
+const TOOLTIP_H = 118; // approximate, used for clamping
 
 interface OnboardingTourProps {
   isVisible: boolean;
@@ -78,25 +58,47 @@ interface OnboardingTourProps {
 export default function OnboardingTour({ isVisible, onComplete }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isActive, setIsActive] = useState(false);
+  const [rect, setRect] = useState<DOMRect | null>(null);
+
+  const step = tourSteps[currentStep];
 
   useEffect(() => {
     if (isVisible) {
+      setCurrentStep(0);
       setIsActive(true);
     }
   }, [isVisible]);
 
-  const handleNext = () => {
-    if (currentStep < tourSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleComplete();
-    }
-  };
+  // Scroll target into view, then measure its position.
+  useLayoutEffect(() => {
+    if (!isActive) return;
+    const el = document.querySelector(step.target) as HTMLElement | null;
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const t = setTimeout(() => {
+      const found = document.querySelector(step.target) as HTMLElement | null;
+      setRect(found ? found.getBoundingClientRect() : null);
+    }, 320);
+    return () => clearTimeout(t);
+  }, [isActive, currentStep, step.target]);
 
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
+  // Keep the highlight glued to the target while the page moves.
+  useEffect(() => {
+    if (!isActive) return;
+    const sync = () => {
+      const el = document.querySelector(step.target) as HTMLElement | null;
+      setRect(el ? el.getBoundingClientRect() : null);
+    };
+    window.addEventListener("resize", sync);
+    window.addEventListener("scroll", sync, true);
+    return () => {
+      window.removeEventListener("resize", sync);
+      window.removeEventListener("scroll", sync, true);
+    };
+  }, [isActive, step.target]);
+
+  const handleNext = () => {
+    if (currentStep < tourSteps.length - 1) setCurrentStep(currentStep + 1);
+    else handleComplete();
   };
 
   const handleComplete = () => {
@@ -105,116 +107,134 @@ export default function OnboardingTour({ isVisible, onComplete }: OnboardingTour
     onComplete();
   };
 
-  const handleSkip = () => {
-    handleComplete();
-  };
-
   if (!isActive) return null;
 
-  const currentTourStep = tourSteps[currentStep];
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Tooltip placement (falls back to screen center if target not found).
+  let tooltipStyle: React.CSSProperties;
+  let arrowLeft = TOOLTIP_W / 2;
+  let placeBelow = true;
+  const showArrow = !!rect;
+
+  if (rect) {
+    const spaceBelow = vh - rect.bottom;
+    placeBelow = spaceBelow > TOOLTIP_H + 24;
+    const centerX = rect.left + rect.width / 2;
+    let left = centerX - TOOLTIP_W / 2;
+    left = Math.max(12, Math.min(left, vw - TOOLTIP_W - 12));
+    arrowLeft = Math.max(18, Math.min(centerX - left, TOOLTIP_W - 18));
+    let top = placeBelow ? rect.bottom + 14 : rect.top - 14;
+    // vertical clamp so the card never leaves the screen
+    if (placeBelow) top = Math.min(top, vh - TOOLTIP_H - 12);
+    else top = Math.max(top, TOOLTIP_H + 12);
+    tooltipStyle = {
+      top,
+      left,
+      width: TOOLTIP_W,
+      transform: placeBelow ? "none" : "translateY(-100%)",
+    };
+  } else {
+    tooltipStyle = {
+      top: vh / 2,
+      left: Math.max(12, vw / 2 - TOOLTIP_W / 2),
+      width: TOOLTIP_W,
+      transform: "translateY(-50%)",
+    };
+  }
+
+  const isLast = currentStep === tourSteps.length - 1;
 
   return (
     <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/50 z-50" />
-      
-      {/* Tour Card */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4">
-        <Card className="p-6 shadow-2xl border-2 border-primary-200 bg-white">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                {currentStep + 1}
-              </div>
-              <span className="text-sm text-neutral-500">
-                {currentStep + 1} of {tourSteps.length}
-              </span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSkip}
-              className="text-neutral-500 hover:text-neutral-700"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+      {/* Full-screen click blocker (dismiss on backdrop tap) */}
+      <div className="fixed inset-0 z-[59]" onClick={handleComplete} />
 
-          {/* Content */}
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-2 text-neutral-800">
-              {currentTourStep.title}
-            </h3>
-            <p className="text-neutral-600 leading-relaxed">
-              {currentTourStep.description}
-            </p>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full bg-neutral-200 rounded-full h-2 mb-6">
-            <div 
-              className="bg-gradient-to-r from-blue-600 to-blue-700 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentStep + 1) / tourSteps.length) * 100}%` }}
-            />
-          </div>
-
-          {/* Navigation */}
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Previous
-            </Button>
-
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                onClick={handleSkip}
-                className="text-neutral-500"
-              >
-                Skip Tour
-              </Button>
-              <Button
-                onClick={handleNext}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 flex items-center gap-2"
-              >
-                {currentStep === tourSteps.length - 1 ? "Finish" : "Next"}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Highlight overlay for specific elements */}
-      {currentTourStep.target !== "body" && (
-        <style>{`
-          ${currentTourStep.target} {
-            position: relative !important;
-            z-index: 51 !important;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.8), 0 0 0 8px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.5) !important;
-            border-radius: 12px !important;
-            animation: tourPulse 2s infinite;
-          }
-          
-          @keyframes tourPulse {
-            0% {
-              box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.8), 0 0 0 8px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.5);
-            }
-            50% {
-              box-shadow: 0 0 0 6px rgba(59, 130, 246, 1), 0 0 0 12px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.7);
-            }
-            100% {
-              box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.8), 0 0 0 8px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.5);
-            }
-          }
-        `}</style>
+      {/* Spotlight: dims the screen except the target, with an orange ring.
+          Drawn as a top-level fixed element so it works regardless of the
+          target's own stacking context (header, bottom nav, etc). */}
+      {rect && (
+        <div
+          className="fixed z-[60] pointer-events-none"
+          style={{
+            top: rect.top - 6,
+            left: rect.left - 6,
+            width: rect.width + 12,
+            height: rect.height + 12,
+            borderRadius: 14,
+            boxShadow:
+              "0 0 0 3px #f97316, 0 0 0 9999px rgba(0,0,0,0.55), 0 0 22px 2px rgba(249,115,22,0.5)",
+          }}
+        />
       )}
+
+      {/* Compact coach-mark tooltip */}
+      <div className="fixed z-[62]" style={tooltipStyle}>
+        {showArrow && (
+          <div
+            className="absolute w-3 h-3 bg-white rotate-45"
+            style={{
+              left: arrowLeft - 6,
+              [placeBelow ? "top" : "bottom"]: -5,
+            }}
+          />
+        )}
+
+        <div className="relative bg-white rounded-2xl shadow-2xl border border-neutral-100 px-3.5 py-3">
+          <button
+            onClick={handleComplete}
+            aria-label="Close tour"
+            className="absolute top-2 right-2 text-neutral-300 hover:text-neutral-500"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+
+          <div className="flex items-baseline gap-1.5 pr-5">
+            <span className="text-[10px] font-bold text-blue-600">
+              {currentStep + 1}/{tourSteps.length}
+            </span>
+            <h3 className="text-sm font-extrabold text-neutral-900 leading-tight">
+              {step.title}
+            </h3>
+          </div>
+          <p className="text-[12px] text-neutral-500 leading-snug mt-0.5">
+            {step.description}
+          </p>
+
+          <div className="flex items-center justify-between mt-2.5">
+            {/* Progress dots */}
+            <div className="flex items-center gap-1">
+              {tourSteps.map((s, i) => (
+                <span
+                  key={s.id}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === currentStep ? "w-4 bg-orange-500" : "w-1.5 bg-neutral-200"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {!isLast && (
+                <button
+                  onClick={handleComplete}
+                  className="text-[11px] font-semibold text-neutral-400 hover:text-neutral-600 px-1"
+                >
+                  Skip
+                </button>
+              )}
+              <button
+                onClick={handleNext}
+                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-full pl-3 pr-2.5 py-1.5 active:scale-95 transition-all"
+              >
+                {isLast ? "Done" : "Next"}
+                {!isLast && <ArrowRight className="w-3 h-3" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

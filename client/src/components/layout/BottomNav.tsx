@@ -329,6 +329,7 @@ export default function BottomNav() {
         {rightNavItems.map((item) => (
           <button
             key={item.path}
+            data-tour={item.path === "/track" ? "track-nav" : undefined}
             className={cn(
               "flex flex-col items-center",
               location === item.path ? "text-primary-500" : "text-neutral-500"

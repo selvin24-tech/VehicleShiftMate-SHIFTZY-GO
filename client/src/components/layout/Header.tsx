@@ -131,7 +131,7 @@ export default function Header({
               </span>
             )}
           </button>
-          <button onClick={() => setLocation("/profile")} aria-label="Profile">
+          <button onClick={() => setLocation("/profile")} aria-label="Profile" data-tour="profile">
             <Avatar className="h-8 w-8 border-2 border-orange-200">
               <AvatarImage src={USER_PROFILE.avatarUrl} alt={USER_PROFILE.name} />
               <AvatarFallback className="bg-blue-100 text-blue-700 font-bold text-sm">

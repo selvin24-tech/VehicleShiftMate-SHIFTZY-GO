@@ -111,6 +111,7 @@ export default function ChatFloatingButton() {
     <>
       <button 
         onClick={handleChatClick}
+        data-tour="ai-assistant"
         className={cn(
           "fixed bottom-20 right-5 z-50 w-14 h-14 rounded-full bg-primary-500 text-white",
           "flex items-center justify-center shadow-lg hover:bg-primary-600",
