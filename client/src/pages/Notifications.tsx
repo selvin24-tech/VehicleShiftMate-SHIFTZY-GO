@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Bell, ChevronLeft, CheckCheck, Package, CreditCard, Car, XCircle, Navigation } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
-import { getStoredNotifs, type StoredIconKey } from "@/lib/notificationsStore";
+import {
+  useStoredNotifs, markNotifRead, markAllNotifsRead, type StoredIconKey,
+} from "@/lib/notificationsStore";
 
 const ICON_MAP: Record<StoredIconKey, typeof Package> = {
   request: Package,
@@ -14,17 +16,6 @@ const ICON_MAP: Record<StoredIconKey, typeof Package> = {
 };
 
 type NotifCategory = "all" | "bookings" | "payments";
-
-// Version 1 supports only these notification types:
-// Booking Request, Booking Accepted, Booking Rejected, Payment Successful, Trip Started, Trip Completed.
-const NOTIFICATIONS = [
-  { id: 1, category: "bookings", icon: Package, color: "blue", title: "Booking Request", body: "Ananya S. requested to book your Honda City · Chennai → Bangalore", time: "2 min ago", unread: true },
-  { id: 2, category: "bookings", icon: CheckCheck, color: "blue", title: "Booking Accepted", body: "Karthik R. accepted your booking for Toyota Innova · Chennai → Coimbatore", time: "20 min ago", unread: true },
-  { id: 3, category: "payments", icon: CreditCard, color: "blue", title: "Payment Successful", body: "₹3,780 paid successfully for booking SZG-2048. Chat is now unlocked.", time: "18 min ago", unread: true },
-  { id: 4, category: "bookings", icon: Navigation, color: "blue", title: "Trip Started", body: "Your trip has started. Track your vehicle live on the map.", time: "1 hr ago", unread: false },
-  { id: 5, category: "bookings", icon: Car, color: "blue", title: "Trip Completed", body: "Your vehicle (TN 09 AB 1234) was safely delivered to Bangalore.", time: "2 hr ago", unread: false },
-  { id: 6, category: "bookings", icon: XCircle, color: "orange", title: "Booking Rejected", body: "Your booking request for MG Hector was declined. Try another vehicle.", time: "Yesterday", unread: false },
-];
 
 const CATEGORY_TABS: { id: NotifCategory; label: string }[] = [
   { id: "all", label: "All" },
@@ -40,25 +31,16 @@ const colorMap: Record<string, string> = {
 export default function Notifications() {
   const [, navigate] = useLocation();
   const [active, setActive] = useState<NotifCategory>("all");
-  const [notifications, setNotifications] = useState(() => {
-    const stored = getStoredNotifs().map(n => ({
-      id: n.id,
-      category: n.category,
-      icon: ICON_MAP[n.iconKey] ?? Package,
-      color: n.color,
-      title: n.title,
-      body: n.body,
-      time: n.time,
-      unread: n.unread,
-    }));
-    return [...stored, ...NOTIFICATIONS];
-  });
+  const notifications = useStoredNotifs();
 
   const filtered = active === "all" ? notifications : notifications.filter(n => n.category === active);
   const unreadCount = notifications.filter(n => n.unread).length;
 
-  const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
-  const markRead = (id: number) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+  const markAllRead = () => markAllNotifsRead();
+  const handleTap = (id: number, requestId?: string) => {
+    markNotifRead(id);
+    if (requestId) navigate(`/request/${requestId}`);
+  };
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
@@ -108,11 +90,11 @@ export default function Notifications() {
             <p className="font-semibold text-neutral-400">No notifications here</p>
           </div>
         ) : filtered.map(n => {
-          const Icon = n.icon;
+          const Icon = ICON_MAP[n.iconKey] ?? Package;
           return (
             <div
               key={n.id}
-              onClick={() => markRead(n.id)}
+              onClick={() => handleTap(n.id, n.requestId)}
               className={`flex items-start gap-3 px-4 py-4 cursor-pointer transition-colors ${n.unread ? "bg-blue-50/60" : "bg-white"}`}
             >
               <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${colorMap[n.color]}`}>

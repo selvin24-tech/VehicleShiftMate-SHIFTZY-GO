@@ -13,6 +13,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { useTheme } from "@/components/ui/theme-provider";
+import { useUnreadNotifCount } from "@/lib/notificationsStore";
 
 interface HeaderProps {
   title?: string;
@@ -41,7 +42,7 @@ export default function Header({
   showAnimation = true,
 }: HeaderProps) {
   const [, setLocation] = useLocation();
-  const [unreadCount] = useState(4);
+  const unreadCount = useUnreadNotifCount();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";

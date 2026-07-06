@@ -23,9 +23,11 @@ import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import MyRides from "@/pages/MyRides";
 import PaymentHistory from "@/pages/PaymentHistory";
+import AcceptedRequest from "@/pages/AcceptedRequest";
 import { ChatProvider } from "@/contexts/ChatContext";
 import LoadingScreen from "@/components/branding/LoadingScreen";
 import { ensureSeed } from "@/lib/appStore";
+import { ensureNotifSeed } from "@/lib/notificationsStore";
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -41,6 +43,7 @@ function Router() {
       setIsLoading(false);
     };
     ensureSeed();
+    ensureNotifSeed();
     checkAuth();
   }, []);
 
@@ -68,6 +71,7 @@ function Router() {
       <Route path="/vehicle/:id" component={VehicleDetails} />
       <Route path="/checkout/:vehicleId" component={Checkout} />
       <Route path="/nearby" component={Nearby} />
+      <Route path="/request/:id" component={AcceptedRequest} />
       <Route path="/notifications" component={Notifications} />
       <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/terms" component={Terms} />

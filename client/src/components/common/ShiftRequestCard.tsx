@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import ChatButton from "@/components/common/ChatButton";
+import SendRequestButton from "@/components/common/SendRequestButton";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
 import {
   Clock, Fuel, Landmark, BadgePercent, Receipt, Camera, Images,
@@ -160,15 +160,7 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
         {/* Actions */}
         {showDetails ? (
           <div className="flex gap-2">
-            <Button className="flex-1 bg-primary-500 hover:bg-primary-600 text-white" onClick={handleAccept}>
-              Accept Shift
-            </Button>
-            <ChatButton
-              userId={Number(request.userId)}
-              shiftRequestId={Number(request.id)}
-              variant="outline"
-              size="default"
-            />
+            <SendRequestButton request={request} className="flex-1" />
           </div>
         ) : (
           <Button size="sm" className="w-full bg-primary-500 hover:bg-primary-600 text-white" onClick={handleAccept}>

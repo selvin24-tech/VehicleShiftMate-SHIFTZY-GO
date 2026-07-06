@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import ChatFloatingButton from "@/components/common/ChatFloatingButton";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
+import SendRequestButton from "@/components/common/SendRequestButton";
 import heroBanner from "@assets/file_00000000b280720988e7255eb04daace_1783322892934.png";
 import {
   NEARBY_SHIFT_REQUESTS, computeFare, vehicleTypeToFareCategory,
@@ -79,7 +80,7 @@ export default function Home() {
       </div>
 
       {/* ── Hero Banner: India's Smart Vehicle Shifting App ── */}
-      <div className="mx-4 mt-4 rounded-2xl overflow-hidden relative shadow-sm border border-blue-100 dark:border-neutral-800">
+      <div className="mx-auto mt-4 max-w-xs rounded-2xl overflow-hidden relative shadow-sm border border-blue-100 dark:border-neutral-800">
         <img
           src={heroBanner}
           alt="India's Smart Vehicle Shifting App — Drop your vehicle details or check available vehicle to travel"
@@ -198,27 +199,6 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* ── Chat with MD banner ── */}
-      <div className="px-4 mt-4">
-        <button
-          onClick={() => navigate("/support")}
-          className="w-full rounded-2xl p-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform shadow-md"
-          style={{ background: "linear-gradient(135deg,#1d4ed8 0%,#f97316 100%)" }}
-          data-tour="support-option"
-        >
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-            <MessageCircle className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-extrabold text-[15px] leading-tight">Have a question? Chat with us</p>
-            <p className="text-white/85 text-[11px] font-medium mt-0.5 leading-snug">
-              Talk directly to our MD's desk — custom routes, availability &amp; more
-            </p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-white shrink-0" />
-        </button>
-      </div>
 
       {/* ── Nearby Available Trips ── */}
       <div className="px-4 mt-6">
@@ -454,18 +434,7 @@ export default function Home() {
 
                           {/* Action buttons */}
                           <div className="flex gap-2">
-                            <button
-                              onClick={() => navigate("/nearby")}
-                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl active:scale-95 transition-all"
-                            >
-                              Accept &amp; Shift
-                            </button>
-                            <button
-                              onClick={() => navigate("/chat")}
-                              className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center active:scale-95 transition-all"
-                            >
-                              <MessageCircle className="w-4 h-4" />
-                            </button>
+                            <SendRequestButton request={req} className="flex-1" />
                             <button className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center active:scale-95 transition-all">
                               <Phone className="w-4 h-4" />
                             </button>
@@ -479,6 +448,27 @@ export default function Home() {
             );
           })}
         </div>
+      </div>
+
+      {/* ── Chat with MD banner ── */}
+      <div className="px-4 mt-6">
+        <button
+          onClick={() => navigate("/support")}
+          className="w-full rounded-2xl p-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform shadow-md"
+          style={{ background: "linear-gradient(135deg,#1d4ed8 0%,#f97316 100%)" }}
+          data-tour="support-option"
+        >
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+            <MessageCircle className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-extrabold text-[15px] leading-tight">Have a question? Chat with us</p>
+            <p className="text-white/85 text-[11px] font-medium mt-0.5 leading-snug">
+              Talk directly to our MD's desk — custom routes, availability &amp; more
+            </p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-white shrink-0" />
+        </button>
       </div>
 
       {/* ── Vehicle photo gallery popup (shared) ── */}
