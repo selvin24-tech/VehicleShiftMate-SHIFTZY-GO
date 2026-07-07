@@ -357,11 +357,11 @@ export default function Home() {
                               <p className="text-xs font-bold text-neutral-800">{req.dropLocation.name}</p>
                               <p className="text-[10px] text-neutral-400">{req.dropLocation.address}</p>
                             </div>
-                            {/* Total transport cost (fuel + toll) shown straight opposite the route */}
+                            {/* You pay + saving — straight opposite the route */}
                             <div className="shrink-0 text-right bg-green-50 border border-green-200 rounded-xl px-3 py-2">
-                              <p className="text-[9px] font-bold text-green-700 uppercase tracking-wide">Total transport</p>
-                              <p className="text-base font-extrabold text-green-700 leading-tight">₹{fare.tripCost.toLocaleString("en-IN")}</p>
-                              <p className="text-[9px] text-neutral-500 leading-tight">Fuel + toll</p>
+                              <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-wide">You pay</p>
+                              <p className="text-base font-extrabold text-green-700 leading-tight">₹{fare.total.toLocaleString("en-IN")}</p>
+                              <p className="text-[9px] font-bold text-green-600 leading-tight">Save ₹{fare.savings.toLocaleString("en-IN")}!</p>
                             </div>
                           </div>
 
@@ -384,40 +384,62 @@ export default function Home() {
                             </div>
                           </div>
 
-                          {/* ── TRANSPARENT TARIFF BREAKDOWN ── */}
+                          {/* ── COST BREAKDOWN + SAVINGS ── */}
                           <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 mb-3">
                             <div className="flex items-center gap-1.5 mb-2">
                               <Receipt className="w-3.5 h-3.5 text-neutral-500" />
                               <span className="text-[11px] font-bold text-neutral-700 uppercase tracking-wide">Cost breakdown</span>
                             </div>
-                            <div className="space-y-1.5 text-xs">
-                              <div className="flex items-center justify-between text-neutral-600">
-                                <span className="flex items-center gap-1.5"><Fuel className="w-3 h-3" /> Fuel</span>
-                                <span>₹{fare.fuelCost.toLocaleString("en-IN")}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-neutral-600">
-                                <span className="flex items-center gap-1.5"><Landmark className="w-3 h-3" /> Toll</span>
-                                <span>₹{fare.tollCost.toLocaleString("en-IN")}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-neutral-700 font-semibold pt-1 border-t border-neutral-200">
-                                <span>Trip cost</span>
-                                <span>₹{fare.tripCost.toLocaleString("en-IN")}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-neutral-600">
-                                <span className="flex items-center gap-1.5"><BadgePercent className="w-3 h-3" /> Platform fee (10%)</span>
-                                <span>₹{fare.platformFee.toLocaleString("en-IN")}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-neutral-600">
-                                <span>GST (18% on fee)</span>
-                                <span>₹{fare.gst.toLocaleString("en-IN")}</span>
-                              </div>
-                              <div className="flex items-center justify-between pt-2 mt-1 border-t border-neutral-300">
-                                <span className="text-sm font-extrabold text-neutral-900">Total payable</span>
-                                <span className="text-base font-extrabold text-blue-600">₹{fare.total.toLocaleString("en-IN")}</span>
+
+                            {/* Solo cost (what you'd pay without the app) */}
+                            <div className="bg-red-50 border border-red-100 rounded-lg px-2.5 py-2 mb-2">
+                              <p className="text-[9px] font-bold text-red-500 uppercase tracking-wide mb-1">If you travel alone</p>
+                              <div className="space-y-1 text-xs text-neutral-600">
+                                <div className="flex justify-between">
+                                  <span className="flex items-center gap-1.5"><Fuel className="w-3 h-3" /> Fuel</span>
+                                  <span>₹{fare.fuelCost.toLocaleString("en-IN")}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="flex items-center gap-1.5"><Landmark className="w-3 h-3" /> Toll</span>
+                                  <span>₹{fare.tollCost.toLocaleString("en-IN")}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-red-600 pt-1 border-t border-red-100">
+                                  <span>Total solo cost</span>
+                                  <span>₹{fare.tripCost.toLocaleString("en-IN")}</span>
+                                </div>
                               </div>
                             </div>
+
+                            {/* Via Shiftzy (what traveler pays) */}
+                            <div className="bg-green-50 border border-green-100 rounded-lg px-2.5 py-2 mb-2">
+                              <p className="text-[9px] font-bold text-green-600 uppercase tracking-wide mb-1">Via Shiftzy — you pay</p>
+                              <div className="space-y-1 text-xs text-neutral-600">
+                                <div className="flex justify-between">
+                                  <span>Your 50% share (fuel + toll)</span>
+                                  <span>₹{fare.travelerShare.toLocaleString("en-IN")}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="flex items-center gap-1.5"><BadgePercent className="w-3 h-3" /> Platform fee (10%)</span>
+                                  <span>₹{fare.platformFee.toLocaleString("en-IN")}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>GST (18% on fee)</span>
+                                  <span>₹{fare.gst.toLocaleString("en-IN")}</span>
+                                </div>
+                                <div className="flex justify-between font-extrabold text-green-700 pt-1 border-t border-green-200 text-sm">
+                                  <span>Total you pay</span>
+                                  <span>₹{fare.total.toLocaleString("en-IN")}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Savings banner */}
+                            <div className="flex items-center justify-between bg-orange-500 rounded-lg px-3 py-2">
+                              <span className="text-[11px] font-bold text-white">🎉 You save</span>
+                              <span className="text-base font-extrabold text-white">₹{fare.savings.toLocaleString("en-IN")}</span>
+                            </div>
                             <p className="text-[9px] text-neutral-400 mt-2 text-center">
-                              Transparent pricing — trip cost covers fuel &amp; tolls; platform fee + GST keep Shiftzy running.
+                              Both traveler &amp; shifter share the trip cost equally — everyone wins!
                             </p>
                           </div>
 

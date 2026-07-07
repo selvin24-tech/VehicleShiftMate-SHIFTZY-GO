@@ -92,23 +92,29 @@ export interface FareBreakdown {
   distanceKm: number;
   fuelCost: number;
   tollCost: number;
-  tripCost: number;    // fuel + toll (shared running cost)
-  platformFee: number; // Shiftzy app fee → admin
-  gst: number;         // GST on app fee
-  total: number;       // amount payable
+  tripCost: number;       // full fuel + toll if travelling alone
+  travelerShare: number;  // traveler's 50% share of fuel + toll
+  platformFee: number;    // Shiftzy app fee (10% of traveler share)
+  gst: number;            // GST 18% on platform fee
+  total: number;          // total payable by traveler
+  savings: number;        // what traveler saves vs going alone
 }
 
 // Compute a transparent fare breakdown from distance + category + petrol price.
+// Core concept: traveler and shifter each pay 50% of fuel+toll; traveler also pays
+// a small platform fee + GST. Savings = full solo cost − traveler's total.
 export function computeFare(distanceKm: number, category: string): FareBreakdown {
   const key = category in FARE_CATEGORIES ? category : (category === "luxury" ? "premium" : "car");
   const cfg = FARE_CATEGORIES[key];
   const fuelCost = Math.round((distanceKm / cfg.mileage) * FUEL_PRICE_PER_LITRE);
   const tollCost = Math.round(distanceKm * cfg.tollPerKm);
-  const tripCost = fuelCost + tollCost;
-  const platformFee = Math.round((tripCost * PLATFORM_FEE_PERCENT) / 100);
+  const tripCost = fuelCost + tollCost;           // full cost if you go alone
+  const travelerShare = Math.round(tripCost / 2); // traveler pays half
+  const platformFee = Math.round((travelerShare * PLATFORM_FEE_PERCENT) / 100);
   const gst = Math.round((platformFee * GST_PERCENT) / 100);
-  const total = tripCost + platformFee + gst;
-  return { distanceKm, fuelCost, tollCost, tripCost, platformFee, gst, total };
+  const total = travelerShare + platformFee + gst;
+  const savings = tripCost - total;               // how much cheaper vs solo travel
+  return { distanceKm, fuelCost, tollCost, tripCost, travelerShare, platformFee, gst, total, savings };
 }
 
 /* ─── Vehicle helpers (photos, availability window, fare category) ─── */
