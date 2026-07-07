@@ -50,7 +50,7 @@ function write<T>(key: string, value: T) {
 }
 
 /* ── Sent requests ───────────────────────────────────────────────────── */
-export type SentRequestStatus = "sent" | "accepted";
+export type SentRequestStatus = "sent" | "accepted" | "booking_confirmed" | "paid";
 
 export interface SentRequestRecord {
   id: string; // matches the nearby ShiftRequest id
@@ -123,6 +123,24 @@ export function sendDealMessage(id: string, from: DealMessage["from"], text: str
   const all = getAllChats();
   const thread = all[id] ?? [];
   write(CHAT_KEY, { ...all, [id]: [...thread, { from, text, ts: Date.now() }] });
+}
+
+export function markBookingConfirmed(id: string) {
+  const list = getSentRequests();
+  if (!list.some((r) => r.id === id)) return;
+  write(
+    REQ_KEY,
+    list.map((r) => (r.id === id ? { ...r, status: "booking_confirmed" as const } : r))
+  );
+}
+
+export function markRequestPaid(id: string) {
+  const list = getSentRequests();
+  if (!list.some((r) => r.id === id)) return;
+  write(
+    REQ_KEY,
+    list.map((r) => (r.id === id ? { ...r, status: "paid" as const } : r))
+  );
 }
 
 /* ── React hooks ─────────────────────────────────────────────────────── */

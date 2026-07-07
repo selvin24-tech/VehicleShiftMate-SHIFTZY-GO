@@ -1285,5 +1285,129 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
     rating: 4.5,
     postedTime: "4 hours ago",
     status: "pending"
+  },
+  {
+    id: "sr7",
+    userId: 15,
+    userName: "Priya N.",
+    userAvatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e",
+    vehicle: {
+      id: "v17",
+      type: "suv",
+      make: "Tata",
+      model: "Harrier",
+      registrationNumber: "TN 14 TH 2021",
+      image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf",
+    },
+    pickupLocation: {
+      id: "loc_hyd",
+      name: "Hyderabad",
+      address: "Banjara Hills, Hyderabad"
+    },
+    dropLocation: {
+      id: "loc_cbe",
+      name: "Coimbatore",
+      address: "RS Puram, Coimbatore"
+    },
+    pickupTime: "7:00 – 9:00 AM (Tomorrow)",
+    distance: "620 km",
+    estimatedDuration: "9h",
+    reward: 4340,
+    rating: 4.7,
+    postedTime: "20 minutes ago",
+    status: "pending"
+  },
+  {
+    id: "sr8",
+    userId: 16,
+    userName: "Senthil R.",
+    userAvatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d",
+    vehicle: {
+      id: "v18",
+      type: "car",
+      make: "Maruti",
+      model: "Ciaz",
+      registrationNumber: "TN 22 MC 7654",
+      image: "https://images.unsplash.com/photo-1523676060187-f55189a71f5e",
+    },
+    pickupLocation: {
+      id: "loc_madurai",
+      name: "Madurai",
+      address: "Anna Nagar, Madurai"
+    },
+    dropLocation: {
+      id: "loc_tvm",
+      name: "Tirunelveli",
+      address: "Palayamkottai, Tirunelveli"
+    },
+    pickupTime: "6:00 – 8:00 AM",
+    distance: "120 km",
+    estimatedDuration: "2h",
+    reward: 720,
+    rating: 4.6,
+    postedTime: "1 hour ago",
+    status: "pending"
+  },
+  {
+    id: "sr9",
+    userId: 17,
+    userName: "Divya M.",
+    userAvatar: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604",
+    vehicle: {
+      id: "v19",
+      type: "luxury",
+      make: "Audi",
+      model: "A4",
+      registrationNumber: "TN 08 AU 4444",
+      image: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a",
+    },
+    pickupLocation: {
+      id: "loc_blr",
+      name: "Bangalore",
+      address: "Koramangala, Bangalore"
+    },
+    dropLocation: {
+      id: "loc_mysore",
+      name: "Mysore",
+      address: "VV Mohalla, Mysore"
+    },
+    pickupTime: "1:00 – 3:00 PM",
+    distance: "145 km",
+    estimatedDuration: "3h",
+    reward: 2030,
+    rating: 4.9,
+    postedTime: "10 minutes ago",
+    status: "pending"
+  },
+  {
+    id: "sr10",
+    userId: 18,
+    userName: "Bala K.",
+    userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+    vehicle: {
+      id: "v20",
+      type: "bike",
+      make: "Royal Enfield",
+      model: "Himalayan 450",
+      registrationNumber: "KA 05 RE 4500",
+      image: "https://images.unsplash.com/photo-1558979159-2b18a4070a87",
+    },
+    pickupLocation: {
+      id: "loc_kochi",
+      name: "Kochi",
+      address: "MG Road, Ernakulam"
+    },
+    dropLocation: {
+      id: "loc_trivandrum",
+      name: "Trivandrum",
+      address: "Palayam, Thiruvananthapuram"
+    },
+    pickupTime: "5:30 – 7:30 AM (Tomorrow)",
+    distance: "210 km",
+    estimatedDuration: "4h 30m",
+    reward: 630,
+    rating: 4.8,
+    postedTime: "3 hours ago",
+    status: "pending"
   }
 ];

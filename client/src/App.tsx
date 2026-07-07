@@ -24,6 +24,7 @@ import Privacy from "@/pages/Privacy";
 import MyRides from "@/pages/MyRides";
 import PaymentHistory from "@/pages/PaymentHistory";
 import AcceptedRequest from "@/pages/AcceptedRequest";
+import Payment from "@/pages/Payment";
 import { ChatProvider } from "@/contexts/ChatContext";
 import LoadingScreen from "@/components/branding/LoadingScreen";
 import { ensureSeed } from "@/lib/appStore";
@@ -72,6 +73,7 @@ function Router() {
       <Route path="/checkout/:vehicleId" component={Checkout} />
       <Route path="/nearby" component={Nearby} />
       <Route path="/request/:id" component={AcceptedRequest} />
+      <Route path="/payment/:id" component={Payment} />
       <Route path="/notifications" component={Notifications} />
       <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/terms" component={Terms} />

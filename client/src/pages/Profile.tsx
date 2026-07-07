@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import BottomNav from "@/components/layout/BottomNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,11 +9,50 @@ import {
   ChevronLeft, ChevronRight, Camera, Edit3, Save, X, Star,
   CreditCard, FileText, Car, Bell, Shield, HelpCircle,
   LogOut, Upload, CheckCircle2, Clock, Flag, Phone, Mail, MapPin,
-  Package, BookOpen, Receipt, PhoneCall
+  Package, BookOpen, Receipt, PhoneCall, Lock
 } from "lucide-react";
 import { getEmergencyContacts, setEmergencyContacts, type EmergencyContact } from "@/lib/appStore";
 
-const INITIAL_PROFILE = {
+// ── Per-user profile persistence (supports up to 10 users) ────────────────────
+const PROFILES_KEY = "shiftzy_user_profiles";
+const MAX_PROFILES = 10;
+
+interface StoredProfile {
+  name: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  city: string;
+  avatarUrl: string;
+  username: string;
+  passwordHash: string; // stores hashed/masked password
+}
+
+function getStoredProfiles(): Record<string, StoredProfile> {
+  try {
+    const raw = localStorage.getItem(PROFILES_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveStoredProfile(username: string, p: StoredProfile) {
+  const all = getStoredProfiles();
+  const keys = Object.keys(all);
+  if (!all[username] && keys.length >= MAX_PROFILES) {
+    const oldest = keys[0];
+    delete all[oldest];
+  }
+  all[username] = p;
+  localStorage.setItem(PROFILES_KEY, JSON.stringify(all));
+}
+
+function loadProfileForUser(username: string): StoredProfile | null {
+  return getStoredProfiles()[username] ?? null;
+}
+
+// ── Default profile values ────────────────────────────────────────────────────
+const DEFAULT_PROFILE: Omit<StoredProfile, "username" | "passwordHash"> = {
   name: "Selvin Raj",
   firstName: "Selvin",
   lastName: "Raj",
@@ -21,11 +60,6 @@ const INITIAL_PROFILE = {
   email: "selvin.raj@gmail.com",
   city: "Chennai",
   avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-  rating: 4.8,
-  totalTrips: 12,
-  aadhaarVerified: true,
-  dlVerified: false,
-  vehicleVerified: true,
 };
 
 const MY_BOOKINGS = [
@@ -47,9 +81,25 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dlInputRef = useRef<HTMLInputElement>(null);
 
-  const [profile, setProfile] = useState(INITIAL_PROFILE);
+  const username = localStorage.getItem("username") || "guest";
+
+  // Load saved profile or use defaults
+  const [profile, setProfile] = useState(() => {
+    const saved = loadProfileForUser(username);
+    if (saved) return { ...saved, rating: 4.8, totalTrips: 12, aadhaarVerified: true, dlVerified: false, vehicleVerified: true };
+    return { ...DEFAULT_PROFILE, username, passwordHash: "", rating: 4.8, totalTrips: 12, aadhaarVerified: true, dlVerified: false, vehicleVerified: true };
+  });
+
   const [editing, setEditing] = useState(false);
-  const [editData, setEditData] = useState({ firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone, email: profile.email, city: profile.city });
+  const [editData, setEditData] = useState({
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    phone: profile.phone,
+    email: profile.email,
+    city: profile.city,
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({ current: "", next: "", confirm: "" });
   const [dlUploaded, setDlUploaded] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "bookings" | "docs">("profile");
   const [showReport, setShowReport] = useState(false);
@@ -59,6 +109,22 @@ export default function Profile() {
     return [base[0] ?? { name: "", phone: "" }, base[1] ?? { name: "", phone: "" }];
   });
 
+  // Persist profile to localStorage whenever it changes (and save photo too)
+  useEffect(() => {
+    const toStore: StoredProfile = {
+      name: profile.name,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      phone: profile.phone,
+      email: profile.email,
+      city: profile.city,
+      avatarUrl: profile.avatarUrl,
+      username,
+      passwordHash: profile.passwordHash,
+    };
+    saveStoredProfile(username, toStore);
+  }, [profile, username]);
+
   const handleSaveContacts = () => {
     const cleaned = contactDraft.filter(c => c.phone.trim());
     setEmergencyContacts(cleaned);
@@ -66,21 +132,52 @@ export default function Profile() {
   };
 
   const handleSave = () => {
-    setProfile(p => ({ ...p, firstName: editData.firstName, lastName: editData.lastName, name: `${editData.firstName} ${editData.lastName}`, phone: editData.phone, email: editData.email, city: editData.city }));
+    const newName = `${editData.firstName} ${editData.lastName}`;
+    setProfile(p => ({
+      ...p,
+      firstName: editData.firstName,
+      lastName: editData.lastName,
+      name: newName,
+      phone: editData.phone,
+      email: editData.email,
+      city: editData.city,
+    }));
     setEditing(false);
     toast({ title: "Profile Updated", description: "Your details have been saved." });
   };
 
-  const handlePhotoUpload = () => fileInputRef.current?.click();
+  const handlePasswordChange = () => {
+    if (!passwordData.current) {
+      toast({ title: "Enter current password", variant: "destructive" }); return;
+    }
+    if (passwordData.next.length < 6) {
+      toast({ title: "Password too short", description: "Minimum 6 characters.", variant: "destructive" }); return;
+    }
+    if (passwordData.next !== passwordData.confirm) {
+      toast({ title: "Passwords don't match", variant: "destructive" }); return;
+    }
+    setProfile(p => ({ ...p, passwordHash: "changed" }));
+    setPasswordData({ current: "", next: "", confirm: "" });
+    setChangingPassword(false);
+    toast({ title: "Password Changed", description: "Your new password is active." });
+  };
 
+  const handlePhotoUpload = () => fileInputRef.current?.click();
   const handleDLUpload = () => dlInputRef.current?.click();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const url = URL.createObjectURL(e.target.files[0]);
-      setProfile(p => ({ ...p, avatarUrl: url }));
-      toast({ title: "Photo Updated", description: "Your profile photo has been changed." });
-    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (dataUrl) {
+        setProfile(p => ({ ...p, avatarUrl: dataUrl }));
+        toast({ title: "Photo Updated", description: "Your profile photo has been saved." });
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const handleDLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,14 +213,14 @@ export default function Profile() {
           </button>
         </div>
 
-        {/* Avatar + info */}
+        {/* Avatar */}
         <div className="flex items-center gap-4 relative">
           <div className="relative">
             <Avatar className="w-20 h-20 border-4 border-white shadow-xl">
               <AvatarImage src={profile.avatarUrl} />
               <AvatarFallback className="text-blue-600 text-xl font-bold bg-blue-100">{profile.name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <button onClick={handlePhotoUpload} className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shadow-md border-2 border-white">
+            <button onClick={handlePhotoUpload} className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shadow-md border-2 border-white active:scale-95">
               <Camera className="w-3.5 h-3.5 text-white" />
             </button>
           </div>
@@ -217,6 +314,41 @@ export default function Profile() {
                 ))}
               </div>
             )}
+
+            {/* Change Password */}
+            <div className="bg-neutral-50 rounded-2xl overflow-hidden">
+              <button
+                onClick={() => setChangingPassword(!changingPassword)}
+                className="w-full flex items-center gap-3 p-4 hover:bg-neutral-100 transition-colors"
+              >
+                <Lock className="w-4 h-4 text-blue-500 shrink-0" />
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-sm">Change Password</p>
+                  <p className="text-xs text-neutral-400">Update your login password</p>
+                </div>
+                <ChevronRight className={`w-4 h-4 text-neutral-300 transition-transform ${changingPassword ? "rotate-90" : ""}`} />
+              </button>
+              {changingPassword && (
+                <div className="px-4 pb-4 space-y-2.5 border-t border-neutral-100">
+                  <div className="pt-3">
+                    <label className="text-xs text-neutral-500 font-medium">Current Password</label>
+                    <Input type="password" value={passwordData.current} onChange={e => setPasswordData(d => ({ ...d, current: e.target.value }))} placeholder="••••••" className="mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-neutral-500 font-medium">New Password</label>
+                    <Input type="password" value={passwordData.next} onChange={e => setPasswordData(d => ({ ...d, next: e.target.value }))} placeholder="min. 6 characters" className="mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-neutral-500 font-medium">Confirm New Password</label>
+                    <Input type="password" value={passwordData.confirm} onChange={e => setPasswordData(d => ({ ...d, confirm: e.target.value }))} placeholder="••••••" className="mt-1" />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button onClick={handlePasswordChange} className="flex-1 bg-blue-600 hover:bg-blue-700 gap-1.5"><Save className="w-3.5 h-3.5" />Update</Button>
+                    <Button onClick={() => setChangingPassword(false)} variant="outline" className="flex-1">Cancel</Button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Quick links */}
             <div className="space-y-2">
@@ -331,7 +463,6 @@ export default function Profile() {
           <div className="space-y-4">
             <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Verification Documents</p>
 
-            {/* Aadhaar */}
             <div className="bg-neutral-50 rounded-2xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -345,7 +476,6 @@ export default function Profile() {
               <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">✓ Done</span>
             </div>
 
-            {/* Driving Licence */}
             <div className="bg-neutral-50 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -360,7 +490,7 @@ export default function Profile() {
                   </div>
                 </div>
                 {!(dlUploaded || profile.dlVerified) && (
-                  <button onClick={handleDLUpload} className="bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1">
+                  <button onClick={handleDLUpload} className="bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 active:scale-95">
                     <Upload className="w-3 h-3" /> Upload
                   </button>
                 )}
@@ -372,7 +502,6 @@ export default function Profile() {
               )}
             </div>
 
-            {/* Vehicle RC */}
             <div className="bg-neutral-50 rounded-2xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">

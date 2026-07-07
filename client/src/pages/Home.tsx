@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import ChatFloatingButton from "@/components/common/ChatFloatingButton";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
 import SendRequestButton from "@/components/common/SendRequestButton";
 import heroBanner from "@assets/file_00000000b280720988e7255eb04daace_1783322892934.png";
@@ -535,7 +534,6 @@ export default function Home() {
         </div>
       </div>
 
-      <ChatFloatingButton />
       <BottomNav />
     </div>
   );

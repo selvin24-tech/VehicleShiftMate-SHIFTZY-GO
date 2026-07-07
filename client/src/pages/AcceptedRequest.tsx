@@ -2,19 +2,23 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import {
   ChevronLeft, CheckCircle2, Send, Star, Route as RouteIcon,
-  Phone, Lock, ShieldCheck,
+  Phone, Lock, ShieldCheck, IndianRupee, ChevronRight, Fuel,
+  Landmark, BadgePercent, Receipt,
 } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { NEARBY_SHIFT_REQUESTS } from "@/lib/constants";
+import { NEARBY_SHIFT_REQUESTS, computeFare, vehicleTypeToFareCategory } from "@/lib/constants";
 import {
-  useSentRequest, useDealChat, sendDealMessage,
+  useSentRequest, useDealChat, sendDealMessage, markBookingConfirmed,
 } from "@/lib/requestsStore";
+import { addStoredNotif } from "@/lib/notificationsStore";
 
 const OWNER_REPLIES = [
   "Sounds good! I'll keep the vehicle ready.",
   "Perfect. Let's confirm the pickup time.",
   "Great, works for me. See you then!",
+  "Sure! I'll have everything prepared.",
+  "Confirmed. Looking forward to it!",
 ];
 
 export default function AcceptedRequest() {
@@ -29,7 +33,16 @@ export default function AcceptedRequest() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const replyTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  const accepted = record?.status === "accepted";
+  const accepted = record?.status === "accepted" || record?.status === "booking_confirmed" || record?.status === "paid";
+  const alreadyConfirmed = record?.status === "booking_confirmed" || record?.status === "paid";
+  const alreadyPaid = record?.status === "paid";
+
+  const fare = req
+    ? computeFare(
+        parseInt(req.distance) || 180,
+        vehicleTypeToFareCategory(req.vehicle.type, req.vehicle.make)
+      )
+    : null;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -64,11 +77,22 @@ export default function AcceptedRequest() {
     if (!t) return;
     sendDealMessage(id, "me", t);
     setText("");
-    // A light canned owner reply so the deal chat feels two-sided.
     const timer = setTimeout(() => {
       sendDealMessage(id, "owner", OWNER_REPLIES[Math.floor(Math.random() * OWNER_REPLIES.length)]);
     }, 1500);
     replyTimers.current.push(timer);
+  };
+
+  const handleConfirmBooking = () => {
+    markBookingConfirmed(id);
+    addStoredNotif({
+      category: "bookings",
+      iconKey: "accepted",
+      color: "blue",
+      title: "Booking Confirmed!",
+      body: `${vehicleName} · ${route} — proceed to payment to complete your booking.`,
+      requestId: id,
+    });
   };
 
   return (
@@ -94,15 +118,29 @@ export default function AcceptedRequest() {
         </a>
       </div>
 
-      {/* Accepted banner */}
-      {accepted && (
+      {/* Status banner */}
+      {alreadyPaid ? (
+        <div className="mx-4 mt-4 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+          <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0" />
+          <p className="text-xs font-semibold text-blue-800 leading-snug">
+            Payment complete — your booking is confirmed! Track your vehicle anytime.
+          </p>
+        </div>
+      ) : alreadyConfirmed ? (
+        <div className="mx-4 mt-4 flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+          <IndianRupee className="w-5 h-5 text-orange-600 shrink-0" />
+          <p className="text-xs font-semibold text-orange-800 leading-snug">
+            Booking confirmed — complete your payment below to lock in the shift.
+          </p>
+        </div>
+      ) : accepted ? (
         <div className="mx-4 mt-4 flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
           <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
           <p className="text-xs font-semibold text-green-800 leading-snug">
-            {req.userName} accepted your request. Chat is unlocked — confirm the timing & pickup below.
+            {req.userName} accepted your request. Chat below — then confirm your booking.
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* Vehicle + owner card */}
       <div className="mx-4 mt-4 rounded-2xl border border-neutral-200 overflow-hidden shadow-sm">
@@ -194,15 +232,13 @@ export default function AcceptedRequest() {
         )}
       </div>
 
-      {/* Composer */}
-      {accepted && (
+      {/* Chat composer */}
+      {accepted && !alreadyPaid && (
         <div className="sticky bottom-16 bg-white border-t border-neutral-100 px-4 py-3 flex items-center gap-2">
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSend();
-            }}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
             placeholder="Type a message…"
             className="flex-1 bg-neutral-100 rounded-full px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
           />
@@ -213,6 +249,76 @@ export default function AcceptedRequest() {
           >
             <Send className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* ── Fare breakdown + Confirm / Pay section ── */}
+      {accepted && fare && (
+        <div className="mx-4 mt-4 space-y-3">
+          {/* Fare card */}
+          <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-neutral-50 px-4 py-3 border-b border-neutral-100">
+              <p className="text-xs font-bold text-neutral-600 uppercase tracking-wide">Cost Breakdown</p>
+            </div>
+            <div className="p-4 space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-1.5 text-neutral-500"><Fuel className="w-3.5 h-3.5 text-blue-400" /> Fuel cost (full)</span>
+                <span className="font-semibold text-neutral-700">₹{fare.fuelCost.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-1.5 text-neutral-500"><Landmark className="w-3.5 h-3.5 text-purple-400" /> Toll charges</span>
+                <span className="font-semibold text-neutral-700">₹{fare.tollCost.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm border-t border-dashed border-neutral-200 pt-2.5">
+                <span className="flex items-center gap-1.5 text-neutral-500"><BadgePercent className="w-3.5 h-3.5 text-green-500" /> Your 50% share</span>
+                <span className="font-semibold text-neutral-700">₹{fare.travelerShare.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-1.5 text-neutral-500"><Receipt className="w-3.5 h-3.5 text-orange-400" /> Platform fee + GST</span>
+                <span className="font-semibold text-neutral-700">₹{(fare.platformFee + fare.gst).toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between border-t border-neutral-200 pt-2.5">
+                <span className="font-bold text-sm text-neutral-800">Total Payable</span>
+                <span className="font-extrabold text-lg text-blue-700">₹{fare.total.toLocaleString()}</span>
+              </div>
+              <div className="bg-green-50 rounded-xl px-3 py-2 flex items-center justify-between">
+                <span className="text-xs text-green-700 font-semibold">You save vs going alone</span>
+                <span className="text-sm font-extrabold text-green-700">₹{fare.savings.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          {!alreadyConfirmed && (
+            <button
+              onClick={handleConfirmBooking}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-extrabold py-4 rounded-2xl flex items-center justify-center gap-2 text-base active:scale-95 transition-all shadow-lg shadow-green-200"
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              Confirm Booking
+            </button>
+          )}
+
+          {alreadyConfirmed && !alreadyPaid && (
+            <button
+              onClick={() => navigate(`/payment/${id}`)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-4 rounded-2xl flex items-center justify-center gap-2 text-base active:scale-95 transition-all shadow-lg shadow-blue-200"
+            >
+              <IndianRupee className="w-5 h-5" />
+              Pay ₹{fare.total.toLocaleString()} Now
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+
+          {alreadyPaid && (
+            <button
+              onClick={() => navigate("/track")}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-4 rounded-2xl flex items-center justify-center gap-2 text-base active:scale-95 transition-all"
+            >
+              <ChevronRight className="w-4 h-4" />
+              Track Vehicle Live
+            </button>
+          )}
         </div>
       )}
 
