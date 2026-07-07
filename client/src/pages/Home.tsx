@@ -344,18 +344,24 @@ export default function Home() {
                             ))}
                           </div>
 
-                          {/* Route detail */}
+                          {/* Route detail + total transport cost opposite it */}
                           <div className="flex items-start gap-3 mb-3">
                             <div className="flex flex-col items-center pt-1">
                               <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
                               <div className="w-0.5 h-7 bg-gradient-to-b from-blue-600 to-orange-500" />
                               <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
                             </div>
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                               <p className="text-xs font-bold text-neutral-800">{req.pickupLocation.name}</p>
                               <p className="text-[10px] text-neutral-400 mb-2">{req.pickupLocation.address}</p>
                               <p className="text-xs font-bold text-neutral-800">{req.dropLocation.name}</p>
                               <p className="text-[10px] text-neutral-400">{req.dropLocation.address}</p>
+                            </div>
+                            {/* Total transport cost (fuel + toll) shown straight opposite the route */}
+                            <div className="shrink-0 text-right bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                              <p className="text-[9px] font-bold text-green-700 uppercase tracking-wide">Total transport</p>
+                              <p className="text-base font-extrabold text-green-700 leading-tight">₹{fare.tripCost.toLocaleString("en-IN")}</p>
+                              <p className="text-[9px] text-neutral-500 leading-tight">Fuel + toll</p>
                             </div>
                           </div>
 
