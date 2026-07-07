@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 // Import icons from Lucide
-import { Ambulance, ShieldAlert, Flame, Headphones, PhoneCall } from "lucide-react";
+import { Ambulance, ShieldAlert, Flame, PhoneCall } from "lucide-react";
 
 interface NavItem {
   path: string;
@@ -54,13 +54,6 @@ const baseServices: Record<string, EmergencyService> = {
     icon: <Flame size={24} />,
     color: "bg-orange-600 hover:bg-orange-700 text-white border-2 border-orange-300",
     animationDelay: "delay-[600ms]"
-  },
-  support: {
-    name: "Shiftzy Support",
-    number: "1800 200 1234",
-    icon: <Headphones size={22} />,
-    color: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-300",
-    animationDelay: "delay-[800ms]"
   },
 };
 

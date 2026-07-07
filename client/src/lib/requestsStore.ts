@@ -62,6 +62,8 @@ export interface SentRequestRecord {
   route: string;
   status: SentRequestStatus;
   createdAt: number;
+  bookingRef?: string;
+  trackId?: string;
 }
 
 const REQ_KEY = "shiftzy_sent_requests";
@@ -134,12 +136,14 @@ export function markBookingConfirmed(id: string) {
   );
 }
 
-export function markRequestPaid(id: string) {
+export function markRequestPaid(id: string, bookingRef: string, trackId: string) {
   const list = getSentRequests();
   if (!list.some((r) => r.id === id)) return;
   write(
     REQ_KEY,
-    list.map((r) => (r.id === id ? { ...r, status: "paid" as const } : r))
+    list.map((r) =>
+      r.id === id ? { ...r, status: "paid" as const, bookingRef, trackId } : r
+    )
   );
 }
 

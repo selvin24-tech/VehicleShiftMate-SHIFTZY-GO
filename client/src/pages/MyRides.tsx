@@ -15,10 +15,13 @@ import {
   type ShiftStatus,
   type GoStatus,
 } from "@/lib/appStore";
+import { useSentRequests } from "@/lib/requestsStore";
 import {
   Truck, Navigation, ArrowRight, CalendarDays, Clock, Car,
-  User, Route, IndianRupee, PackageOpen, X,
+  User, Route, IndianRupee, PackageOpen, Copy, MapPin,
+  CheckCircle2, ChevronRight, Hash,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 type Segment = "active" | "shift" | "go";
 
@@ -64,38 +67,30 @@ function RouteLine({ pickup, drop }: { pickup: string; drop: string }) {
 function ShiftCard({ req, index }: { req: ShiftRequestRecord; index: number }) {
   const active = isActiveStatus(req.status);
   return (
-    <motion.div
-      layout
-      {...cardAnim}
-      transition={{ duration: 0.3, delay: index * 0.04, ease: [0.4, 0, 0.2, 1] }}
-      className="bg-white border border-neutral-100 rounded-2xl p-4 shadow-sm"
-    >
+    <motion.div layout {...cardAnim} transition={{ duration: 0.3, delay: index * 0.04 }}
+      className="bg-white border border-neutral-100 rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-            <Truck className="w-4.5 h-4.5 text-blue-600" />
+            <Truck className="w-4 h-4 text-blue-600" />
           </div>
           <RouteLine pickup={req.pickup} drop={req.drop} />
         </div>
         <StatusBadge label={SHIFT_STATUS_LABEL[req.status]} status={req.status} />
       </div>
-
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-neutral-500 pl-11">
         <span className="flex items-center gap-1"><Car className="w-3 h-3" />{req.vehicleType}{req.vehicleModel ? ` · ${req.vehicleModel}` : ""}</span>
         <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{req.date}</span>
         {req.timeRange && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{req.timeRange}</span>}
       </div>
-
       <div className="flex items-center justify-between mt-3 pl-11">
         <span className="flex items-center gap-1 text-[11px] font-semibold text-neutral-600">
           <User className="w-3 h-3 text-orange-500" />
           {req.driverType === "professional" ? "Professional Driver" : "Traveler"}
         </span>
         {active && (
-          <button
-            onClick={() => updateShiftStatus(req.id, "cancelled")}
-            className="text-[11px] font-semibold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
-          >
+          <button onClick={() => updateShiftStatus(req.id, "cancelled")}
+            className="text-[11px] font-semibold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
             Cancel
           </button>
         )}
@@ -107,41 +102,33 @@ function ShiftCard({ req, index }: { req: ShiftRequestRecord; index: number }) {
 function GoCard({ req, index }: { req: GoRequestRecord; index: number }) {
   const active = isActiveStatus(req.status);
   return (
-    <motion.div
-      layout
-      {...cardAnim}
-      transition={{ duration: 0.3, delay: index * 0.04, ease: [0.4, 0, 0.2, 1] }}
-      className="bg-white border border-neutral-100 rounded-2xl p-4 shadow-sm"
-    >
+    <motion.div layout {...cardAnim} transition={{ duration: 0.3, delay: index * 0.04 }}
+      className="bg-white border border-neutral-100 rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
-            <Navigation className="w-4.5 h-4.5 text-orange-500" />
+            <Navigation className="w-4 h-4 text-orange-500" />
           </div>
           <RouteLine pickup={req.pickup} drop={req.drop} />
         </div>
         <StatusBadge label={GO_STATUS_LABEL[req.status]} status={req.status} />
       </div>
-
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-neutral-500 pl-11">
         <span className="flex items-center gap-1"><Car className="w-3 h-3" />{req.vehicleType}</span>
         <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{req.date}</span>
         <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{req.time}</span>
         <span className="capitalize flex items-center gap-1"><Route className="w-3 h-3" />{req.mode}</span>
       </div>
-
       <div className="flex items-center justify-between mt-3 pl-11">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-0.5 text-sm font-extrabold text-neutral-900">
             <IndianRupee className="w-3.5 h-3.5" />{req.estFare.toLocaleString("en-IN")}
           </span>
-          <span className="text-[11px] text-neutral-400 font-medium">{req.distanceKm} km</span>
+          <span className="text-[11px] text-neutral-400">{req.distanceKm} km</span>
         </div>
         {active && (
-          <button
-            onClick={() => updateGoStatus(req.id, "cancelled")}
-            className="text-[11px] font-semibold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
-          >
+          <button onClick={() => updateGoStatus(req.id, "cancelled")}
+            className="text-[11px] font-semibold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
             Cancel
           </button>
         )}
@@ -150,14 +137,95 @@ function GoCard({ req, index }: { req: GoRequestRecord; index: number }) {
   );
 }
 
+function BookingCard({ req, index }: { req: ReturnType<typeof useSentRequests>[number]; index: number }) {
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+
+  const [pickup, drop] = req.route.split(" → ");
+  const copyText = (text: string, label: string) => {
+    navigator.clipboard.writeText(text).then(() =>
+      toast({ title: `${label} copied!`, description: text })
+    );
+  };
+
+  return (
+    <motion.div layout {...cardAnim} transition={{ duration: 0.3, delay: index * 0.04 }}
+      className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm">
+      {/* Top accent bar */}
+      <div className="h-1 bg-gradient-to-r from-blue-500 to-orange-400" />
+
+      <div className="p-4">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4 text-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-extrabold text-sm text-neutral-900 truncate">{req.vehicleName}</p>
+              <div className="flex items-center gap-1 text-[11px] text-neutral-500 mt-0.5">
+                <MapPin className="w-2.5 h-2.5" />
+                <span className="truncate">{req.route}</span>
+              </div>
+            </div>
+          </div>
+          <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full shrink-0">
+            Paid ✓
+          </span>
+        </div>
+
+        {/* Reference + Track ID */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="bg-neutral-50 rounded-xl p-3">
+            <p className="text-[9px] text-neutral-400 font-semibold uppercase tracking-wide flex items-center gap-1 mb-1">
+              <Hash className="w-2.5 h-2.5" /> Reference No.
+            </p>
+            <p className="font-extrabold text-sm text-blue-700">{req.bookingRef ?? "—"}</p>
+            {req.bookingRef && (
+              <button onClick={() => copyText(req.bookingRef!, "Reference No.")}
+                className="mt-1 flex items-center gap-1 text-[10px] text-neutral-400 hover:text-blue-600 transition-colors">
+                <Copy className="w-2.5 h-2.5" /> Copy
+              </button>
+            )}
+          </div>
+          <div className="bg-orange-50 rounded-xl p-3">
+            <p className="text-[9px] text-orange-500 font-semibold uppercase tracking-wide flex items-center gap-1 mb-1">
+              <MapPin className="w-2.5 h-2.5" /> Track ID
+            </p>
+            <p className="font-extrabold text-sm text-orange-600">{req.trackId ?? "—"}</p>
+            {req.trackId && (
+              <button onClick={() => copyText(req.trackId!, "Track ID")}
+                className="mt-1 flex items-center gap-1 text-[10px] text-orange-300 hover:text-orange-600 transition-colors">
+                <Copy className="w-2.5 h-2.5" /> Copy
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Track + View buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/track")}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+          >
+            <ChevronRight className="w-3.5 h-3.5" /> Track Live
+          </button>
+          <button
+            onClick={() => navigate(`/request/${req.id}`)}
+            className="flex-1 bg-neutral-100 text-neutral-700 font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+          >
+            View Details
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function EmptyState({ title, note }: { title: string; note: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      className="flex flex-col items-center text-center py-16 px-6"
-    >
+    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}
+      className="flex flex-col items-center text-center py-16 px-6">
       <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
         <PackageOpen className="w-8 h-8 text-blue-400" />
       </div>
@@ -173,10 +241,13 @@ export default function MyRides() {
 
   const shifts = useShiftRequests();
   const gos = useGoRequests();
+  const sentRequests = useSentRequests();
 
   const activeShifts = shifts.filter((r) => isActiveStatus(r.status));
   const activeGos = gos.filter((r) => isActiveStatus(r.status));
-  const activeCount = activeShifts.length + activeGos.length;
+  const paidBookings = sentRequests.filter((r) => r.status === "paid" || r.status === "booking_confirmed");
+
+  const activeCount = activeShifts.length + activeGos.length + paidBookings.length;
 
   const segments: { key: Segment; label: string }[] = [
     { key: "active", label: "Active" },
@@ -188,11 +259,10 @@ export default function MyRides() {
     <div className="max-w-lg mx-auto bg-white min-h-screen pb-24">
       <Header title="My Rides" showBackButton showAnimation={false} />
 
-      {/* Title */}
       <div className="px-4 pt-4 pb-2">
         <h1 className="text-xl font-extrabold text-neutral-900">My Rides</h1>
         <p className="text-xs text-neutral-400 mt-0.5 font-medium">
-          Track your Shift and Go requests all in one place.
+          Track your Shift, Go and confirmed bookings — all in one place.
         </p>
       </div>
 
@@ -200,13 +270,9 @@ export default function MyRides() {
       <div className="px-4 sticky top-[57px] bg-white z-10 pb-2">
         <div className="flex bg-neutral-100 rounded-xl p-1 gap-1">
           {segments.map((s) => (
-            <button
-              key={s.key}
-              onClick={() => setSegment(s.key)}
+            <button key={s.key} onClick={() => setSegment(s.key)}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                segment === s.key
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-neutral-500"
+                segment === s.key ? "bg-white text-blue-600 shadow-sm" : "text-neutral-500"
               }`}
             >
               {s.label}
@@ -220,22 +286,41 @@ export default function MyRides() {
 
       <div className="px-4 py-3 space-y-3">
         <AnimatePresence mode="wait">
+
           {/* ── ACTIVE ── */}
           {segment === "active" && (
             <motion.div key="active" className="space-y-3">
               {activeCount === 0 ? (
                 <EmptyState
                   title="No active rides right now"
-                  note="Create a Shift or Go request to see it here."
+                  note="Create a Shift or Go request, or book a nearby shift to see it here."
                 />
               ) : (
                 <>
-                  {activeShifts.map((r, i) => (
-                    <ShiftCard key={r.id} req={r} index={i} />
-                  ))}
-                  {activeGos.map((r, i) => (
-                    <GoCard key={r.id} req={r} index={activeShifts.length + i} />
-                  ))}
+                  {/* Paid bookings from nearby shift requests */}
+                  {paidBookings.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wide flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Confirmed Bookings
+                      </p>
+                      {paidBookings.map((r, i) => (
+                        <BookingCard key={r.id} req={r} index={i} />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Shift + Go requests */}
+                  {(activeShifts.length > 0 || activeGos.length > 0) && (
+                    <div className="space-y-3">
+                      {paidBookings.length > 0 && (
+                        <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5">
+                          <Truck className="w-3.5 h-3.5" /> Shift & Go Requests
+                        </p>
+                      )}
+                      {activeShifts.map((r, i) => <ShiftCard key={r.id} req={r} index={i} />)}
+                      {activeGos.map((r, i) => <GoCard key={r.id} req={r} index={activeShifts.length + i} />)}
+                    </div>
+                  )}
                 </>
               )}
             </motion.div>
@@ -245,10 +330,7 @@ export default function MyRides() {
           {segment === "shift" && (
             <motion.div key="shift" className="space-y-3">
               {shifts.length === 0 ? (
-                <EmptyState
-                  title="No shift requests yet"
-                  note="Create a Shift request to move your vehicle and see it here."
-                />
+                <EmptyState title="No shift requests yet" note="Create a Shift request to move your vehicle and see it here." />
               ) : (
                 shifts.map((r, i) => <ShiftCard key={r.id} req={r} index={i} />)
               )}
@@ -259,10 +341,7 @@ export default function MyRides() {
           {segment === "go" && (
             <motion.div key="go" className="space-y-3">
               {gos.length === 0 ? (
-                <EmptyState
-                  title="No Go trips yet"
-                  note="Create a Go request to travel and save, then find it here."
-                />
+                <EmptyState title="No Go trips yet" note="Create a Go request to travel and save, then find it here." />
               ) : (
                 gos.map((r, i) => <GoCard key={r.id} req={r} index={i} />)
               )}
@@ -272,16 +351,12 @@ export default function MyRides() {
 
         {/* Create shortcut */}
         <div className="grid grid-cols-2 gap-3 pt-2">
-          <button
-            onClick={() => navigate("/shift-request")}
-            className="flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-bold py-3 hover:bg-blue-100 transition-colors"
-          >
+          <button onClick={() => navigate("/shift-request")}
+            className="flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-bold py-3 hover:bg-blue-100 transition-colors">
             <Truck className="w-4 h-4" /> New Shift
           </button>
-          <button
-            onClick={() => navigate("/travel")}
-            className="flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 text-orange-600 text-xs font-bold py-3 hover:bg-orange-100 transition-colors"
-          >
+          <button onClick={() => navigate("/travel")}
+            className="flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 text-orange-600 text-xs font-bold py-3 hover:bg-orange-100 transition-colors">
             <Navigation className="w-4 h-4" /> New Go
           </button>
         </div>
