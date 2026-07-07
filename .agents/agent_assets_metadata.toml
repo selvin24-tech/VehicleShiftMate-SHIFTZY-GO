@@ -12,3 +12,9 @@ id = "Bc5zpzS-s6dq6u4XdXs2v"
 uri = "file://Shiftzy-Go-full-source.txt"
 type = "text"
 title = "Shiftzy Go — Complete Source Code (single file)"
+
+[[outputs]]
+id = "wgMrWf-i5t-51STBLi4B0"
+uri = "file://Shiftzy_Go_Insurance_Partnership_Proposal.docx"
+type = "word_document"
+title = "Shiftzy Go — Insurance Partnership Proposal"
