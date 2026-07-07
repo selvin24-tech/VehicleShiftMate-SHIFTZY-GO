@@ -80,11 +80,11 @@ export default function Home() {
       </div>
 
       {/* ── Hero Banner: India's Smart Vehicle Shifting App ── */}
-      <div className="mx-auto mt-4 max-w-xs rounded-2xl overflow-hidden relative shadow-sm border border-blue-100 dark:border-neutral-800">
+      <div className="mx-4 mt-4 rounded-2xl overflow-hidden relative shadow-sm border border-blue-100 dark:border-neutral-800 aspect-[16/10]">
         <img
           src={heroBanner}
           alt="India's Smart Vehicle Shifting App — Drop your vehicle details or check available vehicle to travel"
-          className="w-full block"
+          className="w-full h-full object-cover object-center block"
         />
         {/* Tap zones over the two concept sides */}
         <button
