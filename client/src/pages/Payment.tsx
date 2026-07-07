@@ -17,11 +17,8 @@ const UPI_APPS = [
   { id: "bhim",    label: "BHIM UPI",      icon: "🇮🇳", color: "bg-orange-50 border-orange-200" },
 ];
 
-function genRef() {
-  return "BK-" + Math.floor(10000 + Math.random() * 90000);
-}
-function genTrack() {
-  return "TRK-" + Math.floor(1000 + Math.random() * 9000);
+function genTrackingNumber() {
+  return String(Math.floor(10000000 + Math.random() * 90000000));
 }
 
 type Tab = "upi" | "card" | "netbanking";
@@ -76,8 +73,9 @@ export default function Payment() {
     setProcessing(true);
     setStep("processing");
 
-    const ref = genRef();
-    const trk = genTrack();
+    const trackingNumber = genTrackingNumber();
+    const ref = trackingNumber;
+    const trk = trackingNumber;
 
     setTimeout(() => {
       const methodLabel =

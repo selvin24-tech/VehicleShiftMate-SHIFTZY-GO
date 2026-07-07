@@ -349,17 +349,6 @@ export default function MyRides() {
           )}
         </AnimatePresence>
 
-        {/* Create shortcut */}
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <button onClick={() => navigate("/shift-request")}
-            className="flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-bold py-3 hover:bg-blue-100 transition-colors">
-            <Truck className="w-4 h-4" /> New Shift
-          </button>
-          <button onClick={() => navigate("/travel")}
-            className="flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 text-orange-600 text-xs font-bold py-3 hover:bg-orange-100 transition-colors">
-            <Navigation className="w-4 h-4" /> New Go
-          </button>
-        </div>
       </div>
 
       <BottomNav />
