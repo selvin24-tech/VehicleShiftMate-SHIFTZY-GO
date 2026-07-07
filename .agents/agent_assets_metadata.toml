@@ -24,3 +24,9 @@ id = "jyz7AcBAhVxGV3YdiZJ0N"
 uri = "file://Shiftzy_Go_Investor_Presentation.pptx"
 type = "slides"
 title = "Shiftzy Go — Investor & Stakeholder Presentation (15 Slides)"
+
+[[outputs]]
+id = "ySOKyskbhTBKChdRm9r-g"
+uri = "file://shiftzy-go-source.zip"
+type = "unspecified"
+title = "Shiftzy Go — Complete Source Code"
