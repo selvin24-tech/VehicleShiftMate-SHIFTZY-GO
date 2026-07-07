@@ -18,3 +18,9 @@ id = "wgMrWf-i5t-51STBLi4B0"
 uri = "file://Shiftzy_Go_Insurance_Partnership_Proposal.docx"
 type = "word_document"
 title = "Shiftzy Go — Insurance Partnership Proposal"
+
+[[outputs]]
+id = "jyz7AcBAhVxGV3YdiZJ0N"
+uri = "file://Shiftzy_Go_Investor_Presentation.pptx"
+type = "slides"
+title = "Shiftzy Go — Investor & Stakeholder Presentation (15 Slides)"
