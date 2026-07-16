@@ -12,7 +12,8 @@ import {
 } from "@/lib/constants";
 import { Vehicle } from "@/lib/types";
 import { addGoRequest, GO_STATUS_LABEL, type GoRequestRecord } from "@/lib/appStore";
-import { ChevronLeft, ChevronRight, Star, X, Clock, Images, Camera, Check, CheckCircle2, Send, Route, Timer, Receipt, Fuel, Landmark, BadgePercent, CalendarDays, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, X, Clock, Images, Camera, Check, CheckCircle2, Send, Route, Timer, Receipt, Fuel, Landmark, BadgePercent, CalendarDays, RefreshCw, Info } from "lucide-react";
+import VehicleDetailsSheet from "@/components/common/VehicleDetailsSheet";
 
 /* ─── Approx distances (km) between outstation cities ─── */
 const CITY_DISTANCES: Record<string, Record<string, number>> = {
@@ -70,6 +71,8 @@ export default function Travel() {
   /* photo gallery popup */
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryVehicle, setGalleryVehicle] = useState<Vehicle | null>(null);
+  /* vehicle details sheet */
+  const [detailsVehicle, setDetailsVehicle] = useState<Vehicle | null>(null);
 
   const typeOpt = VEHICLE_TYPE_OPTIONS.find(t => t.id === selectedType) ?? null;
   const locations = mode === "outstation" ? LOCATIONS : CHENNAI_LOCALITIES;
@@ -518,6 +521,19 @@ export default function Travel() {
                                   </div>
                                 </div>
 
+                                {/* ── Vehicle Details button ── */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); setDetailsVehicle(v); }}
+                                  className="w-full flex items-center justify-between bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 mb-3 active:scale-95 transition-all"
+                                >
+                                  <span className="flex items-center gap-2 text-sm font-bold text-blue-700">
+                                    <Info className="w-4 h-4" />
+                                    Insurance, RC &amp; Vehicle Info
+                                  </span>
+                                  <ChevronRight className="w-4 h-4 text-blue-400" />
+                                </button>
+
                                 {/* ── TRANSPARENT TARIFF BREAKDOWN ── */}
                                 <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 mb-3">
                                   <div className="flex items-center gap-1.5 mb-2">
@@ -661,6 +677,15 @@ export default function Travel() {
         onOpenChange={setGalleryOpen}
         title={galleryVehicle ? `${galleryVehicle.make} ${galleryVehicle.model}` : "Vehicle photos"}
       />
+
+      {detailsVehicle && (
+        <VehicleDetailsSheet
+          open={!!detailsVehicle}
+          onClose={() => setDetailsVehicle(null)}
+          vehicle={{ ...detailsVehicle, id: detailsVehicle.id, registrationNumber: detailsVehicle.registrationNumber ?? "" }}
+          owner={{ name: detailsVehicle.ownerName ?? "Owner", avatar: undefined, rating: detailsVehicle.rating }}
+        />
+      )}
 
       <BottomNav />
     </div>

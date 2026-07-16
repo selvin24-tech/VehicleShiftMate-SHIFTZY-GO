@@ -47,7 +47,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { AVAILABLE_VEHICLES, computeFare, FUEL_PRICE_PER_LITRE, HUBS, DEFAULT_HUBS, getVehicleImages, getAvailabilityWindow } from "@/lib/constants";
+import { AVAILABLE_VEHICLES, computeFare, FUEL_PRICE_PER_LITRE, HUBS, DEFAULT_HUBS, getVehicleImages, getAvailabilityWindow, getVehicleDetails } from "@/lib/constants";
+import VehicleDetailsSheet from "@/components/common/VehicleDetailsSheet";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery"; 
 import { addStoredNotif } from "@/lib/notificationsStore";
 import { useToast } from "@/hooks/use-toast";
@@ -60,6 +61,7 @@ export default function VehicleDetails() {
   const [showReviews, setShowReviews] = useState(false);
   const [showFeatures, setShowFeatures] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [showVehicleDetails, setShowVehicleDetails] = useState(false);
   const { toast } = useToast();
 
   // Quick Book request flow state
@@ -271,11 +273,29 @@ export default function VehicleDetails() {
       </div>
 
       {/* Available pickup window */}
-      <div className="flex items-center gap-2 mb-4 bg-primary-50 border border-primary-100 rounded-xl px-3 py-2">
+      <div className="flex items-center gap-2 mb-3 bg-primary-50 border border-primary-100 rounded-xl px-3 py-2">
         <Clock className="w-4 h-4 text-primary-600" />
         <span className="text-sm text-neutral-600">Available pickup window</span>
         <span className="ml-auto text-sm font-bold text-primary-700">{availWindow.label}</span>
       </div>
+
+      {/* ── Vehicle Details button ── */}
+      <button
+        type="button"
+        onClick={() => setShowVehicleDetails(true)}
+        className="w-full flex items-center justify-between bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-4 active:scale-95 transition-all"
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <ShieldCheck className="w-4 h-4 text-white" />
+          </div>
+          <div className="text-left">
+            <p className="text-sm font-bold text-blue-700">Insurance, RC &amp; Full Vehicle Info</p>
+            <p className="text-[11px] text-blue-500">Tap to view all vehicle documents</p>
+          </div>
+        </div>
+        <ChevronDown className="w-4 h-4 text-blue-400 -rotate-90" />
+      </button>
       
       {/* Vehicle Info */}
       {(() => {
@@ -737,6 +757,13 @@ export default function VehicleDetails() {
         open={galleryOpen}
         onOpenChange={setGalleryOpen}
         title={`${vehicle.make} ${vehicle.model}`}
+      />
+
+      <VehicleDetailsSheet
+        open={showVehicleDetails}
+        onClose={() => setShowVehicleDetails(false)}
+        vehicle={{ id: vehicle.id, make: vehicle.make, model: vehicle.model, registrationNumber: vehicle.registrationNumber, fuelType: vehicle.fuelType, type: vehicle.type }}
+        owner={{ name: vehicle.ownerName ?? "Owner", rating: vehicle.rating }}
       />
 
       <BottomNav />

@@ -14,8 +14,9 @@ import {
   MapPin, ChevronRight, Star, Briefcase, CalendarDays, Clock,
   Shield, Navigation, Lock, ChevronDown, Route, Timer,
   Phone, MessageCircle, Images, Camera,
-  Fuel, Landmark, BadgePercent, Receipt,
+  Fuel, Landmark, BadgePercent, Receipt, Info,
 } from "lucide-react";
+import VehicleDetailsSheet from "@/components/common/VehicleDetailsSheet";
 import { useShiftRequests, SHIFT_STATUS_LABEL } from "@/lib/appStore";
 import OnboardingTour from "@/components/tour/OnboardingTour";
 
@@ -41,6 +42,7 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [galleryId, setGalleryId] = useState<string | null>(null);
+  const [vehicleDetailsReq, setVehicleDetailsReq] = useState<typeof NEARBY_SHIFT_REQUESTS[0] | null>(null);
   const shiftRequests = useShiftRequests();
   const activeShift = shiftRequests.find(r => r.status !== "completed" && r.status !== "cancelled");
   const [showTour, setShowTour] = useState(false);
@@ -369,6 +371,19 @@ export default function Home() {
                             </div>
                           </div>
 
+                          {/* ── Vehicle Details button ── */}
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setVehicleDetailsReq(req); }}
+                            className="w-full flex items-center justify-between bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 mb-3 active:scale-95 transition-all"
+                          >
+                            <span className="flex items-center gap-2 text-sm font-bold text-blue-700">
+                              <Info className="w-4 h-4" />
+                              Insurance, RC &amp; Vehicle Info
+                            </span>
+                            <ChevronRight className="w-4 h-4 text-blue-400" />
+                          </button>
+
                           {/* Stat grid */}
                           <div className="grid grid-cols-3 gap-2 mb-3">
                             <div className="bg-blue-50 rounded-xl p-2 text-center">
@@ -502,6 +517,16 @@ export default function Home() {
           <ChevronRight className="w-5 h-5 text-white shrink-0" />
         </button>
       </div>
+
+      {/* ── Vehicle Details Sheet (shared) ── */}
+      {vehicleDetailsReq && (
+        <VehicleDetailsSheet
+          open={!!vehicleDetailsReq}
+          onClose={() => setVehicleDetailsReq(null)}
+          vehicle={vehicleDetailsReq.vehicle}
+          owner={{ name: vehicleDetailsReq.userName, avatar: vehicleDetailsReq.userAvatar, rating: vehicleDetailsReq.rating }}
+        />
+      )}
 
       {/* ── Vehicle photo gallery popup (shared) ── */}
       {(() => {

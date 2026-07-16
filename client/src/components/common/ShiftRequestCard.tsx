@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import SendRequestButton from "@/components/common/SendRequestButton";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
-import { motion, AnimatePresence } from "framer-motion";
+import VehicleDetailsSheet from "@/components/common/VehicleDetailsSheet";
 import {
   Clock, Fuel, Landmark, BadgePercent, Receipt, Camera, Images,
-  Info, ShieldCheck, X, ChevronRight, Palette, Calendar, Car,
+  Info, ChevronRight,
 } from "lucide-react";
 import {
   computeFare, vehicleTypeToFareCategory, getVehicleImages, getAvailabilityWindow,
-  FARE_CATEGORIES, getVehicleDetails,
+  FARE_CATEGORIES,
 } from "@/lib/constants";
 
 interface ShiftRequestCardProps {
@@ -36,8 +36,7 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
 
   const images = getVehicleImages(request.vehicle);
   const window = getAvailabilityWindow(request.vehicle.id || request.id);
-  const vDetails = getVehicleDetails(request.vehicle);
-  const fuelType = request.vehicle.fuelType ?? vDetails.fuelType;
+  const fuelType = request.vehicle.fuelType;
 
   const handleAccept = () => {
     toast({
@@ -211,143 +210,12 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
         />
       </Card>
 
-      {/* ── Vehicle Details Slide-up Sheet ── */}
-      <AnimatePresence>
-        {showVehicleDetails && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.55 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black z-50"
-              onClick={() => setShowVehicleDetails(false)}
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 220 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[85vh] overflow-y-auto"
-            >
-              {/* Handle */}
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-neutral-200" />
-              </div>
-
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-100">
-                <div>
-                  <p className="font-extrabold text-neutral-900 text-base">{request.vehicle.make} {request.vehicle.model}</p>
-                  <p className="text-xs text-neutral-400">{request.vehicle.registrationNumber}</p>
-                </div>
-                <button
-                  onClick={() => setShowVehicleDetails(false)}
-                  className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center active:scale-90 transition-transform"
-                >
-                  <X className="w-4 h-4 text-neutral-600" />
-                </button>
-              </div>
-
-              <div className="px-5 py-4 space-y-4 pb-8">
-                {/* Basic info grid */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                    <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wide mb-1 flex items-center gap-1">
-                      <Fuel className="w-3 h-3" /> Fuel Type
-                    </p>
-                    <p className={`font-extrabold text-sm ${fuelType === "Diesel" ? "text-amber-700" : "text-green-700"}`}>{fuelType}</p>
-                  </div>
-                  <div className="bg-orange-50 border border-orange-100 rounded-xl p-3">
-                    <p className="text-[10px] text-orange-500 font-bold uppercase tracking-wide mb-1 flex items-center gap-1">
-                      <Palette className="w-3 h-3" /> Vehicle Colour
-                    </p>
-                    <p className="font-extrabold text-sm text-neutral-800">{vDetails.color}</p>
-                  </div>
-                  <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3">
-                    <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wide mb-1 flex items-center gap-1">
-                      <Calendar className="w-3 h-3" /> Purchase Year
-                    </p>
-                    <p className="font-extrabold text-sm text-neutral-800">{vDetails.purchaseYear}</p>
-                  </div>
-                  <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3">
-                    <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wide mb-1 flex items-center gap-1">
-                      <Car className="w-3 h-3" /> Vehicle Type
-                    </p>
-                    <p className="font-extrabold text-sm text-neutral-800 capitalize">{request.vehicle.type === "luxury" ? "Premium/Luxury" : request.vehicle.type}</p>
-                  </div>
-                </div>
-
-                {/* Insurance section */}
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4" /> Insurance Details
-                  </p>
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-neutral-600">Insurance Type</span>
-                      <span className="font-bold text-sm text-neutral-800">{vDetails.insuranceType}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-neutral-600">Valid Until</span>
-                      <span className="font-bold text-sm text-green-700">{vDetails.insuranceValidTill}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-neutral-600">Third Party Cover</span>
-                      <span className={`font-bold text-sm ${vDetails.thirdParty ? "text-green-600" : "text-red-500"}`}>
-                        {vDetails.thirdParty ? "✓ Covered" : "✗ Not covered"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-neutral-600">Own Damage Cover</span>
-                      <span className={`font-bold text-sm ${vDetails.ownDamage ? "text-green-600" : "text-orange-500"}`}>
-                        {vDetails.ownDamage ? "✓ Covered" : "✗ Not included"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Owner details */}
-                <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4">
-                  <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-3">Owner Details</p>
-                  <div className="flex items-center gap-3 mb-3">
-                    <img
-                      src={request.userAvatar}
-                      alt={request.userName}
-                      className="w-10 h-10 rounded-full object-cover border border-neutral-200"
-                    />
-                    <div>
-                      <p className="font-bold text-sm text-neutral-900">{request.userName}</p>
-                      <p className="text-[11px] text-neutral-400">Verified vehicle owner</p>
-                    </div>
-                    <div className="ml-auto flex items-center gap-1 bg-orange-50 border border-orange-200 rounded-full px-2.5 py-1">
-                      <span className="text-orange-400">★</span>
-                      <span className="text-xs font-bold text-neutral-700">{request.rating}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-neutral-600">Model Number</span>
-                      <span className="font-bold text-neutral-800">{request.vehicle.model}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-neutral-600">Engine No.</span>
-                      <span className="font-mono text-xs font-bold text-neutral-700">{vDetails.engineNumber}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-neutral-600">Registration</span>
-                      <span className="font-bold text-neutral-800">{request.vehicle.registrationNumber}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-[10px] text-center text-neutral-400">
-                  All vehicle details are verified by Shiftzy Go before listing. Insurance copy available at pickup.
-                </p>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <VehicleDetailsSheet
+        open={showVehicleDetails}
+        onClose={() => setShowVehicleDetails(false)}
+        vehicle={request.vehicle}
+        owner={{ name: request.userName, avatar: request.userAvatar, rating: request.rating }}
+      />
     </>
   );
 }

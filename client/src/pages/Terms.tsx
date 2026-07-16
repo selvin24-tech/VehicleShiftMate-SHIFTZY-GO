@@ -73,7 +73,7 @@ export default function Terms() {
   const [, navigate] = useLocation();
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
+    <div className="max-w-md mx-auto bg-white dark:bg-neutral-950 min-h-screen pb-20">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 pt-12 pb-6">
         <div className="flex items-center gap-3">
@@ -88,9 +88,9 @@ export default function Terms() {
       </div>
 
       {/* Intro */}
-      <div className="mx-4 mt-4 bg-orange-50 border border-orange-200 rounded-xl p-4 flex gap-3">
+      <div className="mx-4 mt-4 bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-xl p-4 flex gap-3">
         <FileText className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
-        <p className="text-sm text-orange-800">
+        <p className="text-sm text-orange-800 dark:text-orange-200">
           Please read these terms carefully before using Shiftzy Go. By creating an account, you agree to all the terms below.
         </p>
       </div>
@@ -99,29 +99,29 @@ export default function Terms() {
       <div className="px-4 mt-4 space-y-5 pb-6">
         {SECTIONS.map((s) => (
           <div key={s.title}>
-            <h3 className="font-bold text-sm text-blue-700 mb-1.5">{s.title}</h3>
-            <p className="text-sm text-neutral-600 leading-relaxed">{s.body}</p>
+            <h3 className="font-bold text-sm text-blue-700 dark:text-blue-400 mb-1.5">{s.title}</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">{s.body}</p>
           </div>
         ))}
 
         {/* ── Acknowledgments ── */}
         <div>
-          <h3 className="font-bold text-base text-neutral-900 mb-1">Acknowledgments</h3>
-          <p className="text-xs text-neutral-500 mb-3">
+          <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100 mb-1">Acknowledgments</h3>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
             Depending on your role, you will be asked to accept the relevant points below before a shift or a booking.
           </p>
 
           {/* Shifter */}
-          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 mb-3">
+          <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/40 p-4 mb-3">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
                 <Truck className="w-4 h-4 text-white" />
               </div>
-              <h4 className="font-bold text-sm text-blue-800">For Shifters (Vehicle Owners)</h4>
+              <h4 className="font-bold text-sm text-blue-800 dark:text-blue-200">For Shifters (Vehicle Owners)</h4>
             </div>
             <ul className="space-y-2">
               {SHIFTER_ACK.map((item) => (
-                <li key={item} className="flex gap-2 text-sm text-neutral-700">
+                <li key={item} className="flex gap-2 text-sm text-neutral-700 dark:text-neutral-200">
                   <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                   <span>{item}</span>
                 </li>
@@ -130,16 +130,16 @@ export default function Terms() {
           </div>
 
           {/* Traveler */}
-          <div className="rounded-xl border border-orange-200 bg-orange-50/50 p-4">
+          <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/40 p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
                 <Car className="w-4 h-4 text-white" />
               </div>
-              <h4 className="font-bold text-sm text-orange-800">For Travelers (Goers)</h4>
+              <h4 className="font-bold text-sm text-orange-800 dark:text-orange-200">For Travelers (Goers)</h4>
             </div>
             <ul className="space-y-2">
               {TRAVELER_ACK.map((item) => (
-                <li key={item} className="flex gap-2 text-sm text-neutral-700">
+                <li key={item} className="flex gap-2 text-sm text-neutral-700 dark:text-neutral-200">
                   <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
                   <span>{item}</span>
                 </li>
@@ -148,9 +148,9 @@ export default function Terms() {
           </div>
         </div>
 
-        <div className="bg-blue-50 rounded-xl p-4 text-center">
-          <p className="text-xs text-blue-700 font-medium">Questions about our terms?</p>
-          <button onClick={() => navigate("/help")} className="mt-2 text-sm font-bold text-blue-600 underline">
+        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900 rounded-xl p-4 text-center">
+          <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">Questions about our terms?</p>
+          <button onClick={() => navigate("/help")} className="mt-2 text-sm font-bold text-blue-600 dark:text-blue-400 underline">
             Contact Support
           </button>
         </div>
