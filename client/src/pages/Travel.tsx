@@ -148,33 +148,71 @@ export default function Travel() {
           <p className="text-sm text-blue-600 mt-1">Choose a vehicle → pick travel type → set your route</p>
         </div>
 
-        {/* ─── STEP 1: Vehicle type (four boxes, matching the Shift page) ─── */}
+        {/* ─── STEP 1: Vehicle type ─── */}
         <div>
-          <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-            Step 1 — Choose Your Vehicle
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {VEHICLE_TYPE_OPTIONS.map(opt => {
-              const active = selectedType === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => { setSelectedType(opt.id); setSearched(false); }}
-                  className={`rounded-xl p-4 flex flex-col items-center text-center shadow-sm active:scale-95 transition-all border
-                    ${active ? "border-blue-400 bg-blue-50" : "border-neutral-200 bg-white hover:border-blue-400 hover:bg-blue-50"}`}
-                  data-testid={`button-type-${opt.id}`}
-                >
-                  <span className="text-3xl mb-1">{opt.emoji}</span>
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold text-sm">{opt.label}</span>
-                    {active && <Check className="w-3.5 h-3.5 text-blue-600" />}
-                  </div>
-                  <span className="text-xs text-neutral-500 mt-0.5">{opt.desc}</span>
-                </button>
-              );
-            })}
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+              Step 1 — Choose Your Vehicle
+            </p>
+            {selectedType && (
+              <button
+                type="button"
+                onClick={() => { setSelectedType(null); setSearched(false); }}
+                className="text-xs text-blue-600 font-semibold flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Change
+              </button>
+            )}
           </div>
+
+          <AnimatePresence mode="wait">
+            {!selectedType ? (
+              /* 2×2 grid — no type chosen yet */
+              <motion.div
+                key="grid"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-2 gap-3"
+              >
+                {VEHICLE_TYPE_OPTIONS.map(opt => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => { setSelectedType(opt.id); setSearched(false); }}
+                    className="rounded-xl p-4 flex flex-col items-center text-center shadow-sm active:scale-95 transition-all border border-neutral-200 bg-white hover:border-blue-400 hover:bg-blue-50"
+                    data-testid={`button-type-${opt.id}`}
+                  >
+                    <span className="text-3xl mb-1">{opt.emoji}</span>
+                    <span className="font-semibold text-sm">{opt.label}</span>
+                    <span className="text-xs text-neutral-500 mt-0.5">{opt.desc}</span>
+                  </button>
+                ))}
+              </motion.div>
+            ) : (
+              /* Only selected type shown as full-width card */
+              <motion.div
+                key={`selected-${selectedType}`}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="rounded-2xl border-2 border-blue-400 bg-blue-50 p-4 flex items-center gap-4 shadow-sm">
+                  <span className="text-4xl">{typeOpt?.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-base text-neutral-900">{typeOpt?.label}</p>
+                    <p className="text-xs text-neutral-500 mt-0.5">{typeOpt?.desc}</p>
+                  </div>
+                  <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {attempted && !selectedType && (
             <p className="text-xs text-red-500 mt-1">Please choose a vehicle type to continue.</p>
           )}

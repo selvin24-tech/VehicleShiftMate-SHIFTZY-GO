@@ -145,33 +145,24 @@ export default function Payment() {
           </div>
         </div>
 
-        {/* Reference Number + Track ID */}
-        <div className="w-full grid grid-cols-2 gap-3 mb-5">
-          <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-4 text-left">
-            <p className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wide mb-1">Reference No.</p>
-            <p className="font-extrabold text-blue-700 text-lg">{bookingRef}</p>
+        {/* Single Reference / Track ID box */}
+        <div className="w-full bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-5 text-left">
+          <p className="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-2">Reference / Track ID</p>
+          <p className="font-extrabold text-blue-700 text-3xl tracking-widest mb-3">{bookingRef}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] text-blue-400">Use this number to track your vehicle live</p>
             <button
-              onClick={() => copyText(bookingRef, "Reference No.")}
-              className="mt-2 flex items-center gap-1 text-[11px] text-neutral-400 hover:text-blue-600 transition-colors"
-            >
-              <Copy className="w-3 h-3" /> Copy
-            </button>
-          </div>
-          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 text-left">
-            <p className="text-[10px] text-orange-500 font-semibold uppercase tracking-wide mb-1">Track ID</p>
-            <p className="font-extrabold text-orange-600 text-lg">{trackId}</p>
-            <button
-              onClick={() => copyText(trackId, "Track ID")}
-              className="mt-2 flex items-center gap-1 text-[11px] text-orange-300 hover:text-orange-600 transition-colors"
+              onClick={() => copyText(bookingRef, "Reference / Track ID")}
+              className="flex items-center gap-1 text-[11px] text-blue-500 hover:text-blue-700 font-semibold transition-colors bg-white border border-blue-200 rounded-lg px-2.5 py-1"
             >
               <Copy className="w-3 h-3" /> Copy
             </button>
           </div>
         </div>
 
-        <div className="w-full bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-xs text-blue-700 mb-5 text-left">
-          💡 Save your <strong>Track ID ({trackId})</strong> to follow your vehicle live anytime from the <strong>Track</strong> tab.
-          Find these IDs again in <strong>My Rides → Active</strong>.
+        <div className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-xs text-neutral-600 mb-5 text-left">
+          💡 Save your <strong>Reference / Track ID</strong> to follow your vehicle live from the <strong>Track</strong> tab.
+          Find it again in <strong>My Rides → Active</strong>.
         </div>
 
         <div className="w-full space-y-2">

@@ -141,8 +141,8 @@ function BookingCard({ req, index }: { req: ReturnType<typeof useSentRequests>[n
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  const [pickup, drop] = req.route.split(" → ");
-  const copyText = (text: string, label: string) => {
+  const copyText = (e: React.MouseEvent, text: string, label: string) => {
+    e.stopPropagation();
     navigator.clipboard.writeText(text).then(() =>
       toast({ title: `${label} copied!`, description: text })
     );
@@ -150,12 +150,13 @@ function BookingCard({ req, index }: { req: ReturnType<typeof useSentRequests>[n
 
   return (
     <motion.div layout {...cardAnim} transition={{ duration: 0.3, delay: index * 0.04 }}
-      className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm">
+      className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
+      onClick={() => navigate(`/request/${req.id}`)}>
       {/* Top accent bar */}
       <div className="h-1 bg-gradient-to-r from-blue-500 to-orange-400" />
 
       <div className="p-4">
-        {/* Header row */}
+        {/* Header row — tapping anywhere on card navigates to full details */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
@@ -174,48 +175,33 @@ function BookingCard({ req, index }: { req: ReturnType<typeof useSentRequests>[n
           </span>
         </div>
 
-        {/* Reference + Track ID */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <div className="bg-neutral-50 rounded-xl p-3">
-            <p className="text-[9px] text-neutral-400 font-semibold uppercase tracking-wide flex items-center gap-1 mb-1">
-              <Hash className="w-2.5 h-2.5" /> Reference No.
-            </p>
-            <p className="font-extrabold text-sm text-blue-700">{req.bookingRef ?? "—"}</p>
+        {/* Single combined Ref / Track ID box */}
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-3">
+          <p className="text-[9px] text-blue-500 font-bold uppercase tracking-widest flex items-center gap-1 mb-1.5">
+            <Hash className="w-2.5 h-2.5" /> Reference / Track ID
+          </p>
+          <div className="flex items-center justify-between">
+            <p className="font-extrabold text-lg text-blue-700 tracking-widest">{req.bookingRef ?? "—"}</p>
             {req.bookingRef && (
-              <button onClick={() => copyText(req.bookingRef!, "Reference No.")}
-                className="mt-1 flex items-center gap-1 text-[10px] text-neutral-400 hover:text-blue-600 transition-colors">
-                <Copy className="w-2.5 h-2.5" /> Copy
-              </button>
-            )}
-          </div>
-          <div className="bg-orange-50 rounded-xl p-3">
-            <p className="text-[9px] text-orange-500 font-semibold uppercase tracking-wide flex items-center gap-1 mb-1">
-              <MapPin className="w-2.5 h-2.5" /> Track ID
-            </p>
-            <p className="font-extrabold text-sm text-orange-600">{req.trackId ?? "—"}</p>
-            {req.trackId && (
-              <button onClick={() => copyText(req.trackId!, "Track ID")}
-                className="mt-1 flex items-center gap-1 text-[10px] text-orange-300 hover:text-orange-600 transition-colors">
+              <button onClick={(e) => copyText(e, req.bookingRef!, "Reference / Track ID")}
+                className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-700 font-semibold bg-white border border-blue-200 rounded-lg px-2 py-1 transition-colors">
                 <Copy className="w-2.5 h-2.5" /> Copy
               </button>
             )}
           </div>
         </div>
 
-        {/* Track + View buttons */}
+        {/* Tap hint + Track button */}
         <div className="flex gap-2">
           <button
-            onClick={() => navigate("/track")}
+            onClick={(e) => { e.stopPropagation(); navigate("/track"); }}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 active:scale-95 transition-all"
           >
             <ChevronRight className="w-3.5 h-3.5" /> Track Live
           </button>
-          <button
-            onClick={() => navigate(`/request/${req.id}`)}
-            className="flex-1 bg-neutral-100 text-neutral-700 font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 active:scale-95 transition-all"
-          >
-            View Details
-          </button>
+          <div className="flex-1 bg-neutral-100 text-neutral-500 font-semibold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5">
+            Tap card for details
+          </div>
         </div>
       </div>
     </motion.div>
