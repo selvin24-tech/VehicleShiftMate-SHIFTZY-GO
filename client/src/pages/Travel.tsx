@@ -12,7 +12,7 @@ import {
 } from "@/lib/constants";
 import { Vehicle } from "@/lib/types";
 import { addGoRequest, GO_STATUS_LABEL, type GoRequestRecord } from "@/lib/appStore";
-import { ChevronLeft, ChevronRight, Star, X, Clock, Images, Camera, Check, CheckCircle2, Send, Route, Timer, Receipt, Fuel, Landmark, BadgePercent, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, X, Clock, Images, Camera, Check, CheckCircle2, Send, Route, Timer, Receipt, Fuel, Landmark, BadgePercent, CalendarDays, RefreshCw } from "lucide-react";
 
 /* ─── Approx distances (km) between outstation cities ─── */
 const CITY_DISTANCES: Record<string, Record<string, number>> = {
@@ -165,53 +165,41 @@ export default function Travel() {
             )}
           </div>
 
-          <AnimatePresence mode="wait">
-            {!selectedType ? (
-              /* 2×2 grid — no type chosen yet */
-              <motion.div
-                key="grid"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2 }}
-                className="grid grid-cols-2 gap-3"
+          {selectedType ? (
+            /* Selected — same style as ShiftRequest page */
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-3 flex items-center gap-3">
+              <span className="text-3xl">{typeOpt?.emoji}</span>
+              <div>
+                <p className="font-bold text-blue-700">{typeOpt?.label}</p>
+                <p className="text-xs text-neutral-500">{typeOpt?.desc}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setSelectedType(null); setSearched(false); }}
+                className="ml-auto flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-4 py-2 rounded-xl shadow-md active:scale-95 transition-all"
               >
-                {VEHICLE_TYPE_OPTIONS.map(opt => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => { setSelectedType(opt.id); setSearched(false); }}
-                    className="rounded-xl p-4 flex flex-col items-center text-center shadow-sm active:scale-95 transition-all border border-neutral-200 bg-white hover:border-blue-400 hover:bg-blue-50"
-                    data-testid={`button-type-${opt.id}`}
-                  >
-                    <span className="text-3xl mb-1">{opt.emoji}</span>
-                    <span className="font-semibold text-sm">{opt.label}</span>
-                    <span className="text-xs text-neutral-500 mt-0.5">{opt.desc}</span>
-                  </button>
-                ))}
-              </motion.div>
-            ) : (
-              /* Only selected type shown as full-width card */
-              <motion.div
-                key={`selected-${selectedType}`}
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="rounded-2xl border-2 border-blue-400 bg-blue-50 p-4 flex items-center gap-4 shadow-sm">
-                  <span className="text-4xl">{typeOpt?.emoji}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-base text-neutral-900">{typeOpt?.label}</p>
-                    <p className="text-xs text-neutral-500 mt-0.5">{typeOpt?.desc}</p>
-                  </div>
-                  <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
-                    <Check className="w-4 h-4 text-white" />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <RefreshCw className="w-4 h-4" />
+                Change
+              </button>
+            </div>
+          ) : (
+            /* 2×2 grid — same style as ShiftRequest page */
+            <div className="grid grid-cols-2 gap-3">
+              {VEHICLE_TYPE_OPTIONS.map(opt => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => { setSelectedType(opt.id); setSearched(false); }}
+                  className="bg-white border border-neutral-200 rounded-xl p-4 flex flex-col items-center text-center shadow-sm hover:border-blue-400 hover:bg-blue-50 active:scale-95 transition-all"
+                  data-testid={`button-type-${opt.id}`}
+                >
+                  <span className="text-3xl mb-1">{opt.emoji}</span>
+                  <span className="font-semibold text-sm">{opt.label}</span>
+                  <span className="text-xs text-neutral-500 mt-0.5">{opt.desc}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {attempted && !selectedType && (
             <p className="text-xs text-red-500 mt-1">Please choose a vehicle type to continue.</p>
