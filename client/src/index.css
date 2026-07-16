@@ -719,3 +719,93 @@
   0%, 100% { transform: rotateY(0deg); }
   50% { transform: rotateY(5deg); }
 }
+
+/* ── Dark Mode Global Overrides ─────────────────────────────────────── */
+/* Tailwind's .dark class is applied to <html>. These rules ensure      */
+/* hardcoded white/neutral surfaces become dark surfaces in dark mode.  */
+/* Brand colours (orange, blue) are deliberately left unchanged.        */
+/* ──────────────────────────────────────────────────────────────────── */
+
+.dark body {
+  background-color: hsl(240 10% 5%);
+  color: hsl(0 0% 90%);
+}
+
+/* Main page wrappers */
+.dark .min-h-screen.bg-white,
+.dark .min-h-screen.bg-neutral-50,
+.dark .min-h-screen.bg-neutral-100 {
+  background-color: hsl(240 10% 5%);
+}
+
+/* Card and surface backgrounds */
+.dark .bg-white {
+  background-color: hsl(240 8% 10%);
+}
+.dark .bg-neutral-50 {
+  background-color: hsl(240 7% 13%);
+}
+.dark .bg-neutral-100 {
+  background-color: hsl(240 6% 17%);
+}
+
+/* Text colours */
+.dark .text-neutral-900 { color: hsl(0 0% 94%); }
+.dark .text-neutral-800 { color: hsl(0 0% 86%); }
+.dark .text-neutral-700 { color: hsl(0 0% 76%); }
+.dark .text-neutral-600 { color: hsl(0 0% 64%); }
+.dark .text-neutral-500 { color: hsl(0 0% 56%); }
+.dark .text-neutral-400 { color: hsl(0 0% 46%); }
+
+/* Border colours */
+.dark .border-neutral-100 { border-color: hsl(240 7% 20%); }
+.dark .border-neutral-200 { border-color: hsl(240 6% 24%); }
+.dark .border-neutral-300 { border-color: hsl(240 5% 30%); }
+
+/* Sticky/fixed top bars and bottom navs */
+.dark .sticky.bg-white,
+.dark .fixed.bg-white {
+  background-color: hsl(240 9% 7%);
+  border-color: hsl(240 7% 18%);
+}
+.dark .sticky.bg-neutral-50,
+.dark .fixed.bg-neutral-50 {
+  background-color: hsl(240 8% 9%);
+  border-color: hsl(240 7% 18%);
+}
+
+/* Inputs / selects */
+.dark input:not([type="range"]),
+.dark textarea,
+.dark select {
+  background-color: hsl(240 8% 14%);
+  color: hsl(0 0% 90%);
+  border-color: hsl(240 6% 26%);
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: hsl(0 0% 44%);
+}
+
+/* Dividers */
+.dark .divide-neutral-100 > * + *,
+.dark .divide-neutral-200 > * + * {
+  border-color: hsl(240 7% 20%);
+}
+
+/* Rounded card surfaces */
+.dark .rounded-2xl.bg-white,
+.dark .rounded-xl.bg-white,
+.dark .rounded-lg.bg-white {
+  background-color: hsl(240 8% 11%);
+}
+.dark .rounded-2xl.bg-neutral-50,
+.dark .rounded-xl.bg-neutral-50 {
+  background-color: hsl(240 7% 14%);
+}
+
+/* Shadow softening in dark mode */
+.dark .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.dark .shadow-md { box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+.dark .shadow-lg { box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+/* ──────────────────────────────────────────────────────────────────── */

@@ -180,6 +180,32 @@ export function getAvailabilityWindow(id: string): { from: string; to: string; l
   return { ...w, label: `${to12h(w.from)} – ${to12h(w.to)}` };
 }
 
+const VEHICLE_COLORS = ["Silver", "Pearl White", "Midnight Black", "Red", "Steel Blue", "Champagne Gold", "Graphite Grey", "Ivory White"];
+const DIESEL_MAKES = ["Mahindra", "Tata", "Toyota", "Ford", "Jeep", "Isuzu", "Mitsubishi"];
+
+export function getVehicleDetails(vehicle: { id: string; make?: string; model?: string; type?: string; fuelType?: string; registrationNumber?: string }) {
+  const h = hashStr(vehicle.id);
+  const color = VEHICLE_COLORS[h % VEHICLE_COLORS.length];
+  const purchaseYear = 2019 + (h % 5);
+  const insMonths = ["Jan", "Mar", "Jun", "Sep", "Nov"];
+  const insYear = 2026 + (h % 2);
+  const insuranceValidTill = `${insMonths[h % insMonths.length]} ${insYear}`;
+  const fuelType = vehicle.fuelType
+    ?? (DIESEL_MAKES.some(m => vehicle.make?.startsWith(m)) ? "Diesel" : "Petrol");
+  const isComprehensive = (h % 3) !== 0;
+  const engineSuffix = h.toString(16).toUpperCase().slice(0, 8);
+  return {
+    color,
+    fuelType,
+    purchaseYear,
+    insuranceValidTill,
+    insuranceType: isComprehensive ? "Comprehensive" : "Third Party Only",
+    thirdParty: true,
+    ownDamage: isComprehensive,
+    engineNumber: `ENG-${engineSuffix}`,
+  };
+}
+
 // Is a chosen "HH:MM" time inside a vehicle's availability window?
 export function isWithinWindow(id: string, time: string): boolean {
   if (!time) return true;
@@ -1111,6 +1137,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       make: "Hyundai",
       model: "i20",
       registrationNumber: "TN 02 CD 9876",
+      fuelType: "Petrol",
       image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537",
     },
     pickupLocation: {
@@ -1142,6 +1169,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       make: "KTM",
       model: "Duke 390",
       registrationNumber: "TN 09 AB 4567",
+      fuelType: "Petrol",
       image: "https://images.unsplash.com/photo-1571646750134-c2ce9552538e",
     },
     pickupLocation: {
@@ -1173,6 +1201,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       make: "Mahindra",
       model: "XUV 700",
       registrationNumber: "TN 06 FG 3214",
+      fuelType: "Diesel",
       image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70",
     },
     pickupLocation: {
@@ -1204,6 +1233,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       make: "Honda",
       model: "Amaze",
       registrationNumber: "TN 01 HK 8765",
+      fuelType: "Petrol",
       image: "https://images.unsplash.com/photo-1609521263047-f8f205293f24",
     },
     pickupLocation: {
@@ -1235,6 +1265,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       make: "Mercedes",
       model: "C-Class",
       registrationNumber: "TN 01 MN 0001",
+      fuelType: "Petrol",
       image: "https://images.unsplash.com/photo-1553440569-bcc63803a83d",
     },
     pickupLocation: {
@@ -1266,6 +1297,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       make: "Bajaj",
       model: "Pulsar 220",
       registrationNumber: "TN 11 GP 4321",
+      fuelType: "Petrol",
       image: "https://images.unsplash.com/photo-1449426468159-d96dbf08f19f",
     },
     pickupLocation: {
@@ -1297,6 +1329,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       make: "Tata",
       model: "Harrier",
       registrationNumber: "TN 14 TH 2021",
+      fuelType: "Diesel",
       image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf",
     },
     pickupLocation: {
@@ -1328,6 +1361,7 @@ export const NEARBY_SHIFT_REQUESTS: ShiftRequest[] = [
       make: "Maruti",
       model: "Ciaz",
       registrationNumber: "TN 22 MC 7654",
+      fuelType: "Petrol",
       image: "https://images.unsplash.com/photo-1523676060187-f55189a71f5e",
     },
     pickupLocation: {

@@ -422,7 +422,14 @@ export default function Travel() {
                         >
                           <div className="flex-1 min-w-0">
                             <p className="font-extrabold text-neutral-900 text-sm leading-tight">{pickup} → {drop}</p>
-                            <p className="text-[11px] text-neutral-500 mt-0.5 truncate">{v.make} {v.model} · {v.ownerName}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <p className="text-[11px] text-neutral-500 truncate">{v.make} {v.model} · {v.ownerName}</p>
+                              {v.fuelType && (
+                                <span className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-md ${v.fuelType === "Diesel" ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}`}>
+                                  ⛽ {v.fuelType}
+                                </span>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2 mt-1">
                               <div className="flex items-center gap-1 text-neutral-400">
                                 <CalendarDays className="w-3 h-3 shrink-0" />
@@ -546,6 +553,19 @@ export default function Travel() {
                                   <p className="text-[9px] text-neutral-400 mt-2 text-center">
                                     Transparent pricing — trip cost covers fuel &amp; tolls; platform fee + GST keep Shiftzy running.
                                   </p>
+
+                                  {/* Savings highlight */}
+                                  <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 mt-3 text-center">
+                                    <p className="text-[10px] font-bold text-green-600 uppercase tracking-wide mb-1">
+                                      🎉 You save on this trip
+                                    </p>
+                                    <p className="text-3xl font-extrabold text-green-600 leading-none">
+                                      ₹{fare.savings.toLocaleString("en-IN")}
+                                    </p>
+                                    <p className="text-[10px] text-green-500 mt-1">
+                                      vs. travelling alone by bus / train / own fuel
+                                    </p>
+                                  </div>
                                 </div>
 
                                 {/* Owner row */}

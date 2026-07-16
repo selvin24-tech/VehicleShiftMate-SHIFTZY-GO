@@ -113,6 +113,7 @@ export interface ShiftRequest {
     make: string;
     model: string;
     registrationNumber: string;
+    fuelType?: string;
     image?: string;
   };
   pickupLocation: Location;
