@@ -71,6 +71,8 @@ function findMatchingShifts(pickup: string, drop: string) {
 export default function Plan() {
   const { toast } = useToast();
 
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }, []);
+
   const [pickup, setPickup] = useState("");
   const [drop, setDrop] = useState("");
   const [date, setDate] = useState(() => {

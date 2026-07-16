@@ -51,7 +51,9 @@ function HelpAssistant() {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 1) {
+      endRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages.length]);
 
   const ask = (text: string) => {
@@ -145,6 +147,8 @@ export default function Help() {
   const [contactMessage, setContactMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }, []);
   
   const handleSubmitContact = (e: React.FormEvent) => {
     e.preventDefault();

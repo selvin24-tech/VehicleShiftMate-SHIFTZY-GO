@@ -147,14 +147,24 @@ export default function ShiftRequestCard({ request, showDetails = false }: Shift
               <span>GST (18% on fee)</span>
               <span>₹{fare.gst.toLocaleString()}</span>
             </div>
-            <div className="flex items-center justify-between pt-2 mt-1 border-t border-neutral-300">
-              <span className="text-sm font-bold text-neutral-900">Total payable</span>
-              <span className="text-lg font-bold text-primary-600">₹{fare.total.toLocaleString()}</span>
+            <div className="flex items-center justify-between pt-2 mt-1 border-t border-neutral-200 text-sm text-neutral-500">
+              <span>Total payable</span>
+              <span className="font-semibold text-neutral-700">₹{fare.total.toLocaleString()}</span>
             </div>
           </div>
-          <p className="text-[10px] text-neutral-400 mt-2 text-center">
-            Fully transparent — trip cost goes to fuel & tolls, platform fee + GST keep Shiftzy running.
-          </p>
+
+          {/* ── SAVINGS HIGHLIGHT ── */}
+          <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-4 mb-3 text-center">
+            <p className="text-xs font-bold text-green-600 uppercase tracking-wide mb-1">
+              🎉 You save on this trip
+            </p>
+            <p className="text-4xl font-extrabold text-green-600 leading-none">
+              ₹{fare.savings.toLocaleString()}
+            </p>
+            <p className="text-[11px] text-green-500 mt-1.5">
+              vs. travelling alone by bus / train / own fuel
+            </p>
+          </div>
         </div>
 
         {/* Actions */}

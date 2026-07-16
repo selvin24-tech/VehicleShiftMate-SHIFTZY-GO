@@ -356,11 +356,11 @@ export default function Home() {
                               <p className="text-xs font-bold text-neutral-800">{req.dropLocation.name}</p>
                               <p className="text-[10px] text-neutral-400">{req.dropLocation.address}</p>
                             </div>
-                            {/* You pay + saving — straight opposite the route */}
-                            <div className="shrink-0 text-right bg-green-50 border border-green-200 rounded-xl px-3 py-2">
-                              <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-wide">You pay</p>
-                              <p className="text-base font-extrabold text-green-700 leading-tight">₹{fare.total.toLocaleString("en-IN")}</p>
-                              <p className="text-[9px] font-bold text-green-600 leading-tight">Save ₹{fare.savings.toLocaleString("en-IN")}!</p>
+                            {/* Savings — shown prominently opposite the route */}
+                            <div className="shrink-0 text-center bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                              <p className="text-[9px] font-bold text-green-600 uppercase tracking-wide">You save</p>
+                              <p className="text-base font-extrabold text-green-600 leading-tight">₹{fare.savings.toLocaleString("en-IN")}</p>
+                              <p className="text-[9px] text-neutral-400 leading-tight">pay ₹{fare.total.toLocaleString("en-IN")}</p>
                             </div>
                           </div>
 
