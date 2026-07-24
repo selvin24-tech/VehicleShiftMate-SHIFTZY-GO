@@ -40,7 +40,6 @@ const VEHICLE_TYPE_OPTIONS: {
   accent: string;
   bgLight: string;
 }[] = [
-  { id: "car",     emoji: "🚗", label: "Car",     desc: "Sedans & hatchbacks",  fareCat: "car",     filter: (v) => v.type === "car",    gradient: "from-orange-500 to-orange-600", accent: "text-orange-700", bgLight: "bg-orange-50" },
   { id: "bike",    emoji: "🏍️", label: "Bike",    desc: "Quick & economical",   fareCat: "bike",    filter: (v) => v.type === "bike",   gradient: "from-blue-500 to-blue-700",     accent: "text-blue-700",   bgLight: "bg-blue-50" },
   { id: "suv",     emoji: "🚙", label: "SUV",     desc: "Spacious for families", fareCat: "suv",     filter: (v) => v.type === "suv",    gradient: "from-emerald-500 to-emerald-700", accent: "text-emerald-700", bgLight: "bg-emerald-50" },
   { id: "premium", emoji: "👑", label: "Premium", desc: "Luxury & top comfort",  fareCat: "premium", filter: (v) => v.type === "luxury", gradient: "from-purple-600 to-indigo-600", accent: "text-purple-700", bgLight: "bg-purple-50" },
@@ -144,6 +143,24 @@ export default function Travel() {
       </div>
 
       <div className="p-4 space-y-5">
+
+        {/* ── DL warning banner ── */}
+        {(() => {
+          const dlStatus = localStorage.getItem("dlStatus");
+          if (dlStatus === "pending" || dlStatus === "verified") return null;
+          return (
+            <a href="/profile" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 active:scale-98 transition-all">
+              <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                <span className="text-lg">⚠️</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-red-700">Driving licence upload is pending</p>
+                <p className="text-xs text-red-500 mt-0.5">Upload your DL in Profile → Documents to book a ride</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-red-400 shrink-0" />
+            </a>
+          );
+        })()}
 
         {/* Hero banner */}
         <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-2xl px-4 py-4 border border-blue-100">

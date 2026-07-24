@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Lock, User, CreditCard, Phone, CheckCircle2, ArrowLeft, UserPlus, LogIn, Car, MapPin } from "lucide-react";
+import { Eye, EyeOff, Lock, User, Phone, CheckCircle2, ArrowLeft, UserPlus, LogIn, MapPin, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import BrandName from "@/components/branding/BrandName";
 
@@ -33,16 +33,12 @@ const signUpSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const aadhaarSchema = z.object({
-  aadhaarNumber: z
+const mobileSchema = z.object({
+  mobileNumber: z
     .string()
-    .min(12, "Aadhaar number must be 12 digits")
-    .max(12, "Aadhaar number must be 12 digits")
-    .regex(/^\d{12}$/, "Only digits allowed"),
-  vehicleNumber: z
-    .string()
-    .min(1, "Vehicle number is required")
-    .regex(/^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/, "Enter a valid vehicle number (e.g. TN09AB1234)"),
+    .min(10, "Mobile number must be 10 digits")
+    .max(10, "Mobile number must be 10 digits")
+    .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number"),
   loginPlace: z.string().min(2, "Please enter your current city or place"),
 });
 
@@ -56,11 +52,11 @@ const otpSchema = z.object({
 
 type SignInData = z.infer<typeof signInSchema>;
 type SignUpData = z.infer<typeof signUpSchema>;
-type AadhaarData = z.infer<typeof aadhaarSchema>;
+type MobileData = z.infer<typeof mobileSchema>;
 type OtpData = z.infer<typeof otpSchema>;
 
 type Mode = "signIn" | "signUp" | "forgot";
-type Step = "form" | "aadhaar" | "otp";
+type Step = "form" | "mobile" | "otp";
 
 const SIMULATED_OTP = "123456";
 
@@ -71,7 +67,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [maskedAadhaar, setMaskedAadhaar] = useState("");
+  const [maskedPhone, setMaskedPhone] = useState("");
   const [countdown, setCountdown] = useState(0);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [forgotPhone, setForgotPhone] = useState("");
@@ -90,9 +86,9 @@ export default function Login() {
     defaultValues: { firstName: "", lastName: "", username: "", password: "", confirmPassword: "" },
   });
 
-  const aadhaarForm = useForm<AadhaarData>({
-    resolver: zodResolver(aadhaarSchema),
-    defaultValues: { aadhaarNumber: "", vehicleNumber: "", loginPlace: "" },
+  const mobileForm = useForm<MobileData>({
+    resolver: zodResolver(mobileSchema),
+    defaultValues: { mobileNumber: "", loginPlace: "" },
   });
 
   const otpForm = useForm<OtpData>({
@@ -119,7 +115,7 @@ export default function Login() {
     setStep("form");
     signInForm.reset();
     signUpForm.reset();
-    aadhaarForm.reset();
+    mobileForm.reset();
     otpForm.reset();
   };
 
@@ -142,7 +138,7 @@ export default function Login() {
     }, 800);
   };
 
-  // ── Sign Up: new users → Aadhaar → OTP → home ───────────────────────────
+  // ── Sign Up: new users → Mobile OTP → home ──────────────────────────────
   const handleSignUp = (data: SignUpData) => {
     setIsLoading(true);
     setTimeout(() => {
@@ -151,24 +147,22 @@ export default function Login() {
       localStorage.setItem("username", data.username);
       localStorage.setItem("displayName", `${data.firstName} ${data.lastName}`);
       localStorage.setItem("isFirstLogin", "true");
-      setStep("aadhaar");
+      setStep("mobile");
     }, 800);
   };
 
-  const handleSendOtp = (data: AadhaarData) => {
+  const handleSendOtp = (data: MobileData) => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      const last4 = data.aadhaarNumber.slice(-4);
-      setMaskedAadhaar(`XXXX XXXX ${last4}`);
-      // Save vehicle number and place for later use
-      localStorage.setItem("vehicleNumber", data.vehicleNumber.toUpperCase());
+      const last4 = data.mobileNumber.slice(-4);
+      setMaskedPhone(`+91 XXXXXX${last4}`);
       localStorage.setItem("loginPlace", data.loginPlace);
       startCountdown();
       setStep("otp");
       toast({
         title: "OTP Sent!",
-        description: `A 6-digit OTP has been sent to the mobile linked with Aadhaar ending in ${last4}.`,
+        description: `A 6-digit OTP has been sent to your mobile number ending in ${last4}.`,
       });
     }, 1000);
   };
@@ -198,8 +192,8 @@ export default function Login() {
   };
 
   // ── Step indicator (only during sign-up verification) ────────────────────
-  const verifySteps = ["Sign Up", "Aadhaar", "OTP Verify"];
-  const verifyIdx = step === "aadhaar" ? 1 : step === "otp" ? 2 : 0;
+  const verifySteps = ["Sign Up", "Phone OTP", "Verify"];
+  const verifyIdx = step === "mobile" ? 1 : step === "otp" ? 2 : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center p-4">
@@ -491,59 +485,42 @@ export default function Login() {
               </>
             )}
 
-            {/* ── SIGN UP — Aadhaar step ───────────────────────────────── */}
-            {mode === "signUp" && step === "aadhaar" && (
+            {/* ── SIGN UP — Mobile OTP step ─────────────────────────────── */}
+            {mode === "signUp" && step === "mobile" && (
               <>
-                <h2 className="font-bold text-lg text-center mb-1">Verify Aadhaar</h2>
-                <p className="text-sm text-neutral-500 text-center mb-5">Enter your 12-digit Aadhaar number to receive an OTP</p>
-                <Form {...aadhaarForm}>
-                  <form onSubmit={aadhaarForm.handleSubmit(handleSendOtp)} className="space-y-4" autoComplete="off">
-                    {/* Aadhaar Number */}
-                    <FormField control={aadhaarForm.control} name="aadhaarNumber" render={({ field }) => (
+                <div className="text-center mb-5">
+                  <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
+                    <Smartphone className="w-7 h-7 text-blue-600" />
+                  </div>
+                  <h2 className="font-bold text-lg">Verify Your Mobile</h2>
+                  <p className="text-sm text-neutral-500 mt-1">We'll send a one-time password to confirm your number</p>
+                </div>
+                <Form {...mobileForm}>
+                  <form onSubmit={mobileForm.handleSubmit(handleSendOtp)} className="space-y-4" autoComplete="off">
+                    <FormField control={mobileForm.control} name="mobileNumber" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Aadhaar Card Number</FormLabel>
+                        <FormLabel>Mobile Number</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <span className="absolute left-9 top-1/2 -translate-y-1/2 text-neutral-400 text-sm font-medium border-r border-neutral-200 pr-2">+91</span>
                             <Input
                               {...field}
-                              placeholder="e.g. 234567890123"
-                              className="pl-10 tracking-widest"
-                              maxLength={12}
+                              placeholder="98765 43210"
+                              className="pl-[4.5rem] tracking-wider"
+                              maxLength={10}
                               inputMode="numeric"
-                              autoComplete="off"
+                              autoComplete="tel"
                               onChange={e => field.onChange(e.target.value.replace(/\D/g, ""))}
                             />
                           </div>
                         </FormControl>
-                        <p className="text-xs text-neutral-400 mt-1">12-digit number printed on your Aadhaar card</p>
+                        <p className="text-xs text-neutral-400 mt-1">10-digit number starting with 6, 7, 8, or 9</p>
                         <FormMessage />
                       </FormItem>
                     )} />
 
-                    {/* Vehicle Number */}
-                    <FormField control={aadhaarForm.control} name="vehicleNumber" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Vehicle Number</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Car className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                            <Input
-                              {...field}
-                              placeholder="e.g. TN09AB1234"
-                              className="pl-10 uppercase tracking-wider"
-                              autoComplete="off"
-                              onChange={e => field.onChange(e.target.value.toUpperCase().replace(/\s/g, ""))}
-                            />
-                          </div>
-                        </FormControl>
-                        <p className="text-xs text-neutral-400 mt-1">Registration number from your RC book</p>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-
-                    {/* Login Place */}
-                    <FormField control={aadhaarForm.control} name="loginPlace" render={({ field }) => (
+                    <FormField control={mobileForm.control} name="loginPlace" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Your Current City / Place</FormLabel>
                         <FormControl>
@@ -564,7 +541,7 @@ export default function Login() {
 
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex gap-2">
                       <Phone className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-blue-700">An OTP will be sent to the mobile number registered with your Aadhaar (UIDAI).</p>
+                      <p className="text-xs text-blue-700">A 6-digit OTP will be sent to the mobile number you enter above.</p>
                     </div>
 
                     <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 h-11 font-semibold" disabled={isLoading}>
@@ -583,7 +560,7 @@ export default function Login() {
               <>
                 <h2 className="font-bold text-lg text-center mb-1">Enter OTP</h2>
                 <p className="text-sm text-neutral-500 text-center mb-5">
-                  OTP sent to mobile linked with Aadhaar <strong>{maskedAadhaar}</strong>
+                  OTP sent to mobile <strong>{maskedPhone}</strong>
                 </p>
                 <Form {...otpForm}>
                   <form onSubmit={otpForm.handleSubmit(handleVerifyOtp)} className="space-y-4" autoComplete="off">
@@ -623,8 +600,8 @@ export default function Login() {
                     <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 h-11 font-semibold" disabled={isLoading}>
                       {isLoading ? "Verifying..." : "Verify & Create Account"}
                     </Button>
-                    <Button type="button" variant="ghost" onClick={() => setStep("aadhaar")} className="w-full text-neutral-500">
-                      <ArrowLeft className="h-4 w-4 mr-1" /> Change Aadhaar Number
+                    <Button type="button" variant="ghost" onClick={() => setStep("mobile")} className="w-full text-neutral-500">
+                      <ArrowLeft className="h-4 w-4 mr-1" /> Change Mobile Number
                     </Button>
                   </form>
                 </Form>

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import { LOCATIONS, DETAILED_VEHICLE_TYPES } from "@/lib/constants";
+import { LOCATIONS, CHENNAI_LOCALITIES, DETAILED_VEHICLE_TYPES } from "@/lib/constants";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { addShiftRequest } from "@/lib/appStore";
 import {
@@ -89,6 +89,9 @@ export default function ShiftRequest() {
   const [showSuccessDialog, setShowSuccessDialog]     = useState(false);
   const [isUploading, setIsUploading]                 = useState(false);
 
+  /* route mode */
+  const [shiftMode, setShiftMode] = useState<"outstation" | "local">("outstation");
+
   /* new driver / drop preference state */
   const [driverType,    setDriverType]    = useState<DriverType>(null);
   const [dropPref,      setDropPref]      = useState<DropPref>(null);
@@ -131,6 +134,12 @@ export default function ShiftRequest() {
 
   const onSubmit = async (data: FormValues) => {
     setAttempted(true);
+    const rcStatus = localStorage.getItem("rcStatus");
+    if (!rcStatus || rcStatus === "none") {
+      toast({ title: "RC document upload pending", description: "Please upload your vehicle RC in Profile → Documents to submit a shift request.", variant: "destructive" });
+      navigate("/profile");
+      return;
+    }
     if (!driverType) {
       toast({ title: "Select driver type", description: "Choose Professional Driver or Traveler.", variant: "destructive" });
       return;
@@ -195,6 +204,25 @@ export default function ShiftRequest() {
       </div>
 
       <div className="px-4 py-6">
+
+        {/* ── RC warning banner ── */}
+        {(() => {
+          const rcStatus = localStorage.getItem("rcStatus");
+          if (rcStatus === "pending" || rcStatus === "verified") return null;
+          return (
+            <a href="/profile" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 active:scale-98 transition-all">
+              <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                <span className="text-lg">⚠️</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-red-700">Your RC document upload is pending</p>
+                <p className="text-xs text-red-500 mt-0.5">Upload your RC in Profile → Documents to book a shift</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-red-400 shrink-0" />
+            </a>
+          );
+        })()}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
@@ -294,11 +322,23 @@ export default function ShiftRequest() {
               )} />
             </div>
 
+            {selectedVehicleType && (<>
+
             {/* ════════════════════════════════
                 SECTION B — LOCATION DETAILS
             ════════════════════════════════ */}
             <div>
               <SectionTitle number="2" label="Location Details" />
+
+              {/* Outstation / Local toggle */}
+              <div className="flex bg-neutral-100 rounded-xl p-1 mb-4">
+                {(["outstation", "local"] as const).map(m => (
+                  <button key={m} type="button" onClick={() => { setShiftMode(m); form.setValue("pickupLocation", ""); form.setValue("dropLocation", ""); }}
+                    className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${shiftMode === m ? "bg-white shadow text-blue-600" : "text-neutral-500"}`}>
+                    {m === "outstation" ? "🛣️  Outstation" : "🏙️  Local (City)"}
+                  </button>
+                ))}
+              </div>
 
               <FormField control={form.control} name="pickupLocation" render={({ field }) => (
                 <FormItem className="mb-5">
@@ -306,7 +346,7 @@ export default function ShiftRequest() {
                   <FormControl>
                     <select {...field} className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1">
                       <option value="">Select pickup city</option>
-                      {LOCATIONS.map(l => <option key={l}>{l}</option>)}
+                      {(shiftMode === "local" ? CHENNAI_LOCALITIES : LOCATIONS).map(l => <option key={l}>{l}</option>)}
                     </select>
                   </FormControl>
                   <FormMessage />
@@ -319,7 +359,7 @@ export default function ShiftRequest() {
                   <FormControl>
                     <select {...field} className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1">
                       <option value="">Select destination city</option>
-                      {LOCATIONS.map(l => <option key={l}>{l}</option>)}
+                      {(shiftMode === "local" ? CHENNAI_LOCALITIES : LOCATIONS).map(l => <option key={l}>{l}</option>)}
                     </select>
                   </FormControl>
                   <FormMessage />
@@ -679,6 +719,8 @@ export default function ShiftRequest() {
               className="w-full py-4 text-base font-bold rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg">
               {isUploading ? "Submitting…" : "Submit Shift Request 🚗"}
             </Button>
+
+            </>)}
 
           </form>
         </Form>

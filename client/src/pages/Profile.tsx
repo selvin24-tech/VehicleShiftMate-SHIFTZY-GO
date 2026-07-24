@@ -80,6 +80,7 @@ export default function Profile() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dlInputRef = useRef<HTMLInputElement>(null);
+  const rcInputRef = useRef<HTMLInputElement>(null);
 
   const username = localStorage.getItem("username") || "guest";
 
@@ -101,6 +102,10 @@ export default function Profile() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordData, setPasswordData] = useState({ current: "", next: "", confirm: "" });
   const [dlUploaded, setDlUploaded] = useState(false);
+  const [rcUploaded, setRcUploaded] = useState(() => {
+    const s = localStorage.getItem("rcStatus");
+    return s === "pending" || s === "verified";
+  });
   const [activeTab, setActiveTab] = useState<"profile" | "bookings" | "docs">("profile");
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
@@ -164,6 +169,7 @@ export default function Profile() {
 
   const handlePhotoUpload = () => fileInputRef.current?.click();
   const handleDLUpload = () => dlInputRef.current?.click();
+  const handleRCUpload = () => rcInputRef.current?.click();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -184,7 +190,16 @@ export default function Profile() {
     if (e.target.files?.[0]) {
       setDlUploaded(true);
       setProfile(p => ({ ...p, dlVerified: true }));
+      localStorage.setItem("dlStatus", "pending");
       toast({ title: "Driving Licence Uploaded", description: "Under review — verification takes up to 24 hours." });
+    }
+  };
+
+  const handleRCChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setRcUploaded(true);
+      localStorage.setItem("rcStatus", "pending");
+      toast({ title: "Vehicle RC Uploaded", description: "Under review — verification takes up to 24 hours." });
     }
   };
 
@@ -198,6 +213,7 @@ export default function Profile() {
       {/* Hidden inputs */}
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
       <input ref={dlInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleDLChange} />
+      <input ref={rcInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleRCChange} />
 
       {/* Hero header */}
       <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 px-4 pt-12 pb-8 relative overflow-hidden">
@@ -466,11 +482,11 @@ export default function Profile() {
             <div className="bg-neutral-50 rounded-2xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-blue-600" />
+                  <Phone className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">Aadhaar Card</p>
-                  <p className="text-xs text-blue-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Verified</p>
+                  <p className="font-semibold text-sm">Mobile Number</p>
+                  <p className="text-xs text-blue-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Verified via OTP</p>
                 </div>
               </div>
               <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">✓ Done</span>
@@ -502,17 +518,30 @@ export default function Profile() {
               )}
             </div>
 
-            <div className="bg-neutral-50 rounded-2xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Car className="w-5 h-5 text-blue-600" />
+            <div className="bg-neutral-50 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${rcUploaded ? "bg-blue-100" : "bg-orange-100"}`}>
+                    <Car className={`w-5 h-5 ${rcUploaded ? "text-blue-600" : "text-orange-500"}`} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Vehicle RC</p>
+                    <p className={`text-xs font-medium flex items-center gap-1 ${rcUploaded ? "text-blue-600" : "text-orange-500"}`}>
+                      {rcUploaded ? <><CheckCircle2 className="w-3 h-3" /> Uploaded — Under Review</> : <><Clock className="w-3 h-3" /> Not Uploaded</>}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-sm">Vehicle RC</p>
-                  <p className="text-xs text-blue-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Verified</p>
-                </div>
+                {!rcUploaded && (
+                  <button onClick={handleRCUpload} className="bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 active:scale-95">
+                    <Upload className="w-3 h-3" /> Upload
+                  </button>
+                )}
               </div>
-              <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">✓ Done</span>
+              {!rcUploaded && (
+                <div className="bg-orange-50 rounded-xl p-3">
+                  <p className="text-xs text-orange-700">Upload your vehicle's Registration Certificate (RC) to enable shift booking. Required for all vehicle owners.</p>
+                </div>
+              )}
             </div>
 
             <div className="bg-blue-50 rounded-xl p-4">
