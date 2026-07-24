@@ -40,6 +40,7 @@ const VEHICLE_TYPE_OPTIONS: {
   accent: string;
   bgLight: string;
 }[] = [
+  { id: "car",     emoji: "🚗", label: "Car",     desc: "Sedans & Hatchbacks",   fareCat: "car",     filter: (v) => v.type === "car",    gradient: "from-sky-500 to-sky-700",       accent: "text-sky-700",    bgLight: "bg-sky-50" },
   { id: "bike",    emoji: "🏍️", label: "Bike",    desc: "Quick & economical",   fareCat: "bike",    filter: (v) => v.type === "bike",   gradient: "from-blue-500 to-blue-700",     accent: "text-blue-700",   bgLight: "bg-blue-50" },
   { id: "suv",     emoji: "🚙", label: "SUV",     desc: "Spacious for families", fareCat: "suv",     filter: (v) => v.type === "suv",    gradient: "from-emerald-500 to-emerald-700", accent: "text-emerald-700", bgLight: "bg-emerald-50" },
   { id: "premium", emoji: "👑", label: "Premium", desc: "Luxury & top comfort",  fareCat: "premium", filter: (v) => v.type === "luxury", gradient: "from-purple-600 to-indigo-600", accent: "text-purple-700", bgLight: "bg-purple-50" },
@@ -149,7 +150,7 @@ export default function Travel() {
           const dlStatus = localStorage.getItem("dlStatus");
           if (dlStatus === "pending" || dlStatus === "verified") return null;
           return (
-            <a href="/profile" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 active:scale-98 transition-all">
+            <a href="/profile?tab=docs" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 active:scale-98 transition-all">
               <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
                 <span className="text-lg">⚠️</span>
               </div>

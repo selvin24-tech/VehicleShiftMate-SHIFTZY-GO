@@ -137,7 +137,7 @@ export default function ShiftRequest() {
     const rcStatus = localStorage.getItem("rcStatus");
     if (!rcStatus || rcStatus === "none") {
       toast({ title: "RC document upload pending", description: "Please upload your vehicle RC in Profile → Documents to submit a shift request.", variant: "destructive" });
-      navigate("/profile");
+      navigate("/profile?tab=docs");
       return;
     }
     if (!driverType) {
@@ -210,7 +210,7 @@ export default function ShiftRequest() {
           const rcStatus = localStorage.getItem("rcStatus");
           if (rcStatus === "pending" || rcStatus === "verified") return null;
           return (
-            <a href="/profile" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 active:scale-98 transition-all">
+            <a href="/profile?tab=docs" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 active:scale-98 transition-all">
               <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
                 <span className="text-lg">⚠️</span>
               </div>
@@ -277,7 +277,12 @@ export default function ShiftRequest() {
                 </FormItem>
               )} />
 
-              {/* Luxury Brand */}
+            </div>
+
+            {selectedVehicleType && (<>
+
+            {/* Vehicle Model + Registration — shown only after type selected */}
+            <div>
               {showLuxuryField && (
                 <FormField control={form.control} name="luxuryBrand" render={({ field }) => (
                   <FormItem className="mb-5">
@@ -293,7 +298,6 @@ export default function ShiftRequest() {
                 )} />
               )}
 
-              {/* Vehicle Model */}
               <FormField control={form.control} name="vehicleModel" render={({ field }) => (
                 <FormItem className="mb-5">
                   <FormLabel className="text-neutral-700 font-medium">Vehicle Model</FormLabel>
@@ -309,7 +313,6 @@ export default function ShiftRequest() {
                 </FormItem>
               )} />
 
-              {/* Registration Number */}
               <FormField control={form.control} name="registrationNumber" render={({ field }) => (
                 <FormItem className="mb-5">
                   <FormLabel className="text-neutral-700 font-medium">Registration Number</FormLabel>
@@ -321,8 +324,6 @@ export default function ShiftRequest() {
                 </FormItem>
               )} />
             </div>
-
-            {selectedVehicleType && (<>
 
             {/* ════════════════════════════════
                 SECTION B — LOCATION DETAILS

@@ -106,7 +106,10 @@ export default function Profile() {
     const s = localStorage.getItem("rcStatus");
     return s === "pending" || s === "verified";
   });
-  const [activeTab, setActiveTab] = useState<"profile" | "bookings" | "docs">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "bookings" | "docs">(() => {
+    const p = new URLSearchParams(window.location.search).get("tab");
+    return (p === "docs" || p === "bookings") ? p : "profile";
+  });
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [contactDraft, setContactDraft] = useState<EmergencyContact[]>(() => {

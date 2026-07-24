@@ -48,7 +48,7 @@ const ALL_USERS = [
 
 const DOCUMENTS = [
   { id: 1, user: "Priya Sharma", type: "Driving Licence", submittedOn: "Today, 10:15 AM", docRef: "DL-TN-2024-012345", status: "pending" as DocStatus, notes: "" },
-  { id: 2, user: "Arjun Reddy", type: "Aadhaar Card", submittedOn: "Today, 09:00 AM", docRef: "XXXX-XXXX-6789", status: "pending" as DocStatus, notes: "" },
+  { id: 2, user: "Arjun Reddy", type: "Vehicle RC", submittedOn: "Today, 09:00 AM", docRef: "TN67MN2345", status: "pending" as DocStatus, notes: "" },
   { id: 3, user: "Meera S.", type: "Vehicle RC", submittedOn: "Yesterday, 04:30 PM", docRef: "TN22CD5678", status: "pending" as DocStatus, notes: "" },
   { id: 4, user: "Karthik Rajan", type: "Driving Licence", submittedOn: "2 days ago", docRef: "DL-KA-2023-098765", status: "verified" as DocStatus, notes: "Verified - Valid" },
   { id: 5, user: "Suresh K.", type: "Vehicle RC", submittedOn: "3 days ago", docRef: "TN56IJ7890", status: "rejected" as DocStatus, notes: "RC expired — cannot verify" },
@@ -232,11 +232,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* ── Tabs ── */}
-        <Tabs defaultValue="approvals">
+        <Tabs defaultValue="focus">
           {/* Scrollable tab bar */}
           <div className="overflow-x-auto pb-1 mb-4">
             <TabsList className="flex w-max gap-1 bg-white border border-neutral-200 p-1 rounded-xl shadow-sm h-auto">
               {[
+                { val: "focus", label: "🎯 Focus", badge: 0 },
                 { val: "approvals", label: "Approvals", badge: pendingCount },
                 { val: "enquiries", label: "Enquiries", badge: newEnquiryCount },
                 { val: "users", label: "Users", badge: 0 },
@@ -259,6 +260,153 @@ export default function AdminDashboard() {
               ))}
             </TabsList>
           </div>
+
+          {/* ── 0. FOCUS & INSIGHTS ── */}
+          <TabsContent value="focus" className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold">Your Focus Dashboard</h2>
+              <p className="text-sm text-gray-500 mt-0.5">A clear picture of what needs attention, where the money is, and how to grow Shiftzy Go</p>
+            </div>
+
+            {/* Urgent Action Items */}
+            <div>
+              <p className="text-xs font-bold text-red-500 uppercase tracking-wider mb-2">🔴 Urgent — Act Today</p>
+              <div className="grid gap-2">
+                {[
+                  { icon: "📄", title: `${docPending} Document${docPending !== 1 ? "s" : ""} Awaiting Verification`, desc: "Pending DL & RC checks are blocking users from booking. Each delay = lost revenue.", action: "Review Documents", tab: "documents" },
+                  { icon: "⚠️", title: `${reportOpen} Open Report${reportOpen !== 1 ? "s" : ""}`, desc: "Unresolved disputes hurt trust. Resolve within 24h to maintain platform credibility.", action: "View Reports", tab: "reports" },
+                  { icon: "💸", title: `₹${refunds.filter(r => r.status === "pending").reduce((s, r) => s + r.amount, 0).toLocaleString()} in Pending Refunds`, desc: "Fast refunds = happy customers who come back. Delayed refunds cause chargebacks.", action: "Process Refunds", tab: "refunds" },
+                  ...(pendingCount > 0 ? [{ icon: "🚗", title: `${pendingCount} Shift Request${pendingCount !== 1 ? "s" : ""} Pending Approval`, desc: "Owners are waiting. Approve or reject promptly so they can plan.", action: "Review Requests", tab: "approvals" }] : []),
+                ].map((item, i) => (
+                  <div key={i} className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+                    <span className="text-2xl shrink-0">{item.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm text-red-800">{item.title}</p>
+                      <p className="text-xs text-red-600 mt-0.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Revenue Breakdown */}
+            <div>
+              <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">💰 Revenue — Where the Money Comes From</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { label: "Today", value: "₹45,600", growth: "+8%", sub: "18 trips completed" },
+                  { label: "This Week", value: "₹1,89,300", growth: "+12%", sub: "72 trips" },
+                  { label: "This Month", value: "₹7,56,200", growth: "+15%", sub: "Est. 280 trips" },
+                  { label: "Platform Fee", value: `₹${(756200 * commissionPct / 100).toLocaleString()}`, growth: `${commissionPct}%`, sub: "this month" },
+                ].map((r, i) => (
+                  <div key={i} className="bg-white border border-blue-100 rounded-2xl p-4">
+                    <p className="text-xs text-gray-400 font-medium">{r.label}</p>
+                    <p className="text-xl font-extrabold text-blue-700 mt-0.5">{r.value}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-xs font-bold text-blue-500">{r.growth}</span>
+                      <span className="text-[10px] text-gray-400">{r.sub}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="bg-white border border-neutral-200 rounded-2xl p-4">
+                  <p className="text-xs font-bold text-gray-500 mb-2">Trip Type Split</p>
+                  {[
+                    { label: "Local (City)", count: 156, pct: 64, color: "bg-blue-500" },
+                    { label: "Outstation", count: 89, pct: 36, color: "bg-orange-500" },
+                  ].map(t => (
+                    <div key={t.label} className="mb-2">
+                      <div className="flex justify-between text-xs mb-0.5"><span>{t.label}</span><span className="font-bold">{t.count} active</span></div>
+                      <div className="h-1.5 bg-neutral-100 rounded-full"><div className={`h-1.5 ${t.color} rounded-full`} style={{ width: `${t.pct}%` }} /></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-white border border-neutral-200 rounded-2xl p-4">
+                  <p className="text-xs font-bold text-gray-500 mb-2">Vehicle Type Demand</p>
+                  {[
+                    { label: "Car", pct: 42, color: "bg-sky-500" },
+                    { label: "SUV", pct: 31, color: "bg-emerald-500" },
+                    { label: "Bike", pct: 19, color: "bg-blue-500" },
+                    { label: "Premium", pct: 8, color: "bg-purple-500" },
+                  ].map(t => (
+                    <div key={t.label} className="mb-1.5">
+                      <div className="flex justify-between text-xs mb-0.5"><span>{t.label}</span><span className="font-bold">{t.pct}%</span></div>
+                      <div className="h-1.5 bg-neutral-100 rounded-full"><div className={`h-1.5 ${t.color} rounded-full`} style={{ width: `${t.pct}%` }} /></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Customer Satisfaction */}
+            <div>
+              <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">😊 Customer Satisfaction</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { emoji: "⭐", label: "Avg Platform Rating", value: "4.7 / 5", note: "Based on 1,200+ reviews" },
+                  { emoji: "🔄", label: "Repeat Bookings", value: "68%", note: "Users who booked 2+ times" },
+                  { emoji: "⏱️", label: "Avg Response Time", value: "4.2 min", note: "Owner to booking confirm" },
+                  { emoji: "🚩", label: "Complaint Rate", value: "1.8%", note: "Of all completed trips" },
+                ].map((s, i) => (
+                  <div key={i} className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
+                    <span className="text-2xl">{s.emoji}</span>
+                    <p className="font-extrabold text-lg text-emerald-700 mt-1">{s.value}</p>
+                    <p className="text-xs font-semibold text-emerald-600">{s.label}</p>
+                    <p className="text-[10px] text-emerald-500 mt-0.5">{s.note}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Growth Opportunities */}
+            <div>
+              <p className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-2">📈 Growth Opportunities — Where to Focus Next</p>
+              <div className="grid md:grid-cols-2 gap-3">
+                {[
+                  { icon: "🏙️", title: "Expand to Trichy & Salem", desc: "High search volume from these cities with zero supply. Low cost to onboard 5–10 vehicles each. Potential: ₹80k/month additional.", priority: "High" },
+                  { icon: "🏍️", title: "Push Bike Category in Chennai", desc: "Bikes are fastest-growing (19% demand). Only 3 bikes listed. Each bike = ₹8,000–15,000/month revenue. Recruit actively.", priority: "High" },
+                  { icon: "👑", title: "Premium Tier — Underserved", desc: "Only 8% demand but highest margin. Onboarding 2–3 premium vehicles (BMW/Audi) for Chennai–Bangalore route could generate ₹50k/month.", priority: "Medium" },
+                  { icon: "📱", title: "Reduce Doc Verification Time", desc: "Current avg: 18 hours. Target: 2 hours. Faster verification = faster activation = more bookings. Consider a part-time verifier.", priority: "Medium" },
+                  { icon: "🤝", title: "Referral Program", desc: "68% repeat users means word-of-mouth works. A ₹200 referral bonus could 2x new user growth with low spend.", priority: "Quick Win" },
+                  { icon: "⭐", title: "Drive Reviews for Low-rated Drivers", desc: `${users.filter(u => u.rating > 0 && u.rating < 4).length} drivers have rating below 4.0. Alert them + offer coaching. Poor ratings kill repeat business.`, priority: "Quick Win" },
+                ].map((opp, i) => (
+                  <div key={i} className="bg-white border border-purple-100 rounded-2xl p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl shrink-0">{opp.icon}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-bold text-sm">{opp.title}</p>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${opp.priority === "High" ? "bg-red-100 text-red-700" : opp.priority === "Medium" ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"}`}>{opp.priority}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 leading-relaxed">{opp.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick actions */}
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">⚡ Quick Actions</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "Send Promo Notification", emoji: "📢" },
+                  { label: "Export User List", emoji: "📊" },
+                  { label: "Add New City", emoji: "🗺️" },
+                  { label: "Review Commission Rate", emoji: "💰" },
+                  { label: "Verify All Pending Docs", emoji: "✅" },
+                ].map((a, i) => (
+                  <button key={i} onClick={() => toast({ title: `${a.emoji} ${a.label}`, description: "Feature coming soon!" })}
+                    className="flex items-center gap-1.5 bg-white border border-neutral-200 hover:border-blue-300 hover:bg-blue-50 text-sm font-medium px-4 py-2 rounded-full transition-all active:scale-95">
+                    <span>{a.emoji}</span> {a.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
 
           {/* ── 1. APPROVALS ── */}
           <TabsContent value="approvals" className="space-y-3">
