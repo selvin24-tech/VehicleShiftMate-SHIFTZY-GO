@@ -199,6 +199,13 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
+        {/* Back to website */}
+        <div className="flex justify-start mb-4">
+          <a href="/" className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-blue-600 transition-colors font-medium">
+            <ArrowLeft className="w-4 h-4" /> Back to website
+          </a>
+        </div>
+
         {/* Brand */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold">

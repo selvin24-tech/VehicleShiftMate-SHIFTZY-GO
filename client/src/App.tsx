@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
+import Landing from "@/pages/Landing";
 import AdminDashboard from "@/pages/AdminDashboard";
 import ShiftRequest from "@/pages/ShiftRequest";
 import Travel from "@/pages/Travel";
@@ -53,7 +54,13 @@ function Router() {
   }
 
   if (!isAuthenticated) {
-    return <Login />;
+    return (
+      <Switch>
+        <Route path="/" component={Landing} />
+        <Route path="/login" component={Login} />
+        <Route component={Landing} />
+      </Switch>
+    );
   }
 
   return (
