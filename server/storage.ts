@@ -117,13 +117,15 @@ export class MemStorage implements IStorage {
     this.enquiries = new Map();
     this.enquiryMessages = new Map();
     
-    // Initialize with some sample data
-    this.initSampleData();
+    // Initialize with some sample data. These in-memory create* methods are
+    // async only to satisfy the IStorage interface; they resolve synchronously,
+    // so seeding completes long before the first HTTP request is handled.
+    void this.initSampleData();
   }
-  
-  private initSampleData() {
+
+  private async initSampleData() {
     // Sample users
-    const user1 = this.createUser({
+    const user1 = await this.createUser({
       name: "Vivek Singh",
       email: "vivek@example.com",
       password: "password123",
@@ -133,7 +135,7 @@ export class MemStorage implements IStorage {
       address: "Chennai"
     });
     
-    const user2 = this.createUser({
+    const user2 = await this.createUser({
       name: "Ananya Sharma",
       email: "ananya@example.com",
       password: "password456",
@@ -144,7 +146,7 @@ export class MemStorage implements IStorage {
     });
     
     // Sample vehicles
-    const vehicle1 = this.createVehicle({
+    const vehicle1 = await this.createVehicle({
       userId: user1.id,
       type: "car",
       make: "Honda",
@@ -156,7 +158,7 @@ export class MemStorage implements IStorage {
       forRent: false
     });
     
-    const vehicle2 = this.createVehicle({
+    const vehicle2 = await this.createVehicle({
       userId: user1.id,
       type: "bike",
       make: "Royal Enfield",
@@ -168,7 +170,7 @@ export class MemStorage implements IStorage {
     });
     
     // Sample shift requests
-    const shiftRequest1 = this.createShiftRequest({
+    const shiftRequest1 = await this.createShiftRequest({
       userId: user1.id,
       vehicleId: vehicle1.id,
       pickupLocation: "Chennai",
@@ -177,7 +179,7 @@ export class MemStorage implements IStorage {
       status: "completed"
     });
     
-    const shiftRequest2 = this.createShiftRequest({
+    const shiftRequest2 = await this.createShiftRequest({
       userId: user1.id,
       vehicleId: vehicle2.id,
       pickupLocation: "Chennai",
@@ -187,7 +189,7 @@ export class MemStorage implements IStorage {
     });
     
     // Sample trips
-    this.createTrip({
+    await this.createTrip({
       shiftRequestId: shiftRequest1.id,
       driverId: user1.id,
       startDate: new Date("2023-05-15"),
@@ -197,7 +199,7 @@ export class MemStorage implements IStorage {
       status: "completed"
     });
     
-    this.createTrip({
+    await this.createTrip({
       shiftRequestId: shiftRequest2.id,
       driverId: user1.id,
       startDate: new Date("2023-04-28"),
@@ -207,7 +209,7 @@ export class MemStorage implements IStorage {
     });
     
     // Sample user review
-    this.createUserReview({
+    await this.createUserReview({
       reviewedUserId: user2.id,
       reviewerId: user1.id,
       tripId: 1,
@@ -217,7 +219,7 @@ export class MemStorage implements IStorage {
     });
     
     // Sample vehicle review
-    this.createVehicleReview({
+    await this.createVehicleReview({
       vehicleId: 1,
       reviewerId: user2.id,
       tripId: 1,
@@ -229,7 +231,7 @@ export class MemStorage implements IStorage {
     });
     
     // Sample chat conversation
-    const conversation = this.createChatConversation({
+    const conversation = await this.createChatConversation({
       ownerId: user1.id,
       travelerId: user2.id,
       shiftRequestId: shiftRequest1.id,
@@ -237,21 +239,21 @@ export class MemStorage implements IStorage {
     });
     
     // Sample chat messages
-    this.sendChatMessage({
+    await this.sendChatMessage({
       conversationId: conversation.id,
       senderId: user1.id,
       recipientId: user2.id,
       message: "Hello! I'm interested in shifting my vehicle to Tiruvannamalai."
     });
     
-    this.sendChatMessage({
+    await this.sendChatMessage({
       conversationId: conversation.id,
       senderId: user2.id,
       recipientId: user1.id,
       message: "Hi there! Thanks for reaching out. I can help with that."
     });
     
-    this.sendChatMessage({
+    await this.sendChatMessage({
       conversationId: conversation.id,
       senderId: user1.id,
       recipientId: user2.id,
@@ -259,7 +261,7 @@ export class MemStorage implements IStorage {
     });
 
     // Sample customer enquiry to the MD desk
-    this.createEnquiry({
+    await this.createEnquiry({
       name: "Ramesh Kumar",
       phone: "+91 98401 22334",
       pickup: "Chennai",
@@ -282,7 +284,11 @@ export class MemStorage implements IStorage {
   async createUser(userData: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
     const now = new Date();
-    const user: User = { ...userData, id, createdAt: now };
+    // `as User`: the drizzle-zod insert type makes nullable columns optional
+    // (string | null | undefined), while the row type wants `string | null`.
+    // For this in-memory demo store the two are equivalent. The real
+    // Postgres-backed store added in Phase 1 removes the need for this cast.
+    const user = { ...userData, id, createdAt: now, averageRating: 0, totalRatings: 0 } as User;
     this.users.set(id, user);
     return user;
   }
@@ -299,7 +305,7 @@ export class MemStorage implements IStorage {
   async createVehicle(vehicleData: InsertVehicle): Promise<Vehicle> {
     const id = this.vehicleIdCounter++;
     const now = new Date();
-    const vehicle: Vehicle = { ...vehicleData, id, createdAt: now };
+    const vehicle = { ...vehicleData, id, createdAt: now, averageRating: 0, totalRatings: 0 } as Vehicle;
     this.vehicles.set(id, vehicle);
     return vehicle;
   }
@@ -325,12 +331,13 @@ export class MemStorage implements IStorage {
   async createShiftRequest(requestData: InsertShiftRequest): Promise<ShiftRequest> {
     const id = this.shiftRequestIdCounter++;
     const now = new Date();
-    const shiftRequest: ShiftRequest = { 
-      ...requestData, 
-      id, 
+    const shiftRequest = {
+      ...requestData,
+      id,
       requestDate: now,
-      createdAt: now 
-    };
+      createdAt: now,
+      status: requestData.status ?? "pending",
+    } as ShiftRequest;
     this.shiftRequests.set(id, shiftRequest);
     return shiftRequest;
   }
@@ -367,7 +374,7 @@ export class MemStorage implements IStorage {
   async createTrip(tripData: InsertTrip): Promise<Trip> {
     const id = this.tripIdCounter++;
     const now = new Date();
-    const trip: Trip = { ...tripData, id, createdAt: now };
+    const trip = { ...tripData, id, createdAt: now, status: tripData.status ?? "pending" } as Trip;
     this.trips.set(id, trip);
     return trip;
   }
@@ -402,7 +409,7 @@ export class MemStorage implements IStorage {
     const id = this.userReviewIdCounter++;
     const now = new Date();
     
-    const review: UserReview = { ...reviewData, id, createdAt: now };
+    const review: UserReview = { ...reviewData, id, createdAt: now, comment: reviewData.comment ?? null };
     this.userReviews.set(id, review);
     
     // Update the user's average rating
@@ -432,7 +439,7 @@ export class MemStorage implements IStorage {
     const id = this.vehicleReviewIdCounter++;
     const now = new Date();
     
-    const review: VehicleReview = { ...reviewData, id, createdAt: now };
+    const review: VehicleReview = { ...reviewData, id, createdAt: now, comment: reviewData.comment ?? null };
     this.vehicleReviews.set(id, review);
     
     // Update the vehicle's average rating
@@ -502,11 +509,13 @@ export class MemStorage implements IStorage {
     const id = this.chatConversationIdCounter++;
     const now = new Date();
     
-    const chatConversation: ChatConversation = { 
-      ...conversation, 
-      id, 
+    const chatConversation: ChatConversation = {
+      ...conversation,
+      id,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      status: conversation.status ?? "active",
+      tripId: conversation.tripId ?? null,
     };
     
     this.chatConversations.set(id, chatConversation);
@@ -517,17 +526,18 @@ export class MemStorage implements IStorage {
   async getChatMessages(conversationId: number): Promise<ChatMessage[]> {
     return Array.from(this.chatMessages.values())
       .filter(message => message.conversationId === conversationId)
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      .sort((a, b) => (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0));
   }
 
   async sendChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
     const id = this.chatMessageIdCounter++;
     const now = new Date();
     
-    const chatMessage: ChatMessage = { 
-      ...message, 
-      id, 
-      createdAt: now 
+    const chatMessage: ChatMessage = {
+      ...message,
+      id,
+      createdAt: now,
+      isRead: message.isRead ?? false,
     };
     
     this.chatMessages.set(id, chatMessage);

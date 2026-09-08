@@ -260,11 +260,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // and implement filtering by location, vehicle type, etc.
       // For this prototype, we'll return a predefined list
       
-      // Get all vehicles that are marked for rent
-      const allVehicles = Array.from((await storage.getVehicle(1) ? [1] : []))
-        .map(async id => await storage.getVehicle(id))
-        .filter(v => v && v.forRent);
-      
       // Simulate available vehicles
       const availableVehicles = [
         {

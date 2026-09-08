@@ -43,12 +43,19 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
 
   app.use(
-    (err: any, _req: Request, res: Response, _next: NextFunction) => {
+    (err: any, _req: Request, res: Response, next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
 
+      // If the response has already started, hand off to Express' default handler.
+      if (res.headersSent) {
+        return next(err);
+      }
+
       res.status(status).json({ message });
-      throw err;
+      // Log for diagnostics. Do NOT re-throw here — throwing after the response
+      // has been sent crashes the process on an otherwise-handled error.
+      console.error(err);
     }
   );
 

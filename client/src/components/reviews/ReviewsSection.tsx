@@ -145,7 +145,7 @@ export default function ReviewsSection({
         )}
       </div>
       
-      {!isWritingReview && showForm && reviews?.length > 0 && (
+      {!isWritingReview && showForm && (reviews?.length ?? 0) > 0 && (
         <div className="text-center">
           <Button 
             variant="outline" 
