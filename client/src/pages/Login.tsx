@@ -119,36 +119,65 @@ export default function Login() {
     otpForm.reset();
   };
 
-  // ── Sign In: existing users → straight to home ───────────────────────────
-  const handleSignIn = (data: SignInData) => {
+  // ── Sign In: real email+password login against the server session ───────
+  const handleSignIn = async (data: SignInData) => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (data.username === "admin_2025") {
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("userType", "admin");
-        window.location.href = "/";
-      } else {
-        // All existing customers skip verification and go straight to home
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("userType", "customer");
-        localStorage.setItem("username", data.username);
-        window.location.href = "/";
+    try {
+      const res = await fetch("/api/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: data.username, password: data.password }),
+      });
+      const body = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        signInForm.setError("password", { message: body.message || "Invalid username or password" });
+        setIsLoading(false);
+        return;
       }
-    }, 800);
+
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("userType", body.role === "admin" ? "admin" : "customer");
+      localStorage.setItem("username", data.username);
+      window.location.href = "/";
+    } catch {
+      setIsLoading(false);
+      toast({ title: "Couldn't sign in", description: "Please check your connection and try again.", variant: "destructive" });
+    }
   };
 
-  // ── Sign Up: new users → Mobile OTP → home ──────────────────────────────
-  const handleSignUp = (data: SignUpData) => {
+  // ── Sign Up: create the real account → Mobile OTP (still simulated) → home ─
+  const handleSignUp = async (data: SignUpData) => {
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/user/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name: `${data.firstName} ${data.lastName}`,
+          email: data.username,
+          password: data.password,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
       setIsLoading(false);
+
+      if (!res.ok) {
+        signUpForm.setError("username", { message: body.message || "Could not create account with that username" });
+        return;
+      }
+
       localStorage.setItem("userType", "customer");
       localStorage.setItem("username", data.username);
       localStorage.setItem("displayName", `${data.firstName} ${data.lastName}`);
       localStorage.setItem("isFirstLogin", "true");
       setStep("mobile");
-    }, 800);
+    } catch {
+      setIsLoading(false);
+      toast({ title: "Couldn't create account", description: "Please check your connection and try again.", variant: "destructive" });
+    }
   };
 
   const handleSendOtp = (data: MobileData) => {

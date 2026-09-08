@@ -11,6 +11,9 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   isVerified: boolean("is_verified").default(false),
   address: text("address"),
+  // "customer" | "admin". Never settable via the public registration payload —
+  // promotion to admin happens out-of-band (see scripts/promote-admin.ts).
+  role: text("role").notNull().default("customer"),
   // Rating fields for the user
   averageRating: real("average_rating").default(0),
   totalRatings: integer("total_ratings").default(0),
@@ -88,7 +91,7 @@ export const vehicleReviews = pgTable("vehicle_reviews", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, averageRating: true, totalRatings: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, averageRating: true, totalRatings: true, role: true });
 export const insertVehicleSchema = createInsertSchema(vehicles).omit({ id: true, createdAt: true, averageRating: true, totalRatings: true });
 export const insertShiftRequestSchema = createInsertSchema(shiftRequests).omit({ id: true, createdAt: true });
 export const insertTripSchema = createInsertSchema(trips).omit({ id: true, createdAt: true });

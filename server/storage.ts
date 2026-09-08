@@ -1,13 +1,25 @@
-import { 
-  User, 
-  InsertUser, 
-  Vehicle, 
-  InsertVehicle, 
-  ShiftRequest, 
-  InsertShiftRequest, 
-  Trip, 
-  InsertTrip, 
-  UserReview, 
+import { eq, and, or, asc, desc } from "drizzle-orm";
+import { db } from "./db";
+import {
+  users,
+  vehicles,
+  shiftRequests,
+  trips,
+  userReviews,
+  vehicleReviews,
+  chatConversations,
+  chatMessages,
+  enquiries,
+  enquiryMessages,
+  User,
+  InsertUser,
+  Vehicle,
+  InsertVehicle,
+  ShiftRequest,
+  InsertShiftRequest,
+  Trip,
+  InsertTrip,
+  UserReview,
   InsertUserReview,
   VehicleReview,
   InsertVehicleReview,
@@ -28,46 +40,46 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserRating(userId: number, newRating: number): Promise<User | undefined>;
-  
+
   // Vehicle operations
   getVehicle(id: number): Promise<Vehicle | undefined>;
   getVehiclesByUserId(userId: number): Promise<Vehicle[]>;
   createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
   updateVehicle(id: number, vehicle: Partial<Vehicle>): Promise<Vehicle | undefined>;
   updateVehicleRating(vehicleId: number, newRating: number): Promise<Vehicle | undefined>;
-  
+
   // Shift request operations
   getShiftRequest(id: number): Promise<ShiftRequest | undefined>;
   getShiftRequestsByUserId(userId: number): Promise<ShiftRequest[]>;
   createShiftRequest(request: InsertShiftRequest): Promise<ShiftRequest>;
   updateShiftRequestStatus(id: number, status: string): Promise<ShiftRequest | undefined>;
-  
+
   // Trip operations
   getTrip(id: number): Promise<Trip | undefined>;
   getTripsByUserId(userId: number): Promise<Trip[]>;
   getTripsByDriverId(driverId: number): Promise<Trip[]>;
   createTrip(trip: InsertTrip): Promise<Trip>;
   updateTripStatus(id: number, status: string): Promise<Trip | undefined>;
-  
+
   // User Review operations
   getUserReview(id: number): Promise<UserReview | undefined>;
   getUserReviewsByReviewedUserId(userId: number): Promise<UserReview[]>;
   getUserReviewsByReviewerId(reviewerId: number): Promise<UserReview[]>;
   getUserReviewsByTripId(tripId: number): Promise<UserReview[]>;
   createUserReview(review: InsertUserReview): Promise<UserReview>;
-  
+
   // Vehicle Review operations
   getVehicleReview(id: number): Promise<VehicleReview | undefined>;
   getVehicleReviewsByVehicleId(vehicleId: number): Promise<VehicleReview[]>;
   getVehicleReviewsByReviewerId(reviewerId: number): Promise<VehicleReview[]>;
   getVehicleReviewsByTripId(tripId: number): Promise<VehicleReview[]>;
   createVehicleReview(review: InsertVehicleReview): Promise<VehicleReview>;
-  
+
   // Chat operations
   getChatConversation(id: number): Promise<ChatConversation | undefined>;
   getChatConversationsByUserId(userId: number): Promise<ChatConversation[]>;
   createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
-  
+
   getChatMessages(conversationId: number): Promise<ChatMessage[]>;
   sendChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   markMessagesAsRead(conversationId: number, userId: number): Promise<void>;
@@ -81,510 +93,264 @@ export interface IStorage {
   addEnquiryMessage(message: InsertEnquiryMessage): Promise<EnquiryMessage>;
 }
 
-// In-memory storage implementation
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private vehicles: Map<number, Vehicle>;
-  private shiftRequests: Map<number, ShiftRequest>;
-  private trips: Map<number, Trip>;
-  private userReviews: Map<number, UserReview>;
-  private vehicleReviews: Map<number, VehicleReview>;
-  private chatConversations: Map<number, ChatConversation>;
-  private chatMessages: Map<number, ChatMessage>;
-  private enquiries: Map<number, Enquiry>;
-  private enquiryMessages: Map<number, EnquiryMessage>;
-  
-  private userIdCounter: number = 1;
-  private vehicleIdCounter: number = 1;
-  private shiftRequestIdCounter: number = 1;
-  private tripIdCounter: number = 1;
-  private userReviewIdCounter: number = 1;
-  private vehicleReviewIdCounter: number = 1;
-  private chatConversationIdCounter: number = 1;
-  private chatMessageIdCounter: number = 1;
-  private enquiryIdCounter: number = 1;
-  private enquiryMessageIdCounter: number = 1;
-  
-  constructor() {
-    this.users = new Map();
-    this.vehicles = new Map();
-    this.shiftRequests = new Map();
-    this.trips = new Map();
-    this.userReviews = new Map();
-    this.vehicleReviews = new Map();
-    this.chatConversations = new Map();
-    this.chatMessages = new Map();
-    this.enquiries = new Map();
-    this.enquiryMessages = new Map();
-    
-    // Initialize with some sample data. These in-memory create* methods are
-    // async only to satisfy the IStorage interface; they resolve synchronously,
-    // so seeding completes long before the first HTTP request is handled.
-    void this.initSampleData();
-  }
-
-  private async initSampleData() {
-    // Sample users
-    const user1 = await this.createUser({
-      name: "Vivek Singh",
-      email: "vivek@example.com",
-      password: "password123",
-      phone: "+91 98765 43210",
-      avatarUrl: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61",
-      isVerified: true,
-      address: "Chennai"
-    });
-    
-    const user2 = await this.createUser({
-      name: "Ananya Sharma",
-      email: "ananya@example.com",
-      password: "password456",
-      phone: "+91 91234 56789",
-      avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-      isVerified: true,
-      address: "Bangalore"
-    });
-    
-    // Sample vehicles
-    const vehicle1 = await this.createVehicle({
-      userId: user1.id,
-      type: "car",
-      make: "Honda",
-      model: "City",
-      registrationNumber: "TN 01 AB 1234",
-      color: "Silver",
-      fuelType: "Petrol",
-      seatingCapacity: "5",
-      forRent: false
-    });
-    
-    const vehicle2 = await this.createVehicle({
-      userId: user1.id,
-      type: "bike",
-      make: "Royal Enfield",
-      model: "Classic",
-      registrationNumber: "TN 07 CK 5678",
-      color: "Black",
-      fuelType: "Petrol",
-      forRent: false
-    });
-    
-    // Sample shift requests
-    const shiftRequest1 = await this.createShiftRequest({
-      userId: user1.id,
-      vehicleId: vehicle1.id,
-      pickupLocation: "Chennai",
-      dropLocation: "Tiruvannamalai",
-      insuranceExpiryDate: "2024-05-15",
-      status: "completed"
-    });
-    
-    const shiftRequest2 = await this.createShiftRequest({
-      userId: user1.id,
-      vehicleId: vehicle2.id,
-      pickupLocation: "Chennai",
-      dropLocation: "Coimbatore",
-      insuranceExpiryDate: "2024-04-28",
-      status: "in-transit"
-    });
-    
-    // Sample trips
-    await this.createTrip({
-      shiftRequestId: shiftRequest1.id,
-      driverId: user1.id,
-      startDate: new Date("2023-05-15"),
-      endDate: new Date("2023-05-15"),
-      price: "2500",
-      distance: "300",
-      status: "completed"
-    });
-    
-    await this.createTrip({
-      shiftRequestId: shiftRequest2.id,
-      driverId: user1.id,
-      startDate: new Date("2023-04-28"),
-      price: "1800",
-      distance: "500",
-      status: "in-transit"
-    });
-    
-    // Sample user review
-    await this.createUserReview({
-      reviewedUserId: user2.id,
-      reviewerId: user1.id,
-      tripId: 1,
-      rating: 5,
-      userType: "driver",
-      comment: "Excellent driver! On time and very professional."
-    });
-    
-    // Sample vehicle review
-    await this.createVehicleReview({
-      vehicleId: 1,
-      reviewerId: user2.id,
-      tripId: 1,
-      rating: 5,
-      comfort: 4,
-      cleanliness: 5,
-      performance: 5,
-      comment: "Car was in great condition, very comfortable for the journey."
-    });
-    
-    // Sample chat conversation
-    const conversation = await this.createChatConversation({
-      ownerId: user1.id,
-      travelerId: user2.id,
-      shiftRequestId: shiftRequest1.id,
-      status: "active"
-    });
-    
-    // Sample chat messages
-    await this.sendChatMessage({
-      conversationId: conversation.id,
-      senderId: user1.id,
-      recipientId: user2.id,
-      message: "Hello! I'm interested in shifting my vehicle to Tiruvannamalai."
-    });
-    
-    await this.sendChatMessage({
-      conversationId: conversation.id,
-      senderId: user2.id,
-      recipientId: user1.id,
-      message: "Hi there! Thanks for reaching out. I can help with that."
-    });
-    
-    await this.sendChatMessage({
-      conversationId: conversation.id,
-      senderId: user1.id,
-      recipientId: user2.id,
-      message: "Great! When would you be available for pickup?"
-    });
-
-    // Sample customer enquiry to the MD desk
-    await this.createEnquiry({
-      name: "Ramesh Kumar",
-      phone: "+91 98401 22334",
-      pickup: "Chennai",
-      drop: "Madurai",
-      vehicleType: "Car",
-      preferredDate: "2026-07-02 09:00",
-      message: "Is a sedan available this Saturday? Can your driver drop it at my home in Madurai?",
-    });
-  }
-  
+// PostgreSQL-backed storage implementation (Phase 1: real, persistent accounts/data)
+export class DbStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-  
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
-  }
-  
-  async createUser(userData: InsertUser): Promise<User> {
-    const id = this.userIdCounter++;
-    const now = new Date();
-    // `as User`: the drizzle-zod insert type makes nullable columns optional
-    // (string | null | undefined), while the row type wants `string | null`.
-    // For this in-memory demo store the two are equivalent. The real
-    // Postgres-backed store added in Phase 1 removes the need for this cast.
-    const user = { ...userData, id, createdAt: now, averageRating: 0, totalRatings: 0 } as User;
-    this.users.set(id, user);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
-  
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
+    return user;
+  }
+
+  async updateUserRating(userId: number, newRating: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return undefined;
+
+    const currentTotalRatings = user.totalRatings ?? 0;
+    const currentAverage = user.averageRating ?? 0;
+    const newTotalRatings = currentTotalRatings + 1;
+    const newAverage = (currentAverage * currentTotalRatings + newRating) / newTotalRatings;
+
+    const [updated] = await db
+      .update(users)
+      .set({ averageRating: newAverage, totalRatings: newTotalRatings })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+
   // Vehicle methods
   async getVehicle(id: number): Promise<Vehicle | undefined> {
-    return this.vehicles.get(id);
-  }
-  
-  async getVehiclesByUserId(userId: number): Promise<Vehicle[]> {
-    return Array.from(this.vehicles.values()).filter(vehicle => vehicle.userId === userId);
-  }
-  
-  async createVehicle(vehicleData: InsertVehicle): Promise<Vehicle> {
-    const id = this.vehicleIdCounter++;
-    const now = new Date();
-    const vehicle = { ...vehicleData, id, createdAt: now, averageRating: 0, totalRatings: 0 } as Vehicle;
-    this.vehicles.set(id, vehicle);
+    const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, id));
     return vehicle;
   }
-  
-  async updateVehicle(id: number, vehicleData: Partial<Vehicle>): Promise<Vehicle | undefined> {
-    const vehicle = this.vehicles.get(id);
-    if (!vehicle) return undefined;
-    
-    const updatedVehicle = { ...vehicle, ...vehicleData };
-    this.vehicles.set(id, updatedVehicle);
-    return updatedVehicle;
+
+  async getVehiclesByUserId(userId: number): Promise<Vehicle[]> {
+    return db.select().from(vehicles).where(eq(vehicles.userId, userId));
   }
-  
+
+  async createVehicle(vehicleData: InsertVehicle): Promise<Vehicle> {
+    const [vehicle] = await db.insert(vehicles).values(vehicleData).returning();
+    return vehicle;
+  }
+
+  async updateVehicle(id: number, vehicleData: Partial<Vehicle>): Promise<Vehicle | undefined> {
+    const [updated] = await db.update(vehicles).set(vehicleData).where(eq(vehicles.id, id)).returning();
+    return updated;
+  }
+
+  async updateVehicleRating(vehicleId: number, newRating: number): Promise<Vehicle | undefined> {
+    const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId));
+    if (!vehicle) return undefined;
+
+    const currentTotalRatings = vehicle.totalRatings ?? 0;
+    const currentAverage = vehicle.averageRating ?? 0;
+    const newTotalRatings = currentTotalRatings + 1;
+    const newAverage = (currentAverage * currentTotalRatings + newRating) / newTotalRatings;
+
+    const [updated] = await db
+      .update(vehicles)
+      .set({ averageRating: newAverage, totalRatings: newTotalRatings })
+      .where(eq(vehicles.id, vehicleId))
+      .returning();
+    return updated;
+  }
+
   // Shift request methods
   async getShiftRequest(id: number): Promise<ShiftRequest | undefined> {
-    return this.shiftRequests.get(id);
+    const [request] = await db.select().from(shiftRequests).where(eq(shiftRequests.id, id));
+    return request;
   }
-  
+
   async getShiftRequestsByUserId(userId: number): Promise<ShiftRequest[]> {
-    return Array.from(this.shiftRequests.values()).filter(request => request.userId === userId);
+    return db.select().from(shiftRequests).where(eq(shiftRequests.userId, userId));
   }
-  
+
   async createShiftRequest(requestData: InsertShiftRequest): Promise<ShiftRequest> {
-    const id = this.shiftRequestIdCounter++;
-    const now = new Date();
-    const shiftRequest = {
-      ...requestData,
-      id,
-      requestDate: now,
-      createdAt: now,
-      status: requestData.status ?? "pending",
-    } as ShiftRequest;
-    this.shiftRequests.set(id, shiftRequest);
-    return shiftRequest;
+    const [request] = await db.insert(shiftRequests).values(requestData).returning();
+    return request;
   }
-  
+
   async updateShiftRequestStatus(id: number, status: string): Promise<ShiftRequest | undefined> {
-    const request = this.shiftRequests.get(id);
-    if (!request) return undefined;
-    
-    const updatedRequest = { ...request, status };
-    this.shiftRequests.set(id, updatedRequest);
-    return updatedRequest;
+    const [updated] = await db
+      .update(shiftRequests)
+      .set({ status })
+      .where(eq(shiftRequests.id, id))
+      .returning();
+    return updated;
   }
-  
+
   // Trip methods
   async getTrip(id: number): Promise<Trip | undefined> {
-    return this.trips.get(id);
-  }
-  
-  async getTripsByUserId(userId: number): Promise<Trip[]> {
-    // Get all shift requests for this user
-    const userShiftRequests = await this.getShiftRequestsByUserId(userId);
-    const shiftRequestIds = userShiftRequests.map(request => request.id);
-    
-    // Return all trips for these shift requests
-    return Array.from(this.trips.values()).filter(trip => 
-      shiftRequestIds.includes(trip.shiftRequestId)
-    );
-  }
-  
-  async getTripsByDriverId(driverId: number): Promise<Trip[]> {
-    return Array.from(this.trips.values()).filter(trip => trip.driverId === driverId);
-  }
-  
-  async createTrip(tripData: InsertTrip): Promise<Trip> {
-    const id = this.tripIdCounter++;
-    const now = new Date();
-    const trip = { ...tripData, id, createdAt: now, status: tripData.status ?? "pending" } as Trip;
-    this.trips.set(id, trip);
+    const [trip] = await db.select().from(trips).where(eq(trips.id, id));
     return trip;
   }
-  
-  async updateTripStatus(id: number, status: string): Promise<Trip | undefined> {
-    const trip = this.trips.get(id);
-    if (!trip) return undefined;
-    
-    const updatedTrip = { ...trip, status };
-    this.trips.set(id, updatedTrip);
-    return updatedTrip;
+
+  async getTripsByUserId(userId: number): Promise<Trip[]> {
+    const rows = await db
+      .select({ trip: trips })
+      .from(trips)
+      .innerJoin(shiftRequests, eq(trips.shiftRequestId, shiftRequests.id))
+      .where(eq(shiftRequests.userId, userId));
+    return rows.map((r) => r.trip);
   }
-  
+
+  async getTripsByDriverId(driverId: number): Promise<Trip[]> {
+    return db.select().from(trips).where(eq(trips.driverId, driverId));
+  }
+
+  async createTrip(tripData: InsertTrip): Promise<Trip> {
+    const [trip] = await db.insert(trips).values(tripData).returning();
+    return trip;
+  }
+
+  async updateTripStatus(id: number, status: string): Promise<Trip | undefined> {
+    const [updated] = await db.update(trips).set({ status }).where(eq(trips.id, id)).returning();
+    return updated;
+  }
+
   // User Review operations
   async getUserReview(id: number): Promise<UserReview | undefined> {
-    return this.userReviews.get(id);
+    const [review] = await db.select().from(userReviews).where(eq(userReviews.id, id));
+    return review;
   }
 
   async getUserReviewsByReviewedUserId(userId: number): Promise<UserReview[]> {
-    return Array.from(this.userReviews.values()).filter(review => review.reviewedUserId === userId);
+    return db.select().from(userReviews).where(eq(userReviews.reviewedUserId, userId));
   }
 
   async getUserReviewsByReviewerId(reviewerId: number): Promise<UserReview[]> {
-    return Array.from(this.userReviews.values()).filter(review => review.reviewerId === reviewerId);
+    return db.select().from(userReviews).where(eq(userReviews.reviewerId, reviewerId));
   }
 
   async getUserReviewsByTripId(tripId: number): Promise<UserReview[]> {
-    return Array.from(this.userReviews.values()).filter(review => review.tripId === tripId);
+    return db.select().from(userReviews).where(eq(userReviews.tripId, tripId));
   }
 
   async createUserReview(reviewData: InsertUserReview): Promise<UserReview> {
-    const id = this.userReviewIdCounter++;
-    const now = new Date();
-    
-    const review: UserReview = { ...reviewData, id, createdAt: now, comment: reviewData.comment ?? null };
-    this.userReviews.set(id, review);
-    
-    // Update the user's average rating
-    await this.updateUserRating(reviewData.reviewedUserId, reviewData.rating);
-    
-    return review;
+    return db.transaction(async (tx) => {
+      const [review] = await tx.insert(userReviews).values(reviewData).returning();
+
+      const [user] = await tx.select().from(users).where(eq(users.id, reviewData.reviewedUserId));
+      if (user) {
+        const currentTotalRatings = user.totalRatings ?? 0;
+        const currentAverage = user.averageRating ?? 0;
+        const newTotalRatings = currentTotalRatings + 1;
+        const newAverage = (currentAverage * currentTotalRatings + reviewData.rating) / newTotalRatings;
+        await tx
+          .update(users)
+          .set({ averageRating: newAverage, totalRatings: newTotalRatings })
+          .where(eq(users.id, reviewData.reviewedUserId));
+      }
+
+      return review;
+    });
   }
 
   // Vehicle Review operations
   async getVehicleReview(id: number): Promise<VehicleReview | undefined> {
-    return this.vehicleReviews.get(id);
-  }
-
-  async getVehicleReviewsByVehicleId(vehicleId: number): Promise<VehicleReview[]> {
-    return Array.from(this.vehicleReviews.values()).filter(review => review.vehicleId === vehicleId);
-  }
-
-  async getVehicleReviewsByReviewerId(reviewerId: number): Promise<VehicleReview[]> {
-    return Array.from(this.vehicleReviews.values()).filter(review => review.reviewerId === reviewerId);
-  }
-
-  async getVehicleReviewsByTripId(tripId: number): Promise<VehicleReview[]> {
-    return Array.from(this.vehicleReviews.values()).filter(review => review.tripId === tripId);
-  }
-
-  async createVehicleReview(reviewData: InsertVehicleReview): Promise<VehicleReview> {
-    const id = this.vehicleReviewIdCounter++;
-    const now = new Date();
-    
-    const review: VehicleReview = { ...reviewData, id, createdAt: now, comment: reviewData.comment ?? null };
-    this.vehicleReviews.set(id, review);
-    
-    // Update the vehicle's average rating
-    await this.updateVehicleRating(reviewData.vehicleId, reviewData.rating);
-    
+    const [review] = await db.select().from(vehicleReviews).where(eq(vehicleReviews.id, id));
     return review;
   }
 
-  // User Rating Update
-  async updateUserRating(userId: number, newRating: number): Promise<User | undefined> {
-    const user = this.users.get(userId);
-    if (!user) return undefined;
-    
-    // Calculate new average rating
-    const currentTotalRatings = user.totalRatings || 0;
-    const currentAverage = user.averageRating || 0;
-    
-    const newTotalRatings = currentTotalRatings + 1;
-    const newAverage = ((currentAverage * currentTotalRatings) + newRating) / newTotalRatings;
-    
-    // Update user's rating
-    const updatedUser = {
-      ...user,
-      averageRating: newAverage,
-      totalRatings: newTotalRatings
-    };
-    
-    this.users.set(userId, updatedUser);
-    return updatedUser;
+  async getVehicleReviewsByVehicleId(vehicleId: number): Promise<VehicleReview[]> {
+    return db.select().from(vehicleReviews).where(eq(vehicleReviews.vehicleId, vehicleId));
   }
-  
-  // Vehicle Rating Update
-  async updateVehicleRating(vehicleId: number, newRating: number): Promise<Vehicle | undefined> {
-    const vehicle = this.vehicles.get(vehicleId);
-    if (!vehicle) return undefined;
-    
-    // Calculate new average rating
-    const currentTotalRatings = vehicle.totalRatings || 0;
-    const currentAverage = vehicle.averageRating || 0;
-    
-    const newTotalRatings = currentTotalRatings + 1;
-    const newAverage = ((currentAverage * currentTotalRatings) + newRating) / newTotalRatings;
-    
-    // Update vehicle's rating
-    const updatedVehicle = {
-      ...vehicle,
-      averageRating: newAverage,
-      totalRatings: newTotalRatings
-    };
-    
-    this.vehicles.set(vehicleId, updatedVehicle);
-    return updatedVehicle;
+
+  async getVehicleReviewsByReviewerId(reviewerId: number): Promise<VehicleReview[]> {
+    return db.select().from(vehicleReviews).where(eq(vehicleReviews.reviewerId, reviewerId));
+  }
+
+  async getVehicleReviewsByTripId(tripId: number): Promise<VehicleReview[]> {
+    return db.select().from(vehicleReviews).where(eq(vehicleReviews.tripId, tripId));
+  }
+
+  async createVehicleReview(reviewData: InsertVehicleReview): Promise<VehicleReview> {
+    return db.transaction(async (tx) => {
+      const [review] = await tx.insert(vehicleReviews).values(reviewData).returning();
+
+      const [vehicle] = await tx.select().from(vehicles).where(eq(vehicles.id, reviewData.vehicleId));
+      if (vehicle) {
+        const currentTotalRatings = vehicle.totalRatings ?? 0;
+        const currentAverage = vehicle.averageRating ?? 0;
+        const newTotalRatings = currentTotalRatings + 1;
+        const newAverage = (currentAverage * currentTotalRatings + reviewData.rating) / newTotalRatings;
+        await tx
+          .update(vehicles)
+          .set({ averageRating: newAverage, totalRatings: newTotalRatings })
+          .where(eq(vehicles.id, reviewData.vehicleId));
+      }
+
+      return review;
+    });
   }
 
   // Chat conversation operations
   async getChatConversation(id: number): Promise<ChatConversation | undefined> {
-    return this.chatConversations.get(id);
+    const [conversation] = await db.select().from(chatConversations).where(eq(chatConversations.id, id));
+    return conversation;
   }
 
   async getChatConversationsByUserId(userId: number): Promise<ChatConversation[]> {
-    return Array.from(this.chatConversations.values()).filter(
-      conversation => conversation.ownerId === userId || conversation.travelerId === userId
-    );
+    return db
+      .select()
+      .from(chatConversations)
+      .where(or(eq(chatConversations.ownerId, userId), eq(chatConversations.travelerId, userId)));
   }
 
   async createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation> {
-    const id = this.chatConversationIdCounter++;
-    const now = new Date();
-    
-    const chatConversation: ChatConversation = {
-      ...conversation,
-      id,
-      createdAt: now,
-      updatedAt: now,
-      status: conversation.status ?? "active",
-      tripId: conversation.tripId ?? null,
-    };
-    
-    this.chatConversations.set(id, chatConversation);
-    return chatConversation;
+    const [created] = await db.insert(chatConversations).values(conversation).returning();
+    return created;
   }
 
   // Chat message operations
   async getChatMessages(conversationId: number): Promise<ChatMessage[]> {
-    return Array.from(this.chatMessages.values())
-      .filter(message => message.conversationId === conversationId)
-      .sort((a, b) => (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0));
+    return db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.conversationId, conversationId))
+      .orderBy(asc(chatMessages.createdAt));
   }
 
   async sendChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
-    const id = this.chatMessageIdCounter++;
-    const now = new Date();
-    
-    const chatMessage: ChatMessage = {
-      ...message,
-      id,
-      createdAt: now,
-      isRead: message.isRead ?? false,
-    };
-    
-    this.chatMessages.set(id, chatMessage);
-    
-    // Update the conversation's updatedAt timestamp
-    const conversation = await this.getChatConversation(message.conversationId);
-    if (conversation) {
-      conversation.updatedAt = now;
-      this.chatConversations.set(conversation.id, conversation);
-    }
-    
+    const [chatMessage] = await db.insert(chatMessages).values(message).returning();
+    await db
+      .update(chatConversations)
+      .set({ updatedAt: new Date() })
+      .where(eq(chatConversations.id, message.conversationId));
     return chatMessage;
   }
 
   async markMessagesAsRead(conversationId: number, userId: number): Promise<void> {
-    const messages = await this.getChatMessages(conversationId);
-    
-    messages.forEach(message => {
-      if (message.recipientId === userId && !message.isRead) {
-        message.isRead = true;
-        this.chatMessages.set(message.id, message);
-      }
-    });
+    await db
+      .update(chatMessages)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(chatMessages.conversationId, conversationId),
+          eq(chatMessages.recipientId, userId),
+          eq(chatMessages.isRead, false)
+        )
+      );
   }
 
   // Enquiry (MD support) operations
   async createEnquiry(enquiryData: InsertEnquiry): Promise<Enquiry> {
-    const id = this.enquiryIdCounter++;
-    const now = new Date();
-    const enquiry: Enquiry = {
-      id,
-      name: enquiryData.name,
-      phone: enquiryData.phone,
-      pickup: enquiryData.pickup,
-      drop: enquiryData.drop,
-      vehicleType: enquiryData.vehicleType,
-      preferredDate: enquiryData.preferredDate ?? null,
-      message: enquiryData.message,
-      status: "new",
-      createdAt: now,
-    };
-    this.enquiries.set(id, enquiry);
+    const [enquiry] = await db.insert(enquiries).values(enquiryData).returning();
 
     // Seed the chat thread: the customer's first message + an auto-reply from the MD desk
-    await this.addEnquiryMessage({ enquiryId: id, sender: "customer", message: enquiryData.message });
+    await this.addEnquiryMessage({ enquiryId: enquiry.id, sender: "customer", message: enquiryData.message });
     await this.addEnquiryMessage({
-      enquiryId: id,
+      enquiryId: enquiry.id,
       sender: "md",
       message: `Hi ${enquiryData.name.split(" ")[0] || "there"}! Thanks for reaching out to Shiftzy. I've received your enquiry for ${enquiryData.pickup} → ${enquiryData.drop} and I'll personally check availability and arrangements. I'll reply here shortly.`,
     });
@@ -593,37 +359,32 @@ export class MemStorage implements IStorage {
   }
 
   async getEnquiries(): Promise<Enquiry[]> {
-    return Array.from(this.enquiries.values()).sort(
-      (a, b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime()
-    );
+    return db.select().from(enquiries).orderBy(desc(enquiries.createdAt));
   }
 
   async getEnquiry(id: number): Promise<Enquiry | undefined> {
-    return this.enquiries.get(id);
+    const [enquiry] = await db.select().from(enquiries).where(eq(enquiries.id, id));
+    return enquiry;
   }
 
   async updateEnquiryStatus(id: number, status: string): Promise<Enquiry | undefined> {
-    const enquiry = this.enquiries.get(id);
-    if (!enquiry) return undefined;
-    const updated: Enquiry = { ...enquiry, status };
-    this.enquiries.set(id, updated);
+    const [updated] = await db.update(enquiries).set({ status }).where(eq(enquiries.id, id)).returning();
     return updated;
   }
 
   async getEnquiryMessages(enquiryId: number): Promise<EnquiryMessage[]> {
-    return Array.from(this.enquiryMessages.values())
-      .filter(m => m.enquiryId === enquiryId)
-      .sort((a, b) => (a.createdAt as Date).getTime() - (b.createdAt as Date).getTime());
+    return db
+      .select()
+      .from(enquiryMessages)
+      .where(eq(enquiryMessages.enquiryId, enquiryId))
+      .orderBy(asc(enquiryMessages.createdAt));
   }
 
   async addEnquiryMessage(message: InsertEnquiryMessage): Promise<EnquiryMessage> {
-    const id = this.enquiryMessageIdCounter++;
-    const now = new Date();
-    const enquiryMessage: EnquiryMessage = { ...message, id, createdAt: now };
-    this.enquiryMessages.set(id, enquiryMessage);
+    const [enquiryMessage] = await db.insert(enquiryMessages).values(message).returning();
     return enquiryMessage;
   }
 }
 
 // Export an instance of the storage
-export const storage = new MemStorage();
+export const storage = new DbStorage();

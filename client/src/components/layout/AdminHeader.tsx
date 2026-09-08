@@ -2,7 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export default function AdminHeader() {
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/user/logout", { method: "POST", credentials: "include" });
+    } catch {
+      // Best-effort: still clear local session state below even if this fails.
+    }
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("userType");
     localStorage.removeItem("isFirstLogin");

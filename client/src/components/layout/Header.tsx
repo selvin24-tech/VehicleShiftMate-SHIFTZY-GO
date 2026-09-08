@@ -54,7 +54,12 @@ export default function Header({
     setLocation(path);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/user/logout", { method: "POST", credentials: "include" });
+    } catch {
+      // Best-effort: still clear local session state below even if this fails.
+    }
     ["isAuthenticated", "hasSeenTour", "isFirstLogin", "username", "userType"].forEach(k => localStorage.removeItem(k));
     window.location.href = "/";
   };

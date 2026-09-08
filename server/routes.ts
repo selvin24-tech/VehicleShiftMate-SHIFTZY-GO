@@ -1,17 +1,20 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import passport from "passport";
 import { storage } from "./storage";
+import { requireAuth, requireAdmin } from "./auth";
+import { hashPassword } from "./lib/password";
 import Stripe from "stripe";
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
-import { 
-  insertShiftRequestSchema, 
+import {
+  insertShiftRequestSchema,
   insertUserReviewSchema,
   insertVehicleReviewSchema,
-  insertUserSchema, 
+  insertUserSchema,
   insertVehicleSchema,
   insertChatConversationSchema,
   insertChatMessageSchema,
@@ -25,54 +28,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
   // prefix all routes with /api
 
-  // --- User Routes ---
-  // Get current user profile
-  app.get("/api/user/profile", async (req, res) => {
-    try {
-      // In a real app, we would get the user ID from the session
-      // For this prototype, we'll return the first user from the database
-      const user = await storage.getUser(1);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Get user's vehicles
-      const vehicles = await storage.getVehiclesByUserId(user.id);
-      
-      // Get user's trips
-      const trips = await storage.getTripsByUserId(user.id);
-      
-      // Return user profile with vehicles and trips
-      res.json({
-        ...user,
-        password: undefined, // Don't return password
-        vehicles,
-        trips,
-      });
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  });
-
-  // Register a new user
+  // --- Auth routes ---
+  // Register a new user, hash their password, and log them in (session created).
   app.post("/api/user/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      
-      // Check if email already exists
+
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
         return res.status(400).json({ message: "Email already in use" });
       }
-      
-      // Create user
-      const newUser = await storage.createUser(userData);
-      
-      res.status(201).json({
-        ...newUser,
-        password: undefined, // Don't return password
+
+      const newUser = await storage.createUser({
+        ...userData,
+        password: await hashPassword(userData.password),
+      });
+      const { password, ...safeUser } = newUser;
+
+      req.login(safeUser, (error) => {
+        if (error) {
+          console.error("Error establishing session after registration:", error);
+          return res.status(500).json({ message: "Server error" });
+        }
+        res.status(201).json(safeUser);
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -83,14 +61,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Log in with email + password (passport-local, session-based)
+  app.post("/api/user/login", (req, res, next) => {
+    passport.authenticate(
+      "local",
+      (error: Error | null, user: Express.User | false, info: { message?: string } | undefined) => {
+        if (error) return next(error);
+        if (!user) return res.status(401).json({ message: info?.message ?? "Invalid email or password" });
+
+        req.login(user, (loginError) => {
+          if (loginError) return next(loginError);
+          res.json(user);
+        });
+      }
+    )(req, res, next);
+  });
+
+  // Log out and destroy the session
+  app.post("/api/user/logout", (req, res, next) => {
+    req.logout((error) => {
+      if (error) return next(error);
+      req.session.destroy((destroyError) => {
+        if (destroyError) return next(destroyError);
+        res.clearCookie("connect.sid");
+        res.status(204).end();
+      });
+    });
+  });
+
+  // Get the currently logged-in user's profile
+  app.get("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user!.id);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const vehicles = await storage.getVehiclesByUserId(user.id);
+      const trips = await storage.getTripsByUserId(user.id);
+
+      const { password, ...safeUser } = user;
+      res.json({ ...safeUser, vehicles, trips });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Who am I? (used by the client to restore session state)
+  app.get("/api/user/me", (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+    res.json(req.user);
+  });
+
   // --- Vehicle Routes ---
   // Get user's vehicles
-  app.get("/api/vehicles", async (req, res) => {
+  app.get("/api/vehicles", requireAuth, async (req, res) => {
     try {
-      // In a real app, we would get the user ID from the session
-      const userId = 1;
-      
-      const vehicles = await storage.getVehiclesByUserId(userId);
+      const vehicles = await storage.getVehiclesByUserId(req.user!.id);
       res.json(vehicles);
     } catch (error) {
       console.error("Error fetching vehicles:", error);
@@ -99,14 +128,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Register a new vehicle
-  app.post("/api/vehicles", async (req, res) => {
+  app.post("/api/vehicles", requireAuth, async (req, res) => {
     try {
-      // In a real app, we would get the user ID from the session
-      const userId = 1;
-      
       const vehicleData = insertVehicleSchema.parse({
         ...req.body,
-        userId,
+        userId: req.user!.id,
       });
       
       const newVehicle = await storage.createVehicle(vehicleData);
@@ -122,12 +148,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // --- Shift Request Routes ---
   // Create a new shift request
-  app.post("/api/shift-requests", async (req, res) => {
+  app.post("/api/shift-requests", requireAuth, async (req, res) => {
     try {
-      // In a real app, we would get the user ID from the session
-      const userId = 1;
-      
-      // In a real app, we would get the vehicle ID from the request body 
+      const userId = req.user!.id;
+
+      // In a real app, we would get the vehicle ID from the request body
       // and verify that the vehicle belongs to the user
       // For simplicity, we'll use the first vehicle belonging to the user
       const userVehicles = await storage.getVehiclesByUserId(userId);
@@ -161,12 +186,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's shift requests
-  app.get("/api/shift-requests", async (req, res) => {
+  app.get("/api/shift-requests", requireAuth, async (req, res) => {
     try {
-      // In a real app, we would get the user ID from the session
-      const userId = 1;
-      
-      const requests = await storage.getShiftRequestsByUserId(userId);
+      const requests = await storage.getShiftRequestsByUserId(req.user!.id);
       res.json(requests);
     } catch (error) {
       console.error("Error fetching shift requests:", error);
@@ -176,11 +198,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // --- Review Routes ---
   // Create a new user review
-  app.post("/api/user-reviews", async (req, res) => {
+  app.post("/api/user-reviews", requireAuth, async (req, res) => {
     try {
-      // In a real app, we would get the user ID from the session
-      const reviewerId = 1;
-      
+      const reviewerId = req.user!.id;
+
       const reviewData = insertUserReviewSchema.parse({
         ...req.body,
         reviewerId,
@@ -201,11 +222,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a new vehicle review
-  app.post("/api/vehicle-reviews", async (req, res) => {
+  app.post("/api/vehicle-reviews", requireAuth, async (req, res) => {
     try {
-      // In a real app, we would get the user ID from the session
-      const reviewerId = 1;
-      
+      const reviewerId = req.user!.id;
+
       const reviewData = insertVehicleReviewSchema.parse({
         ...req.body,
         reviewerId,
@@ -332,11 +352,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // --- Chat Routes ---
   // Get conversations for a user
-  app.get("/api/chat/conversations", async (req, res) => {
+  app.get("/api/chat/conversations", requireAuth, async (req, res) => {
     try {
-      // In a real app, we would get the user ID from the session
-      const userId = 1;
-      
+      const userId = req.user!.id;
+
       const conversations = await storage.getChatConversationsByUserId(userId);
       
       // Enhance conversations with additional info
@@ -368,13 +387,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get messages for a conversation
-  app.get("/api/chat/conversations/:id/messages", async (req, res) => {
+  app.get("/api/chat/conversations/:id/messages", requireAuth, async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
-      
-      // In a real app, we would get the user ID from the session
-      const userId = 1;
-      
+      const userId = req.user!.id;
+
       // Verify the user is part of the conversation
       const conversation = await storage.getChatConversation(conversationId);
       if (!conversation) {
@@ -398,11 +415,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create a new conversation
-  app.post("/api/chat/conversations", async (req, res) => {
+  app.post("/api/chat/conversations", requireAuth, async (req, res) => {
     try {
-      // In a real app, we would get the user ID from the session
-      const userId = 1;
-      
+      const userId = req.user!.id;
+
       const conversationData = insertChatConversationSchema.parse({
         ...req.body,
         ownerId: userId
@@ -447,7 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // List all enquiries (MD / admin inbox)
-  app.get("/api/enquiries", async (_req, res) => {
+  app.get("/api/enquiries", requireAdmin, async (_req, res) => {
     try {
       const enquiries = await storage.getEnquiries();
       const withMeta = await Promise.all(
@@ -477,13 +493,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add a message to an enquiry thread (customer or MD)
+  // Add a message to an enquiry thread (customer, unauthenticated; or MD/admin)
   app.post("/api/enquiries/:id/messages", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const enquiry = await storage.getEnquiry(id);
       if (!enquiry) return res.status(404).json({ message: "Enquiry not found" });
-      const data = insertEnquiryMessageSchema.parse({ ...req.body, enquiryId: id });
+
+      // Only an authenticated admin may post as "md" — everyone else can only
+      // post as "customer", regardless of what the request body claims.
+      const isAdminCaller = req.isAuthenticated() && req.user.role === "admin";
+      const sender = isAdminCaller ? req.body.sender : "customer";
+
+      const data = insertEnquiryMessageSchema.parse({ ...req.body, sender, enquiryId: id });
       const message = await storage.addEnquiryMessage(data);
       res.status(201).json(message);
     } catch (error) {
@@ -496,7 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update enquiry status (MD / admin)
-  app.patch("/api/enquiries/:id", async (req, res) => {
+  app.patch("/api/enquiries/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = req.body;
@@ -543,13 +565,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Confirm a booking after successful payment
-  app.post("/api/confirm-booking", async (req, res) => {
+  app.post("/api/confirm-booking", requireAuth, async (req, res) => {
     try {
       const { paymentIntentId, vehicleId, pickupDate, returnDate, totalDays, totalAmount } = req.body;
-      
-      // In a real app, we would get the user ID from the session
-      const userId = 1;
-      
+      const userId = req.user!.id;
+
       // Verify payment was successful
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       
