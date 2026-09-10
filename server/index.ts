@@ -18,6 +18,10 @@ app.use(
 app.use(express.urlencoded({ extended: false }));
 
 const passport = configurePassport();
+// Behind a TLS-terminating proxy (e.g. Render) the app receives plain HTTP with
+// X-Forwarded-Proto: https. Trust the first proxy hop so express-session will
+// issue the `secure` login cookie in production.
+app.set("trust proxy", 1);
 app.use(createSessionMiddleware());
 app.use(passport.initialize());
 app.use(passport.session());
@@ -82,10 +86,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled
-  const port = 5000;
+  // Serve both the API and the client on one port. Hosts like Render inject the
+  // port to bind via process.env.PORT; fall back to 5000 for local dev.
+  const port = Number(process.env.PORT) || 5000;
 
   server.listen(
     {
