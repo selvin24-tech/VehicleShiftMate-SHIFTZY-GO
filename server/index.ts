@@ -6,7 +6,15 @@ import { setupVite, serveStatic, log } from "./vite";
 import { createSessionMiddleware, configurePassport } from "./auth";
 
 const app = express();
-app.use(express.json());
+// Keep the raw request body around so gateway webhooks (Cashfree) can be
+// signature-verified against the exact bytes that were signed.
+app.use(
+  express.json({
+    verify: (req, _res, buf) => {
+      (req as unknown as { rawBody?: Buffer }).rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: false }));
 
 const passport = configurePassport();

@@ -19,6 +19,48 @@ import type { Enquiry, EnquiryMessage } from "@shared/schema";
 
 type EnquiryWithMeta = Enquiry & { messageCount: number; lastMessage?: EnquiryMessage };
 
+/* ── Phase 2: real ShiftRequest → Trip → Payment data ── */
+type AdminCustomer = { id: number; name: string; email: string; phone: string | null } | null;
+type AdminTrip = {
+  id: number; price: string; status: string; distance: string | null;
+  driverName: string | null; driverPhone: string | null;
+  startDate: string | null; endDate: string | null; createdAt: string | null;
+} | null;
+type AdminPayment = {
+  id: number; status: string; amount: string; method: string | null;
+  referenceId: string | null; providerOrderId: string; paidAt: string | null;
+} | null;
+type AdminShiftRequest = {
+  id: number; userId: number | null; pickupLocation: string; dropLocation: string;
+  insuranceExpiryDate: string; status: string; createdAt: string | null;
+  rejectionReason: string | null;
+  customer: AdminCustomer;
+  vehicle: { id: number; make: string; model: string; registrationNumber: string; type: string } | null;
+  trip: AdminTrip;
+  payment: AdminPayment;
+};
+type AdminBooking = AdminTrip & {
+  shiftRequest: { id: number; pickupLocation: string; dropLocation: string; status: string };
+  customer: AdminCustomer;
+  payment: AdminPayment;
+};
+
+const TRIP_STATUS_STYLE: Record<string, string> = {
+  awaiting_payment: "bg-orange-100 text-orange-700",
+  scheduled: "bg-blue-100 text-blue-700",
+  in_transit: "bg-indigo-100 text-indigo-700",
+  completed: "bg-green-100 text-green-700",
+  cancelled: "bg-red-100 text-red-700",
+};
+const PAYMENT_STATUS_STYLE: Record<string, string> = {
+  created: "bg-neutral-100 text-neutral-600",
+  pending: "bg-orange-100 text-orange-700",
+  paid: "bg-green-100 text-green-700",
+  failed: "bg-red-100 text-red-700",
+  expired: "bg-red-100 text-red-700",
+};
+const MANUAL_TRIP_STATUSES = ["scheduled", "in_transit", "completed", "cancelled"] as const;
+
 /* ─────────────────────────── TYPES ─────────────────────────── */
 type Status = "pending" | "approved" | "rejected";
 type UserStatus = "active" | "suspended" | "banned";
@@ -27,14 +69,6 @@ type RefundStatus = "pending" | "approved" | "rejected";
 type DisputeStatus = "open" | "resolved" | "escalated";
 
 /* ─────────────────────────── DATA ──────────────────────────── */
-const PENDING_REQUESTS = [
-  { id: 1, owner: "Ramesh V.", vehicle: "Honda City", regNo: "TN09AB1234", route: "Chennai → Bangalore", requestedOn: "Today, 09:12 AM", insurance: "Valid till Dec 2026", status: "pending" as Status },
-  { id: 2, owner: "Kavitha S.", vehicle: "Maruti Swift", regNo: "TN22CD5678", route: "Coimbatore → Chennai", requestedOn: "Today, 08:45 AM", insurance: "Valid till Mar 2027", status: "pending" as Status },
-  { id: 3, owner: "Prakash N.", vehicle: "Hyundai Creta", regNo: "TN45EF9012", route: "Madurai → Trichy", requestedOn: "Yesterday, 11:30 PM", insurance: "Valid till Jun 2027", status: "pending" as Status },
-  { id: 4, owner: "Divya M.", vehicle: "Toyota Innova", regNo: "TN01GH3456", route: "Delhi → Gurgaon", requestedOn: "Yesterday, 07:00 PM", insurance: "Valid till Aug 2026", status: "pending" as Status },
-  { id: 5, owner: "Suresh K.", vehicle: "Bajaj Pulsar", regNo: "TN56IJ7890", route: "Puducherry → Chennai", requestedOn: "2 days ago", insurance: "Expired — flagged", status: "pending" as Status },
-];
-
 const ALL_USERS = [
   { id: 1, name: "Selvin Raj", username: "selvin_raj", phone: "+91 98765 43210", city: "Chennai", role: "owner", trips: 12, rating: 4.8, joinedOn: "Jan 2026", status: "active" as UserStatus, verified: true },
   { id: 2, name: "Karthik Rajan", username: "karthik_r", phone: "+91 87654 32109", city: "Bangalore", role: "traveler", trips: 28, rating: 4.9, joinedOn: "Feb 2026", status: "active" as UserStatus, verified: true },
@@ -111,7 +145,6 @@ export default function AdminDashboard() {
   const { toast } = useToast();
 
   /* State */
-  const [requests, setRequests] = useState(PENDING_REQUESTS);
   const [users, setUsers] = useState(ALL_USERS);
   const [docs, setDocs] = useState(DOCUMENTS);
   const [reports, setReports] = useState(REPORTS);
@@ -161,8 +194,57 @@ export default function AdminDashboard() {
   });
   const newEnquiryCount = enquiries.filter(e => e.status === "new").length;
 
+  /* ── Phase 2: real shift requests + bookings ── */
+  const { data: adminRequests = [] } = useQuery<AdminShiftRequest[]>({
+    queryKey: ["/api/admin/shift-requests"],
+    refetchInterval: 10000,
+  });
+  const { data: adminBookings = [] } = useQuery<AdminBooking[]>({
+    queryKey: ["/api/admin/bookings"],
+    refetchInterval: 10000,
+  });
+
+  // Per-request admin review form state (price + manual driver assignment).
+  const [reviewForm, setReviewForm] = useState<Record<number, { price: string; driverName: string; driverPhone: string; distance: string }>>({});
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const emptyForm = { price: "", driverName: "", driverPhone: "", distance: "" };
+  const setForm = (id: number, patch: Partial<typeof emptyForm>) =>
+    setReviewForm(p => ({ ...p, [id]: { ...emptyForm, ...p[id], ...patch } }));
+
+  const invalidateFlow = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/shift-requests"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/bookings"] });
+  };
+
+  const approveMutation = useMutation({
+    mutationFn: async ({ id, body }: { id: number; body: Record<string, string> }) => {
+      const res = await apiRequest("POST", `/api/admin/shift-requests/${id}/approve`, body);
+      return res.json();
+    },
+    onSuccess: () => { invalidateFlow(); toast({ title: "Trip created ✅", description: "Price set and driver assigned. Customer can now pay." }); },
+    onError: (e: Error) => toast({ title: "Could not approve", description: e.message.slice(0, 140), variant: "destructive" }),
+  });
+  const rejectMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      const res = await apiRequest("POST", `/api/admin/shift-requests/${id}/reject`, { reason });
+      return res.json();
+    },
+    onSuccess: () => { invalidateFlow(); setRejectingId(null); setRejectReason(""); toast({ title: "Request rejected", variant: "destructive" }); },
+    onError: (e: Error) => toast({ title: "Could not reject", description: e.message.slice(0, 140), variant: "destructive" }),
+  });
+  const tripStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const res = await apiRequest("POST", `/api/admin/trips/${id}/status`, { status });
+      return res.json();
+    },
+    onSuccess: () => { invalidateFlow(); toast({ title: "Trip status updated" }); },
+    onError: (e: Error) => toast({ title: "Could not update", description: e.message.slice(0, 140), variant: "destructive" }),
+  });
+
   /* Derived */
-  const pendingCount = requests.filter(r => r.status === "pending").length;
+  const pendingCount = adminRequests.filter(r => r.status === "pending").length;
+  const bookingsUnpaid = adminBookings.filter(b => (b?.payment?.status ?? "created") !== "paid" && b?.status !== "cancelled").length;
   const docPending = docs.filter(d => d.status === "pending").length;
   const reportOpen = reports.filter(r => r.status === "open" || r.status === "escalated").length;
   const refundPending = refunds.filter(r => r.status === "pending").length;
@@ -173,8 +255,6 @@ export default function AdminDashboard() {
   );
 
   /* Actions */
-  const approveRequest = (id: number) => { setRequests(p => p.map(r => r.id === id ? { ...r, status: "approved" } : r)); toast({ title: "Approved ✅", description: "Shift request approved." }); };
-  const rejectRequest = (id: number) => { setRequests(p => p.map(r => r.id === id ? { ...r, status: "rejected" } : r)); toast({ title: "Rejected", description: "Shift request rejected.", variant: "destructive" }); };
   const updateUserStatus = (id: number, status: UserStatus) => {
     setUsers(p => p.map(u => u.id === id ? { ...u, status } : u));
     toast({ title: `User ${status}`, description: `User has been ${status}.` });
@@ -239,6 +319,7 @@ export default function AdminDashboard() {
               {[
                 { val: "focus", label: "🎯 Focus", badge: 0 },
                 { val: "approvals", label: "Approvals", badge: pendingCount },
+                { val: "bookings", label: "Bookings", badge: bookingsUnpaid },
                 { val: "enquiries", label: "Enquiries", badge: newEnquiryCount },
                 { val: "users", label: "Users", badge: 0 },
                 { val: "documents", label: "Documents", badge: docPending },
@@ -408,43 +489,159 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* ── 1. APPROVALS ── */}
+          {/* ── 1. APPROVALS (real ShiftRequest data) ── */}
           <TabsContent value="approvals" className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div><h2 className="text-lg font-bold">Shift Request Approvals</h2><p className="text-sm text-gray-500">Review and approve or reject incoming shift requests</p></div>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div><h2 className="text-lg font-bold">Shift Request Approvals</h2><p className="text-sm text-gray-500">Review each request, set the agreed price, and assign a driver manually. Approving creates the customer's Trip.</p></div>
               <div className="flex gap-2 text-xs">
-                <span className="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full">{requests.filter(r => r.status === "pending").length} Pending</span>
-                <span className="bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded-full">{requests.filter(r => r.status === "approved").length} Approved</span>
-                <span className="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-full">{requests.filter(r => r.status === "rejected").length} Rejected</span>
+                <span className="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full">{adminRequests.filter(r => r.status === "pending").length} Pending</span>
+                <span className="bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded-full">{adminRequests.filter(r => r.status === "approved").length} Approved</span>
+                <span className="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-full">{adminRequests.filter(r => r.status === "rejected").length} Rejected</span>
               </div>
             </div>
-            {requests.map(req => (
-              <Card key={req.id} className={req.status === "approved" ? "border-blue-200 bg-blue-50/40" : req.status === "rejected" ? "border-red-200 bg-red-50/40 opacity-70" : "border-orange-200"}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-bold text-sm">{req.owner} — {req.vehicle}</p>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${req.status === "pending" ? "bg-orange-100 text-orange-700" : req.status === "approved" ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"}`}>
-                          {req.status === "pending" ? "⏳ Pending" : req.status === "approved" ? "✓ Approved" : "✗ Rejected"}
-                        </span>
-                        {req.insurance.includes("Expired") && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">⚠ Insurance Expired</span>}
-                      </div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-gray-500">
-                        <span>Reg: <strong className="text-gray-700">{req.regNo}</strong></span>
-                        <span>Route: <strong className="text-gray-700">{req.route}</strong></span>
-                        <span>Insurance: <strong className={req.insurance.includes("Expired") ? "text-red-600" : "text-gray-700"}>{req.insurance}</strong></span>
-                        <span>Submitted: <strong className="text-gray-700">{req.requestedOn}</strong></span>
+
+            <p className="text-[11px] text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+              V1 honest pilot — pricing and driver assignment here are done manually by the ShiftzyGo team. There is no automated matching engine.
+            </p>
+
+            {adminRequests.length === 0 && (
+              <Card><CardContent className="p-6 text-center text-sm text-gray-400">No shift requests yet.</CardContent></Card>
+            )}
+
+            {adminRequests.map(req => {
+              const f = reviewForm[req.id] ?? { price: "", driverName: "", driverPhone: "", distance: "" };
+              const t = req.trip;
+              return (
+                <Card key={req.id} className={req.status === "approved" ? "border-blue-200 bg-blue-50/40" : req.status === "rejected" ? "border-red-200 bg-red-50/40" : "border-orange-200"}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <p className="font-bold text-sm">#{req.id} · {req.customer?.name ?? `User ${req.userId ?? "?"}`}</p>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${req.status === "pending" ? "bg-orange-100 text-orange-700" : req.status === "approved" ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"}`}>
+                            {req.status === "pending" ? "⏳ Pending" : req.status === "approved" ? "✓ Approved" : "✗ Rejected"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-gray-500">
+                          <span className="col-span-2 flex items-center gap-1"><MapPin className="w-3 h-3" /> <strong className="text-gray-700">{req.pickupLocation} → {req.dropLocation}</strong></span>
+                          {req.customer?.email && <span className="truncate">Email: <strong className="text-gray-700">{req.customer.email}</strong></span>}
+                          {req.customer?.phone && <span>Phone: <strong className="text-gray-700">{req.customer.phone}</strong></span>}
+                          {req.vehicle && <span>Vehicle: <strong className="text-gray-700">{req.vehicle.make} {req.vehicle.model}</strong></span>}
+                          {req.vehicle && <span>Reg: <strong className="text-gray-700">{req.vehicle.registrationNumber}</strong></span>}
+                          <span>Insurance exp: <strong className="text-gray-700">{req.insuranceExpiryDate}</strong></span>
+                          {req.createdAt && <span>Submitted: <strong className="text-gray-700">{new Date(req.createdAt).toLocaleString()}</strong></span>}
+                        </div>
                       </div>
                     </div>
+
                     {req.status === "pending" && (
-                      <div className="flex gap-2 shrink-0">
-                        <Button size="sm" onClick={() => approveRequest(req.id)} className="bg-blue-600 hover:bg-blue-700 text-white gap-1 h-8 px-3"><CheckCircle2 className="w-3.5 h-3.5" /> Approve</Button>
-                        <Button size="sm" variant="outline" onClick={() => rejectRequest(req.id)} className="border-red-300 text-red-600 hover:bg-red-50 gap-1 h-8 px-3"><XCircle className="w-3.5 h-3.5" /> Reject</Button>
+                      <div className="border-t pt-3 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-500 uppercase">Agreed price (₹) *</label>
+                            <Input value={f.price} onChange={e => setForm(req.id, { price: e.target.value })} inputMode="numeric" placeholder="e.g. 2400" className="h-8 text-sm" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-500 uppercase">Distance (optional)</label>
+                            <Input value={f.distance} onChange={e => setForm(req.id, { distance: e.target.value })} placeholder="e.g. 340 km" className="h-8 text-sm" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-500 uppercase">Driver name</label>
+                            <Input value={f.driverName} onChange={e => setForm(req.id, { driverName: e.target.value })} placeholder="Assigned driver" className="h-8 text-sm" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-500 uppercase">Driver phone</label>
+                            <Input value={f.driverPhone} onChange={e => setForm(req.id, { driverPhone: e.target.value })} inputMode="tel" placeholder="10-digit mobile" className="h-8 text-sm" />
+                          </div>
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button size="sm" disabled={approveMutation.isPending || !(Number(f.price) > 0)}
+                            onClick={() => approveMutation.mutate({ id: req.id, body: { price: f.price, ...(f.driverName ? { driverName: f.driverName } : {}), ...(f.driverPhone ? { driverPhone: f.driverPhone } : {}), ...(f.distance ? { distance: f.distance } : {}) } })}
+                            className="bg-blue-600 hover:bg-blue-700 text-white gap-1 h-8 px-3"><CheckCircle2 className="w-3.5 h-3.5" /> Set price & create Trip</Button>
+                          <Button size="sm" variant="outline" onClick={() => { setRejectingId(rejectingId === req.id ? null : req.id); setRejectReason(""); }} className="border-red-300 text-red-600 hover:bg-red-50 gap-1 h-8 px-3"><XCircle className="w-3.5 h-3.5" /> Reject</Button>
+                        </div>
+                        {rejectingId === req.id && (
+                          <div className="flex gap-2 items-center">
+                            <Input value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Reason for rejection" className="h-8 text-sm" />
+                            <Button size="sm" disabled={rejectMutation.isPending || !rejectReason.trim()} onClick={() => rejectMutation.mutate({ id: req.id, reason: rejectReason.trim() })} className="bg-red-600 hover:bg-red-700 text-white h-8 px-3">Confirm</Button>
+                          </div>
+                        )}
                       </div>
                     )}
-                    {req.status === "approved" && <CheckCircle2 className="w-6 h-6 text-blue-500 shrink-0" />}
-                    {req.status === "rejected" && <XCircle className="w-6 h-6 text-red-400 shrink-0" />}
+
+                    {req.status === "approved" && t && (
+                      <div className="border-t pt-3 text-xs text-gray-600 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-gray-800">Trip #{t.id}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${TRIP_STATUS_STYLE[t.status] ?? "bg-gray-100 text-gray-600"}`}>{t.status.replace(/_/g, " ")}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${PAYMENT_STATUS_STYLE[req.payment?.status ?? "created"]}`}>Payment: {req.payment?.status ?? "not started"}</span>
+                        </div>
+                        <p>Price: <strong className="text-gray-900">₹{Number(t.price).toLocaleString("en-IN")}</strong>{t.distance ? ` · ${t.distance}` : ""}</p>
+                        <p>Driver: <strong className="text-gray-900">{t.driverName || "—"}</strong>{t.driverPhone ? ` · ${t.driverPhone}` : ""}</p>
+                        <p className="text-gray-400">Manage this booking in the Bookings tab.</p>
+                      </div>
+                    )}
+
+                    {req.status === "rejected" && (
+                      <p className="border-t pt-3 text-xs text-red-600">Rejected{req.rejectionReason ? `: ${req.rejectionReason}` : ""}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </TabsContent>
+
+          {/* ── 2. BOOKINGS (real Trip + Payment data) ── */}
+          <TabsContent value="bookings" className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div><h2 className="text-lg font-bold">Bookings</h2><p className="text-sm text-gray-500">Every priced trip created from an approved shift request, with live payment status. Trip status is updated manually.</p></div>
+              <div className="flex gap-2 text-xs">
+                <span className="bg-gray-100 text-gray-700 font-bold px-3 py-1 rounded-full">{adminBookings.length} Total</span>
+                <span className="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full">{adminBookings.filter(b => b?.payment?.status === "paid").length} Paid</span>
+                <span className="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full">{bookingsUnpaid} Awaiting payment</span>
+              </div>
+            </div>
+
+            {adminBookings.length === 0 && (
+              <Card><CardContent className="p-6 text-center text-sm text-gray-400">No bookings yet. Approve a shift request to create one.</CardContent></Card>
+            )}
+
+            {adminBookings.map(b => b && (
+              <Card key={b.id}>
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-bold text-sm">Trip #{b.id}</span>
+                        <span className="text-[10px] text-gray-400">from Request #{b.shiftRequest.id}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${TRIP_STATUS_STYLE[b.status] ?? "bg-gray-100 text-gray-600"}`}>{b.status.replace(/_/g, " ")}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${PAYMENT_STATUS_STYLE[b.payment?.status ?? "created"]}`}>Payment: {b.payment?.status ?? "not started"}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-gray-500">
+                        <span className="col-span-2 flex items-center gap-1"><MapPin className="w-3 h-3" /> <strong className="text-gray-700">{b.shiftRequest.pickupLocation} → {b.shiftRequest.dropLocation}</strong></span>
+                        <span>Customer: <strong className="text-gray-700">{b.customer?.name ?? "—"}</strong></span>
+                        <span>Price: <strong className="text-gray-700">₹{Number(b.price).toLocaleString("en-IN")}</strong></span>
+                        <span>Driver: <strong className="text-gray-700">{b.driverName || "—"}</strong></span>
+                        {b.driverPhone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {b.driverPhone}</span>}
+                        {b.payment?.method && <span>Method: <strong className="text-gray-700">{b.payment.method}</strong></span>}
+                        {b.payment?.referenceId && <span>Ref: <strong className="text-gray-700">{b.payment.referenceId}</strong></span>}
+                        {b.payment?.paidAt && <span>Paid: <strong className="text-gray-700">{new Date(b.payment.paidAt).toLocaleString()}</strong></span>}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-t pt-3">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">Update trip status</p>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {MANUAL_TRIP_STATUSES.map(s => (
+                        <Button key={s} size="sm" variant={b.status === s ? "default" : "outline"}
+                          disabled={tripStatusMutation.isPending || b.status === s}
+                          onClick={() => tripStatusMutation.mutate({ id: b.id, status: s })}
+                          className={`h-7 px-2.5 text-[11px] ${b.status === s ? "bg-blue-600 text-white" : ""}`}>
+                          {s.replace(/_/g, " ")}
+                        </Button>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1.5">Changing trip status never changes payment status — they are tracked separately.</p>
                   </div>
                 </CardContent>
               </Card>

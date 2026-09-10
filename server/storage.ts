@@ -11,6 +11,7 @@ import {
   chatMessages,
   enquiries,
   enquiryMessages,
+  payments,
   User,
   InsertUser,
   Vehicle,
@@ -19,6 +20,8 @@ import {
   InsertShiftRequest,
   Trip,
   InsertTrip,
+  Payment,
+  InsertPayment,
   UserReview,
   InsertUserReview,
   VehicleReview,
@@ -32,6 +35,29 @@ import {
   EnquiryMessage,
   InsertEnquiryMessage
 } from "@shared/schema";
+
+// Composite shapes returned by the Phase 2 business-flow queries.
+export type TripWithRelations = Trip & {
+  shiftRequest: ShiftRequest;
+  customer: Pick<User, "id" | "name" | "email" | "phone"> | null;
+  payment: Payment | null;
+};
+export type ShiftRequestWithRelations = ShiftRequest & {
+  customer: Pick<User, "id" | "name" | "email" | "phone"> | null;
+  vehicle: Vehicle | null;
+  trip: Trip | null;
+  payment: Payment | null;
+};
+export type ApproveTripInput = {
+  price: string;
+  driverName?: string | null;
+  driverPhone?: string | null;
+  driverId?: number | null;
+  distance?: string | null;
+  notes?: string | null;
+  startDate?: Date | null;
+  endDate?: Date | null;
+};
 
 // Interface for storage operations
 export interface IStorage {
@@ -53,6 +79,21 @@ export interface IStorage {
   getShiftRequestsByUserId(userId: number): Promise<ShiftRequest[]>;
   createShiftRequest(request: InsertShiftRequest): Promise<ShiftRequest>;
   updateShiftRequestStatus(id: number, status: string): Promise<ShiftRequest | undefined>;
+  // Phase 2 business flow
+  getAllShiftRequestsWithRelations(): Promise<ShiftRequestWithRelations[]>;
+  getShiftRequestsWithRelationsByUserId(userId: number): Promise<ShiftRequestWithRelations[]>;
+  getShiftRequestWithRelations(id: number): Promise<ShiftRequestWithRelations | undefined>;
+  getTripByShiftRequestId(shiftRequestId: number): Promise<Trip | undefined>;
+  approveShiftRequestAndCreateTrip(
+    requestId: number,
+    adminId: number,
+    input: ApproveTripInput
+  ): Promise<{ request: ShiftRequest; trip: Trip }>;
+  rejectShiftRequest(
+    requestId: number,
+    adminId: number,
+    reason: string
+  ): Promise<ShiftRequest | undefined>;
 
   // Trip operations
   getTrip(id: number): Promise<Trip | undefined>;
@@ -60,6 +101,15 @@ export interface IStorage {
   getTripsByDriverId(driverId: number): Promise<Trip[]>;
   createTrip(trip: InsertTrip): Promise<Trip>;
   updateTripStatus(id: number, status: string): Promise<Trip | undefined>;
+  getTripWithRelations(id: number): Promise<TripWithRelations | undefined>;
+  getAllTripsWithRelations(): Promise<TripWithRelations[]>;
+
+  // Payment operations (Phase 2 real vehicle-shifting payments)
+  getPayment(id: number): Promise<Payment | undefined>;
+  getPaymentByProviderOrderId(providerOrderId: string): Promise<Payment | undefined>;
+  getLatestPaymentForTrip(tripId: number): Promise<Payment | undefined>;
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  updatePayment(id: number, patch: Partial<Payment>): Promise<Payment | undefined>;
 
   // User Review operations
   getUserReview(id: number): Promise<UserReview | undefined>;
@@ -185,6 +235,186 @@ export class DbStorage implements IStorage {
       .update(shiftRequests)
       .set({ status })
       .where(eq(shiftRequests.id, id))
+      .returning();
+    return updated;
+  }
+
+  // --- Phase 2 business flow: ShiftRequest -> Trip -> Payment ---
+  private customerCols = {
+    id: users.id,
+    name: users.name,
+    email: users.email,
+    phone: users.phone,
+  };
+
+  async getTripByShiftRequestId(shiftRequestId: number): Promise<Trip | undefined> {
+    const [trip] = await db
+      .select()
+      .from(trips)
+      .where(eq(trips.shiftRequestId, shiftRequestId))
+      .orderBy(desc(trips.id))
+      .limit(1);
+    return trip;
+  }
+
+  async getLatestPaymentForTrip(tripId: number): Promise<Payment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.tripId, tripId))
+      .orderBy(desc(payments.id))
+      .limit(1);
+    return payment;
+  }
+
+  private async hydrateShiftRequest(request: ShiftRequest): Promise<ShiftRequestWithRelations> {
+    const [customer] = request.userId
+      ? await db.select(this.customerCols).from(users).where(eq(users.id, request.userId))
+      : [];
+    const [vehicle] = request.vehicleId
+      ? await db.select().from(vehicles).where(eq(vehicles.id, request.vehicleId))
+      : [];
+    const trip = await this.getTripByShiftRequestId(request.id);
+    const payment = trip ? await this.getLatestPaymentForTrip(trip.id) : undefined;
+    return {
+      ...request,
+      customer: customer ?? null,
+      vehicle: vehicle ?? null,
+      trip: trip ?? null,
+      payment: payment ?? null,
+    };
+  }
+
+  async getAllShiftRequestsWithRelations(): Promise<ShiftRequestWithRelations[]> {
+    const rows = await db.select().from(shiftRequests).orderBy(desc(shiftRequests.id));
+    return Promise.all(rows.map((r) => this.hydrateShiftRequest(r)));
+  }
+
+  async getShiftRequestsWithRelationsByUserId(userId: number): Promise<ShiftRequestWithRelations[]> {
+    const rows = await db
+      .select()
+      .from(shiftRequests)
+      .where(eq(shiftRequests.userId, userId))
+      .orderBy(desc(shiftRequests.id));
+    return Promise.all(rows.map((r) => this.hydrateShiftRequest(r)));
+  }
+
+  async getShiftRequestWithRelations(id: number): Promise<ShiftRequestWithRelations | undefined> {
+    const [row] = await db.select().from(shiftRequests).where(eq(shiftRequests.id, id));
+    if (!row) return undefined;
+    return this.hydrateShiftRequest(row);
+  }
+
+  async approveShiftRequestAndCreateTrip(
+    requestId: number,
+    adminId: number,
+    input: ApproveTripInput
+  ): Promise<{ request: ShiftRequest; trip: Trip }> {
+    return db.transaction(async (tx) => {
+      const [request] = await tx
+        .select()
+        .from(shiftRequests)
+        .where(eq(shiftRequests.id, requestId));
+      if (!request) throw new Error("Shift request not found");
+
+      const [existingTrip] = await tx
+        .select()
+        .from(trips)
+        .where(eq(trips.shiftRequestId, requestId))
+        .limit(1);
+      if (existingTrip) throw new Error("A trip already exists for this shift request");
+
+      const [trip] = await tx
+        .insert(trips)
+        .values({
+          shiftRequestId: requestId,
+          driverId: input.driverId ?? null,
+          driverName: input.driverName ?? null,
+          driverPhone: input.driverPhone ?? null,
+          price: input.price,
+          distance: input.distance ?? null,
+          notes: input.notes ?? null,
+          startDate: input.startDate ?? null,
+          endDate: input.endDate ?? null,
+          status: "awaiting_payment",
+        })
+        .returning();
+
+      const [updatedRequest] = await tx
+        .update(shiftRequests)
+        .set({ status: "approved", reviewedBy: adminId, reviewedAt: new Date(), rejectionReason: null })
+        .where(eq(shiftRequests.id, requestId))
+        .returning();
+
+      return { request: updatedRequest, trip };
+    });
+  }
+
+  async rejectShiftRequest(
+    requestId: number,
+    adminId: number,
+    reason: string
+  ): Promise<ShiftRequest | undefined> {
+    const [updated] = await db
+      .update(shiftRequests)
+      .set({ status: "rejected", reviewedBy: adminId, reviewedAt: new Date(), rejectionReason: reason })
+      .where(eq(shiftRequests.id, requestId))
+      .returning();
+    return updated;
+  }
+
+  private async hydrateTrip(trip: Trip): Promise<TripWithRelations> {
+    const [shiftRequest] = await db
+      .select()
+      .from(shiftRequests)
+      .where(eq(shiftRequests.id, trip.shiftRequestId));
+    const [customer] = shiftRequest?.userId
+      ? await db.select(this.customerCols).from(users).where(eq(users.id, shiftRequest.userId))
+      : [];
+    const payment = await this.getLatestPaymentForTrip(trip.id);
+    return {
+      ...trip,
+      shiftRequest: shiftRequest!,
+      customer: customer ?? null,
+      payment: payment ?? null,
+    };
+  }
+
+  async getTripWithRelations(id: number): Promise<TripWithRelations | undefined> {
+    const [trip] = await db.select().from(trips).where(eq(trips.id, id));
+    if (!trip) return undefined;
+    return this.hydrateTrip(trip);
+  }
+
+  async getAllTripsWithRelations(): Promise<TripWithRelations[]> {
+    const rows = await db.select().from(trips).orderBy(desc(trips.id));
+    return Promise.all(rows.map((t) => this.hydrateTrip(t)));
+  }
+
+  // --- Payment methods ---
+  async getPayment(id: number): Promise<Payment | undefined> {
+    const [payment] = await db.select().from(payments).where(eq(payments.id, id));
+    return payment;
+  }
+
+  async getPaymentByProviderOrderId(providerOrderId: string): Promise<Payment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.providerOrderId, providerOrderId));
+    return payment;
+  }
+
+  async createPayment(paymentData: InsertPayment): Promise<Payment> {
+    const [payment] = await db.insert(payments).values(paymentData).returning();
+    return payment;
+  }
+
+  async updatePayment(id: number, patch: Partial<Payment>): Promise<Payment | undefined> {
+    const [updated] = await db
+      .update(payments)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(eq(payments.id, id))
       .returning();
     return updated;
   }

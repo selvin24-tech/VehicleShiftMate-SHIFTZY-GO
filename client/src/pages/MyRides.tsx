@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import {
@@ -24,6 +25,73 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 type Segment = "active" | "shift" | "go";
+
+/** Real (server-backed) shift request with its priced trip + payment. */
+type PricedRequest = {
+  id: number;
+  pickupLocation: string;
+  dropLocation: string;
+  status: string;
+  trip: { id: number; price: string; status: string } | null;
+  payment: { status: string } | null;
+};
+
+/**
+ * Real priced-trip panel (Phase 2). Surfaces trips the ShiftzyGo team has
+ * priced so the customer can pay. Separate from the localStorage demo lists.
+ */
+function PricedTripsPanel({ priced }: { priced: PricedRequest[] }) {
+  const [, navigate] = useLocation();
+  if (priced.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wide flex items-center gap-1.5">
+        <IndianRupee className="w-3.5 h-3.5" /> Priced Trips
+      </p>
+      {priced.map((r) => {
+        const paid = r.payment?.status === "paid" || r.trip!.status === "scheduled" || r.trip!.status === "in_transit" || r.trip!.status === "completed";
+        return (
+          <div key={r.id} className="rounded-2xl border-2 border-neutral-200 p-4">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">
+                Request #{r.id}
+              </span>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  paid ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                }`}
+              >
+                {paid ? "Paid" : "Payment due"}
+              </span>
+            </div>
+            <p className="font-extrabold text-neutral-900 text-sm">
+              {r.pickupLocation} → {r.dropLocation}
+            </p>
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-lg font-extrabold text-neutral-900 flex items-center">
+                <IndianRupee className="w-4 h-4" />
+                {Number(r.trip!.price).toLocaleString("en-IN")}
+              </span>
+              {paid ? (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600">
+                  <CheckCircle2 className="w-4 h-4" /> {r.trip!.status.replace(/_/g, " ")}
+                </span>
+              ) : (
+                <button
+                  onClick={() => navigate(`/trip-payment/${r.trip!.id}`)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl"
+                >
+                  View &amp; Pay
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 const STATUS_STYLE: Record<string, string> = {
   pending_traveler: "bg-orange-100 text-orange-700",
@@ -229,11 +297,18 @@ export default function MyRides() {
   const gos = useGoRequests();
   const sentRequests = useSentRequests();
 
+  const { data: serverRequests = [] } = useQuery<PricedRequest[]>({
+    queryKey: ["/api/shift-requests"],
+    refetchInterval: 15000,
+  });
+  const pricedTrips = serverRequests.filter((r) => r.trip && r.trip.status !== "cancelled");
+
   const activeShifts = shifts.filter((r) => isActiveStatus(r.status));
   const activeGos = gos.filter((r) => isActiveStatus(r.status));
   const paidBookings = sentRequests.filter((r) => r.status === "paid" || r.status === "booking_confirmed");
 
-  const activeCount = activeShifts.length + activeGos.length + paidBookings.length;
+  const activeCount =
+    activeShifts.length + activeGos.length + paidBookings.length + pricedTrips.length;
 
   const segments: { key: Segment; label: string }[] = [
     { key: "active", label: "Active" },
@@ -283,6 +358,8 @@ export default function MyRides() {
                 />
               ) : (
                 <>
+                  <PricedTripsPanel priced={pricedTrips} />
+
                   {/* Paid bookings from nearby shift requests */}
                   {paidBookings.length > 0 && (
                     <div className="space-y-3">

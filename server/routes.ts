@@ -5,6 +5,7 @@ import passport from "passport";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./auth";
 import { hashPassword } from "./lib/password";
+import * as cashfree from "./lib/cashfree";
 import Stripe from "stripe";
 
 // Initialize Stripe
@@ -185,13 +186,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's shift requests
+  // Get user's shift requests, each enriched with its linked trip + payment
+  // summary so the customer app can show "priced trip / pay now".
   app.get("/api/shift-requests", requireAuth, async (req, res) => {
     try {
-      const requests = await storage.getShiftRequestsByUserId(req.user!.id);
+      const requests = await storage.getShiftRequestsWithRelationsByUserId(req.user!.id);
       res.json(requests);
     } catch (error) {
       console.error("Error fetching shift requests:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Get a single shift request (with trip + payment), ownership-checked.
+  app.get("/api/shift-requests/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const request = await storage.getShiftRequestWithRelations(id);
+      if (!request) return res.status(404).json({ message: "Shift request not found" });
+      if (request.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to view this request" });
+      }
+      res.json(request);
+    } catch (error) {
+      console.error("Error fetching shift request:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Get a single trip (priced booking), ownership-checked (customer or driver).
+  app.get("/api/trips/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const trip = await storage.getTripWithRelations(id);
+      if (!trip) return res.status(404).json({ message: "Trip not found" });
+      const isCustomer = trip.shiftRequest?.userId === req.user!.id;
+      const isDriver = trip.driverId != null && trip.driverId === req.user!.id;
+      if (!isCustomer && !isDriver && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Not authorized to view this trip" });
+      }
+      res.json(trip);
+    } catch (error) {
+      console.error("Error fetching trip:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
@@ -602,6 +638,346 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error confirming booking:", error);
       res.status(500).json({ message: "Error confirming booking" });
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────
+  //  PHASE 2 — real vehicle-shifting business flow
+  //  ShiftRequest → Admin review (price + driver) → Trip → Cashfree payment
+  // ─────────────────────────────────────────────────────────────────────
+
+  const ALLOWED_TRIP_STATUS = [
+    "awaiting_payment",
+    "scheduled",
+    "in_transit",
+    "completed",
+    "cancelled",
+  ] as const;
+
+  const approveSchema = z.object({
+    price: z
+      .union([z.string(), z.number()])
+      .transform((v) => String(v).trim())
+      .refine((v) => Number(v) > 0, "Price must be a number greater than 0"),
+    driverName: z.string().trim().min(1).optional(),
+    driverPhone: z.string().trim().min(1).optional(),
+    distance: z.string().trim().min(1).optional(),
+    notes: z.string().trim().min(1).optional(),
+    startDate: z.string().trim().min(1).optional(),
+    endDate: z.string().trim().min(1).optional(),
+  });
+
+  const toDate = (v?: string): Date | null => {
+    if (!v) return null;
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  /**
+   * Reconcile a Cashfree order against our payments row using the authoritative
+   * server-side "Get Order" API. Only this function moves a payment to "paid",
+   * and it is idempotent — safe to call from both the return-redirect verify
+   * endpoint and the webhook.
+   */
+  async function reconcileCashfreeOrder(providerOrderId: string) {
+    const payment = await storage.getPaymentByProviderOrderId(providerOrderId);
+    if (!payment) return undefined;
+    if (payment.status === "paid") return payment;
+
+    const order = await cashfree.getOrder(providerOrderId);
+    const raw = order.order_status ?? null;
+    const status = (order.order_status || "").toUpperCase();
+
+    if (status === "PAID") {
+      let method: string | undefined;
+      let referenceId: string | undefined;
+      try {
+        const pays = await cashfree.getOrderPayments(providerOrderId);
+        const ok =
+          pays.find((p) => (p.payment_status || "").toUpperCase() === "SUCCESS") || pays[0];
+        method = (ok?.payment_group as string | undefined) || undefined;
+        referenceId =
+          ok?.cf_payment_id != null
+            ? String(ok.cf_payment_id)
+            : (ok?.bank_reference as string | undefined) || undefined;
+      } catch (e) {
+        console.error("Cashfree payment-detail lookup failed (non-fatal):", e);
+      }
+
+      const updated = await storage.updatePayment(payment.id, {
+        status: "paid",
+        cfOrderId: order.cf_order_id != null ? String(order.cf_order_id) : payment.cfOrderId,
+        method: method ?? payment.method,
+        referenceId: referenceId ?? payment.referenceId,
+        rawStatus: raw,
+        paidAt: new Date(),
+      });
+
+      // Operational side-effect only: awaiting_payment → scheduled.
+      const trip = await storage.getTrip(payment.tripId);
+      if (trip && trip.status === "awaiting_payment") {
+        await storage.updateTripStatus(trip.id, "scheduled");
+      }
+      return updated;
+    }
+
+    const mapped =
+      status === "EXPIRED"
+        ? "expired"
+        : status === "TERMINATED" || status === "TERMINATION_REQUESTED"
+        ? "failed"
+        : payment.status === "created"
+        ? "pending"
+        : payment.status;
+
+    if (mapped !== payment.status || raw !== payment.rawStatus) {
+      return storage.updatePayment(payment.id, { status: mapped, rawStatus: raw });
+    }
+    return payment;
+  }
+
+  // Customer: create (or reuse) a Cashfree order for a priced trip.
+  app.post("/api/payments/cashfree/order", requireAuth, async (req, res) => {
+    try {
+      const tripId = parseInt(req.body.tripId);
+      if (!tripId) return res.status(400).json({ message: "tripId is required" });
+
+      const trip = await storage.getTripWithRelations(tripId);
+      if (!trip) return res.status(404).json({ message: "Trip not found" });
+      if (trip.shiftRequest?.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to pay for this trip" });
+      }
+
+      const amount = Number(trip.price);
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "This trip has no valid price yet" });
+      }
+
+      const existing = await storage.getLatestPaymentForTrip(tripId);
+      if (existing?.status === "paid") {
+        return res.status(409).json({ message: "This trip is already paid" });
+      }
+
+      if (!cashfree.isConfigured()) {
+        return res.status(503).json({
+          message:
+            "Payment gateway is not configured. Add CASHFREE_APP_ID and CASHFREE_SECRET_KEY (sandbox) to the server environment.",
+        });
+      }
+
+      // A fresh order id per attempt keeps Cashfree order ids unique.
+      const providerOrderId = `SHIFTZY-${tripId}-${Date.now().toString(36)}`;
+      const returnUrl = `${cashfree.appBaseUrl()}/trip-payment/${tripId}?order_id={order_id}`;
+      const notifyUrl = `${cashfree.appBaseUrl()}/api/webhooks/cashfree`;
+
+      let order;
+      try {
+        order = await cashfree.createOrder({
+          orderId: providerOrderId,
+          amount,
+          currency: "INR",
+          customer: {
+            id: `user_${req.user!.id}`,
+            name: trip.customer?.name,
+            email: trip.customer?.email,
+            phone: trip.customer?.phone,
+          },
+          returnUrl,
+          notifyUrl,
+        });
+      } catch (e) {
+        console.error("Cashfree createOrder failed:", e);
+        return res.status(502).json({ message: "Could not reach the payment gateway. Please try again." });
+      }
+
+      await storage.createPayment({
+        tripId,
+        shiftRequestId: trip.shiftRequestId,
+        userId: req.user!.id,
+        amount: String(amount),
+        currency: "INR",
+        provider: "cashfree",
+        providerOrderId,
+        cfOrderId: order.cf_order_id != null ? String(order.cf_order_id) : null,
+        paymentSessionId: order.payment_session_id ?? null,
+        status: "pending",
+        rawStatus: order.order_status ?? null,
+      });
+
+      res.status(201).json({
+        providerOrderId,
+        paymentSessionId: order.payment_session_id,
+        mode: cashfree.cashfreeMode(),
+        amount,
+      });
+    } catch (error) {
+      console.error("Error creating Cashfree order:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Customer: authoritative server-side verification after the checkout redirect.
+  app.get("/api/payments/cashfree/verify/:providerOrderId", requireAuth, async (req, res) => {
+    try {
+      const providerOrderId = req.params.providerOrderId;
+      const payment = await storage.getPaymentByProviderOrderId(providerOrderId);
+      if (!payment) return res.status(404).json({ message: "Payment not found" });
+      if (payment.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      if (!cashfree.isConfigured()) {
+        return res.status(503).json({ message: "Payment gateway is not configured" });
+      }
+
+      let reconciled = payment;
+      try {
+        reconciled = (await reconcileCashfreeOrder(providerOrderId)) ?? payment;
+      } catch (e) {
+        console.error("Cashfree verify failed:", e);
+        return res.status(502).json({ message: "Could not verify payment with the gateway yet." });
+      }
+
+      const trip = await storage.getTrip(payment.tripId);
+      res.json({
+        paymentStatus: reconciled.status,
+        tripStatus: trip?.status ?? null,
+        amount: reconciled.amount,
+        method: reconciled.method,
+        referenceId: reconciled.referenceId,
+        providerOrderId,
+      });
+    } catch (error) {
+      console.error("Error verifying payment:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Cashfree webhook — backup confirmation path. Signature-verified against the
+  // raw request body (captured in server/index.ts as req.rawBody).
+  app.post("/api/webhooks/cashfree", async (req, res) => {
+    try {
+      const rawBody = (req as unknown as { rawBody?: Buffer }).rawBody?.toString() ?? "";
+      const signature = req.header("x-webhook-signature");
+      const timestamp = req.header("x-webhook-timestamp");
+
+      if (!cashfree.verifyWebhookSignature(rawBody, signature, timestamp)) {
+        return res.status(401).json({ message: "Invalid signature" });
+      }
+
+      const orderId: string | undefined =
+        req.body?.data?.order?.order_id || req.body?.data?.order_id || req.body?.order_id;
+
+      if (orderId) {
+        try {
+          await reconcileCashfreeOrder(orderId);
+        } catch (e) {
+          console.error("Webhook reconcile failed:", e);
+        }
+      }
+      // Always 200 quickly so Cashfree does not retry a handled event.
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error("Error handling Cashfree webhook:", error);
+      res.status(200).json({ received: true });
+    }
+  });
+
+  // ── Admin: real shift-request approvals ──
+  app.get("/api/admin/shift-requests", requireAdmin, async (_req, res) => {
+    try {
+      res.json(await storage.getAllShiftRequestsWithRelations());
+    } catch (error) {
+      console.error("Error fetching admin shift requests:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Admin: review a request — set the agreed price, assign a driver manually,
+  // and create the linked Trip. This is the ONLY path that creates a Trip.
+  app.post("/api/admin/shift-requests/:id/approve", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const request = await storage.getShiftRequest(id);
+      if (!request) return res.status(404).json({ message: "Shift request not found" });
+      if (request.status === "approved") {
+        return res.status(409).json({ message: "This request is already approved" });
+      }
+
+      const data = approveSchema.parse(req.body);
+      const { request: updatedRequest, trip } = await storage.approveShiftRequestAndCreateTrip(
+        id,
+        req.user!.id,
+        {
+          price: data.price,
+          driverName: data.driverName ?? null,
+          driverPhone: data.driverPhone ?? null,
+          distance: data.distance ?? null,
+          notes: data.notes ?? null,
+          startDate: toDate(data.startDate),
+          endDate: toDate(data.endDate),
+        }
+      );
+      res.status(201).json({ request: updatedRequest, trip });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      console.error("Error approving shift request:", error);
+      res.status(500).json({ message: (error as Error).message || "Server error" });
+    }
+  });
+
+  app.post("/api/admin/shift-requests/:id/reject", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const reason = String(req.body.reason || "").trim();
+      if (!reason) return res.status(400).json({ message: "A rejection reason is required" });
+
+      const request = await storage.getShiftRequest(id);
+      if (!request) return res.status(404).json({ message: "Shift request not found" });
+
+      const existingTrip = await storage.getTripByShiftRequestId(id);
+      if (existingTrip) {
+        return res.status(409).json({ message: "Cannot reject — a trip already exists for this request" });
+      }
+
+      const updated = await storage.rejectShiftRequest(id, req.user!.id, reason);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error rejecting shift request:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ── Admin: real bookings (trips) with payment status ──
+  app.get("/api/admin/bookings", requireAdmin, async (_req, res) => {
+    try {
+      res.json(await storage.getAllTripsWithRelations());
+    } catch (error) {
+      console.error("Error fetching admin bookings:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Admin: manual trip status update. Never touches payment status.
+  app.post("/api/admin/trips/:id/status", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const status = String(req.body.status || "");
+      if (!ALLOWED_TRIP_STATUS.includes(status as (typeof ALLOWED_TRIP_STATUS)[number])) {
+        return res.status(400).json({
+          message: `status must be one of: ${ALLOWED_TRIP_STATUS.join(", ")}`,
+        });
+      }
+      const trip = await storage.getTrip(id);
+      if (!trip) return res.status(404).json({ message: "Trip not found" });
+
+      const updated = await storage.updateTripStatus(id, status);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating trip status:", error);
+      res.status(500).json({ message: "Server error" });
     }
   });
 
