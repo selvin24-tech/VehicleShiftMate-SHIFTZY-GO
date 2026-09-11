@@ -6,6 +6,8 @@ import {
   IndianRupee, MapPin, Car, User, AlertTriangle, RefreshCw,
 } from "lucide-react";
 import Header from "@/components/layout/Header";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -153,42 +155,26 @@ export default function TripPayment() {
   }
 
   const busy = phase === "starting" || phase === "checkout" || phase === "verifying";
+  const isDesktop = useIsDesktop();
 
-  return (
-    <div className="max-w-lg mx-auto bg-white min-h-screen pb-28">
-      <Header title="Pay for your shift" showAnimation={false} />
+  const loadingState = isLoading && (
+    <div className="flex flex-col items-center justify-center py-20 gap-3 text-neutral-500">
+      <Loader2 className="w-7 h-7 animate-spin" />
+      <p className="text-sm">Loading your trip…</p>
+    </div>
+  );
 
-      <div className="fixed top-4 left-4 z-50">
-        <button
-          onClick={() => navigate("/my-rides")}
-          className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center"
-          aria-label="Back"
-        >
-          <ChevronLeft className="h-7 w-7" />
-        </button>
-      </div>
+  const errorState = isError && (
+    <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
+      <AlertTriangle className="w-7 h-7 text-red-500 mx-auto mb-2" />
+      <p className="text-sm font-semibold text-red-700">This trip could not be found.</p>
+      <button onClick={() => navigate("/my-rides")} className="mt-3 text-sm font-bold text-blue-600">
+        Back to My Rides
+      </button>
+    </div>
+  );
 
-      <div className="px-4 py-6 space-y-5">
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-20 gap-3 text-neutral-500">
-            <Loader2 className="w-7 h-7 animate-spin" />
-            <p className="text-sm">Loading your trip…</p>
-          </div>
-        )}
-
-        {isError && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
-            <AlertTriangle className="w-7 h-7 text-red-500 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-red-700">This trip could not be found.</p>
-            <button onClick={() => navigate("/my-rides")} className="mt-3 text-sm font-bold text-blue-600">
-              Back to My Rides
-            </button>
-          </div>
-        )}
-
-        {trip && phase !== "success" && (
-          <>
-            {/* Trip summary */}
+  const tripSummaryCard = trip && (
             <div className="rounded-2xl border-2 border-neutral-200 p-4">
               <div className="flex items-center gap-2 text-[11px] font-bold text-blue-700 mb-3">
                 <span className="bg-blue-50 px-2 py-1 rounded-full">Shift Request #{trip.shiftRequest.id}</span>
@@ -219,8 +205,9 @@ export default function TripPayment() {
                 </span>
               </div>
             </div>
+  );
 
-            {/* Price */}
+  const priceCard = trip && (
             <div className="rounded-2xl bg-neutral-900 text-white p-5">
               <p className="text-xs text-neutral-300 font-semibold">Amount payable</p>
               <p className="text-3xl font-extrabold flex items-center gap-1 mt-1">
@@ -231,7 +218,10 @@ export default function TripPayment() {
                 Price set by the ShiftzyGo team for this vehicle shift.
               </p>
             </div>
+  );
 
+  const statusMessages = trip && (
+    <>
             {alreadyPaid && phase === "idle" && (
               <div className="rounded-2xl border border-green-200 bg-green-50 p-4 flex items-center gap-3">
                 <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />
@@ -263,8 +253,10 @@ export default function TripPayment() {
                 </div>
               </div>
             )}
+    </>
+  );
 
-            {!alreadyPaid && (
+  const payButton = trip && !alreadyPaid && (
               <button
                 onClick={startPayment}
                 disabled={busy || Number(trip.price) <= 0}
@@ -281,17 +273,17 @@ export default function TripPayment() {
                   </>
                 )}
               </button>
-            )}
+  );
 
+  const securityNote = (
             <div className="flex items-center justify-center gap-2 text-[11px] text-neutral-400">
               <ShieldCheck className="w-3.5 h-3.5" /> Payments processed securely by Cashfree
               {" · "}
               <span className="uppercase font-bold tracking-wide">Sandbox / test mode</span>
             </div>
-          </>
-        )}
+  );
 
-        {phase === "success" && (
+  const successCard = phase === "success" && (
           <div className="rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
             <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
             <p className="text-lg font-extrabold text-green-800">Payment successful</p>
@@ -310,7 +302,64 @@ export default function TripPayment() {
               Go to My Rides
             </button>
           </div>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-4xl mx-auto px-6 py-8">
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100 mb-6">Pay for your shift</h1>
+          {loadingState}
+          {errorState}
+          {trip && phase !== "success" && (
+            <div className="grid grid-cols-[1fr_360px] gap-6 items-start">
+              <div className="space-y-4">
+                {tripSummaryCard}
+                {statusMessages}
+              </div>
+              <aside className="sticky top-24 space-y-4">
+                {priceCard}
+                {payButton}
+                {securityNote}
+              </aside>
+            </div>
+          )}
+          {successCard && <div className="max-w-lg">{successCard}</div>}
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-lg mx-auto bg-white min-h-screen pb-28">
+      <Header title="Pay for your shift" showAnimation={false} />
+
+      <div className="fixed top-4 left-4 z-50">
+        <button
+          onClick={() => navigate("/my-rides")}
+          className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center"
+          aria-label="Back"
+        >
+          <ChevronLeft className="h-7 w-7" />
+        </button>
+      </div>
+
+      <div className="px-4 py-6 space-y-5">
+        {loadingState}
+        {errorState}
+        {trip && phase !== "success" && (
+          <>
+            {tripSummaryCard}
+            {priceCard}
+            {statusMessages}
+            {payButton}
+            {securityNote}
+          </>
         )}
+        {successCard}
       </div>
     </div>
   );
