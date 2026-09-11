@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import ReviewsSection from "@/components/reviews/ReviewsSection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -74,6 +76,7 @@ export default function VehicleDetails() {
   const [requestStage, setRequestStage] = useState<RequestStage>("form");
   const [galleryOpen, setGalleryOpen] = useState(false);
   const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDesktop = useIsDesktop();
 
   useEffect(() => {
     return () => {
@@ -175,25 +178,39 @@ export default function VehicleDetails() {
   const vehicleImages = getVehicleImages(vehicle);
   const availWindow = getAvailabilityWindow(vehicle.id);
 
-  return (
-    <div className="max-w-lg mx-auto px-4 pb-24">
-      <Header />
-      
-      <div className="flex items-center justify-between mb-4 mt-2">
-        <h1 className="text-xl font-bold">Vehicle Details</h1>
-      </div>
-      
-      <div className="fixed top-4 left-4 z-50">
-        <Button 
-          variant="default" 
-          size="lg"
-          onClick={handleBack}
-          className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 p-0 flex items-center justify-center"
-        >
-          <ChevronLeft className="h-7 w-7" />
-        </Button>
-      </div>
-      
+  const bookingButtons = (
+    <div className="grid grid-cols-2 gap-3">
+      <Button
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+        size="lg"
+        onClick={() => { resetRequest(); setIsBookingOpen(true); }}
+      >
+        Quick Book
+      </Button>
+
+      <Button
+        className="w-full bg-secondary-500 hover:bg-secondary-600 text-white"
+        size="lg"
+        variant="outline"
+        onClick={() => {
+          const category = tripCategoryParam
+            || (vehicle.vehicleCategory === "premium" ? "premium" : vehicle.type || "car");
+          const distance = (tripDistance && tripDistance > 0) ? tripDistance : "";
+          const q = new URLSearchParams();
+          if (distance) q.set("distance", String(distance));
+          q.set("category", category);
+          if (tripPickup) q.set("pickup", tripPickup);
+          if (tripDrop) q.set("drop", tripDrop);
+          navigate(`/checkout/${vehicleId}?${q.toString()}`);
+        }}
+      >
+        Pay Now
+      </Button>
+    </div>
+  );
+
+  const mainContent = (
+    <>
       {/* Vehicle Images */}
       <div className="relative rounded-xl overflow-hidden bg-neutral-100 h-64 mb-2">
         {vehicle.image ? (
@@ -493,46 +510,18 @@ export default function VehicleDetails() {
         <Separator className="mb-4" />
         
         {showReviews && (
-          <ReviewsSection 
-            type="vehicle" 
-            id={parseInt(vehicle.id)} 
+          <ReviewsSection
+            type="vehicle"
+            id={parseInt(vehicle.id)}
             showForm={true}
           />
         )}
       </div>
-      
-      {/* Booking Buttons */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-white border-t border-neutral-200">
-        <div className="grid grid-cols-2 gap-3">
-          <Button 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
-            size="lg" 
-            onClick={() => { resetRequest(); setIsBookingOpen(true); }}
-          >
-            Quick Book
-          </Button>
-          
-          <Button 
-            className="w-full bg-secondary-500 hover:bg-secondary-600 text-white" 
-            size="lg"
-            variant="outline"
-            onClick={() => {
-              const category = tripCategoryParam
-                || (vehicle.vehicleCategory === "premium" ? "premium" : vehicle.type || "car");
-              const distance = (tripDistance && tripDistance > 0) ? tripDistance : "";
-              const q = new URLSearchParams();
-              if (distance) q.set("distance", String(distance));
-              q.set("category", category);
-              if (tripPickup) q.set("pickup", tripPickup);
-              if (tripDrop) q.set("drop", tripDrop);
-              navigate(`/checkout/${vehicleId}?${q.toString()}`);
-            }}
-          >
-            Pay Now
-          </Button>
-        </div>
-      </div>
-      
+    </>
+  );
+
+  const overlays = (
+    <>
       {/* Quick Book Dialog */}
       <Dialog
         open={isBookingOpen}
@@ -765,6 +754,61 @@ export default function VehicleDetails() {
         vehicle={{ id: vehicle.id, make: vehicle.make, model: vehicle.model, registrationNumber: vehicle.registrationNumber, fuelType: vehicle.fuelType, type: vehicle.type }}
         owner={{ name: vehicle.ownerName ?? "Owner", rating: vehicle.rating }}
       />
+    </>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-5xl mx-auto px-6 py-8">
+          <button onClick={handleBack} className="flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 mb-4">
+            <ChevronLeft className="h-4 w-4" /> Back to results
+          </button>
+          <div className="grid grid-cols-[1fr_340px] gap-8 items-start">
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl p-6">
+              {mainContent}
+            </div>
+            <aside className="sticky top-24 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl p-5">
+              <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">Book this vehicle</p>
+              {bookingButtons}
+            </aside>
+          </div>
+        </main>
+        {overlays}
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-lg mx-auto px-4 pb-24">
+      <Header />
+
+      <div className="flex items-center justify-between mb-4 mt-2">
+        <h1 className="text-xl font-bold">Vehicle Details</h1>
+      </div>
+
+      <div className="fixed top-4 left-4 z-50">
+        <Button
+          variant="default"
+          size="lg"
+          onClick={handleBack}
+          className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 p-0 flex items-center justify-center"
+        >
+          <ChevronLeft className="h-7 w-7" />
+        </Button>
+      </div>
+
+      {mainContent}
+
+      {/* Booking Buttons */}
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-white border-t border-neutral-200">
+        {bookingButtons}
+      </div>
+
+      {overlays}
 
       <BottomNav />
     </div>
