@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 
 type TripStatus = "not-started" | "inspection" | "in-transit" | "completed";
 
@@ -83,24 +85,11 @@ export default function Track() {
   };
 
   const progressColor = tripStatus === "completed" ? "bg-orange-500" : "bg-blue-500";
+  const isDesktop = useIsDesktop();
 
-  return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
-      <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
+  const hiddenInput = <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />;
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 pt-12 pb-6">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <h1 className="font-bold text-lg">Live Tracking</h1>
-        </div>
-      </div>
-
-      <div className="px-4 pt-5 space-y-4">
-
-        {/* Search bar */}
+  const searchBar = (
         <div className="flex gap-2">
           <Input
             value={trackingId}
@@ -113,17 +102,16 @@ export default function Track() {
             {loading ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Search className="w-4 h-4" />}
           </Button>
         </div>
+  );
 
-        {/* Demo tip */}
+  const demoTip = (
         <div className="bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 flex gap-2">
           <AlertCircle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
           <p className="text-xs text-orange-700">Try: <strong>TRK-101</strong>, <strong>TRK-202</strong>, or <strong>TRK-303</strong></p>
         </div>
+  );
 
-        {/* Trip found */}
-        {trip && (
-          <>
-            {/* Vehicle card */}
+  const vehicleCard = trip && (
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100">
               <div className="flex items-start justify-between mb-3">
                 <div>
@@ -164,9 +152,10 @@ export default function Track() {
                 </p>
               </div>
             </div>
+  );
 
-            {/* Journey stages */}
-            <div className="bg-white border border-neutral-100 rounded-2xl p-4">
+  const journeyStages = trip && (
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl p-4">
               <p className="font-bold text-sm mb-3">Journey Progress</p>
               {TRIP_STAGES.map((stage, idx) => {
                 const Icon = stage.icon;
@@ -188,20 +177,22 @@ export default function Track() {
                 );
               })}
             </div>
+  );
 
-            {/* Driver info */}
-            <div className="bg-blue-50 rounded-2xl p-4 flex items-center justify-between">
+  const driverCard = trip && (
+            <div className="bg-blue-50 dark:bg-blue-950 rounded-2xl p-4 flex items-center justify-between">
               <div>
                 <p className="text-xs text-blue-400 font-semibold uppercase tracking-wide">Driver</p>
-                <p className="font-bold text-blue-800">{trip.driver}</p>
-                <p className="text-xs text-blue-600">{trip.phone}</p>
+                <p className="font-bold text-blue-800 dark:text-blue-200">{trip.driver}</p>
+                <p className="text-xs text-blue-600 dark:text-blue-300">{trip.phone}</p>
               </div>
               <a href={`tel:${trip.phone}`} className="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-md">
                 <Phone className="w-5 h-5" />
               </a>
             </div>
+  );
 
-            {/* Share trip */}
+  const shareCard = trip && (
             <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4">
               <p className="font-bold text-sm text-orange-800 mb-1">Share Trip with Family</p>
               <p className="text-xs text-orange-600 mb-3">Let someone you trust track this trip for safety.</p>
@@ -209,9 +200,10 @@ export default function Track() {
                 <Share2 className="w-4 h-4" /> Share Live Trip Details
               </Button>
             </div>
+  );
 
-            {/* Inspection photos */}
-            <div className="bg-white border border-neutral-200 rounded-2xl p-4">
+  const photosCard = trip && (
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="font-bold text-sm">Inspection Photos</p>
                 <button onClick={() => photoRef.current?.click()} className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">
@@ -231,8 +223,10 @@ export default function Track() {
                 </button>
               )}
             </div>
+  );
 
-            {/* Trip action buttons */}
+  const actionButtons = trip && (
+    <>
             {tripStatus === "inspection" && (
               <Button onClick={handleStartTrip} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base gap-2">
                 <Navigation className="w-5 h-5" /> Start Trip
@@ -250,6 +244,66 @@ export default function Track() {
                 <p className="text-xs text-blue-600 mt-1">Payment released. Thank you for using Shiftzy Go!</p>
               </div>
             )}
+    </>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        {hiddenInput}
+        <main className="max-w-5xl mx-auto px-6 py-8">
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100 mb-5">Live Tracking</h1>
+          <div className="max-w-xl space-y-3 mb-6">
+            {searchBar}
+            {demoTip}
+          </div>
+          {trip && (
+            <div className="grid grid-cols-[1fr_380px] gap-6 items-start">
+              <div className="space-y-4">
+                {vehicleCard}
+                {journeyStages}
+                {photosCard}
+              </div>
+              <aside className="space-y-4">
+                {driverCard}
+                {shareCard}
+                {actionButtons}
+              </aside>
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
+      {hiddenInput}
+
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 pt-12 pb-6">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/")} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h1 className="font-bold text-lg">Live Tracking</h1>
+        </div>
+      </div>
+
+      <div className="px-4 pt-5 space-y-4">
+        {searchBar}
+        {demoTip}
+        {trip && (
+          <>
+            {vehicleCard}
+            {journeyStages}
+            {driverCard}
+            {shareCard}
+            {photosCard}
+            {actionButtons}
           </>
         )}
       </div>
