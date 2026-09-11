@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import Header from "@/components/layout/Header";
 import {
   ChevronLeft, MapPin, Fuel, Landmark, BadgePercent, ShieldCheck,
-  CreditCard, CheckCircle, Clock, ReceiptText, Navigation
+  CreditCard, CheckCircle, Clock, ReceiptText, Navigation, AlertTriangle
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -22,11 +22,13 @@ import {
   FARE_CATEGORIES, type FareBreakdown
 } from "@/lib/constants";
 
-if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-  throw new Error("Missing Stripe public key");
-}
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// This dormant Stripe-based checkout is superseded by the Cashfree flow in
+// TripPayment.tsx. Read the key here (a plain, non-throwing check) so the
+// rest of the app can boot without VITE_STRIPE_PUBLIC_KEY; the Stripe SDK
+// itself loads lazily inside the component below, only when this route
+// actually renders.
+const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY as string | undefined;
+const isStripeConfigured = Boolean(stripePublicKey);
 
 const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 
@@ -288,6 +290,12 @@ export default function Checkout() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  // Loaded lazily, only when this route renders and a key is present.
+  const stripePromise = useMemo(
+    () => (stripePublicKey ? loadStripe(stripePublicKey) : null),
+    []
+  );
+
   useEffect(() => {
     if (!vehicleId) {
       navigate("/travel");
@@ -304,6 +312,13 @@ export default function Checkout() {
     const fare = computeFare(distanceKm, category);
     const bookingData: Booking = { pickup, drop, category, distanceKm, fare };
     setBooking(bookingData);
+
+    if (!isStripeConfigured) {
+      // Nothing to set up — show the trip summary with a clear "not
+      // configured" notice instead of calling an endpoint that can only fail.
+      setIsLoading(false);
+      return;
+    }
 
     const setup = async () => {
       try {
@@ -390,11 +405,18 @@ export default function Checkout() {
               </>
             )}
 
-            {clientSecret && (
+            {!isStripeConfigured ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                <p className="text-sm font-semibold text-amber-700">
+                  Payment is not configured on this deployment yet. Please check back later.
+                </p>
+              </div>
+            ) : clientSecret && stripePromise ? (
               <Elements stripe={stripePromise} options={{ clientSecret }}>
                 <PaymentForm onPaymentSuccess={handlePaymentSuccess} />
               </Elements>
-            )}
+            ) : null}
           </>
         )}
       </div>
