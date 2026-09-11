@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Bell, ChevronLeft, CheckCheck, Package, CreditCard, Car, XCircle, Navigation } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import {
   useStoredNotifs, markNotifRead, markAllNotifsRead, type StoredIconKey,
 } from "@/lib/notificationsStore";
@@ -42,6 +44,90 @@ export default function Notifications() {
     if (requestId) navigate(`/request/${requestId}`);
   };
 
+  const isDesktop = useIsDesktop();
+
+  const categoryTabs = (
+    <div className="flex gap-2 overflow-x-auto no-scrollbar">
+      {CATEGORY_TABS.map(tab => (
+        <button
+          key={tab.id}
+          onClick={() => setActive(tab.id)}
+          className={`shrink-0 text-xs font-semibold px-4 py-1.5 rounded-full border transition-all ${
+            active === tab.id
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white dark:bg-neutral-900 text-neutral-500 border-neutral-200 dark:border-neutral-700"
+          }`}
+        >
+          {tab.label}
+          {tab.id === "all" && unreadCount > 0 && (
+            <span className="ml-1.5 bg-orange-500 text-white text-[10px] font-bold w-4 h-4 rounded-full inline-flex items-center justify-center">{unreadCount}</span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+
+  const notifList = (
+    <div className="divide-y divide-neutral-50 dark:divide-neutral-800">
+      {filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <Bell className="w-12 h-12 text-neutral-200 mx-auto mb-3" />
+          <p className="font-semibold text-neutral-400">No notifications here</p>
+        </div>
+      ) : filtered.map(n => {
+        const Icon = ICON_MAP[n.iconKey] ?? Package;
+        return (
+          <div
+            key={n.id}
+            onClick={() => handleTap(n.id, n.requestId)}
+            className={`flex items-start gap-3 px-4 py-4 cursor-pointer transition-colors ${n.unread ? "bg-blue-50/60 dark:bg-blue-950/40" : "bg-white dark:bg-neutral-900"}`}
+          >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${colorMap[n.color]}`}>
+              <Icon className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <p className={`text-sm leading-tight ${n.unread ? "font-bold text-neutral-900 dark:text-neutral-100" : "font-semibold text-neutral-700 dark:text-neutral-300"}`}>{n.title}</p>
+                {n.unread && <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0 mt-1" />}
+              </div>
+              <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
+              <p className="text-[10px] text-neutral-400 mt-1">{n.time}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-2xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-1">
+            <div>
+              <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100">Notifications</h1>
+              {unreadCount > 0 && (
+                <p className="text-sm text-neutral-500 mt-1">{unreadCount} unread notification{unreadCount > 1 ? "s" : ""}</p>
+              )}
+            </div>
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded-full px-3 py-1.5 text-xs font-semibold">
+                <CheckCheck className="w-3.5 h-3.5" /> Mark all read
+              </button>
+            )}
+          </div>
+          <div className="mt-4 mb-2">{categoryTabs}</div>
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl overflow-hidden mt-4">
+            {notifList}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
       {/* Header */}
@@ -63,55 +149,9 @@ export default function Notifications() {
       </div>
 
       {/* Category tabs */}
-      <div className="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar border-b border-neutral-100">
-        {CATEGORY_TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActive(tab.id)}
-            className={`shrink-0 text-xs font-semibold px-4 py-1.5 rounded-full border transition-all ${
-              active === tab.id
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-neutral-500 border-neutral-200"
-            }`}
-          >
-            {tab.label}
-            {tab.id === "all" && unreadCount > 0 && (
-              <span className="ml-1.5 bg-orange-500 text-white text-[10px] font-bold w-4 h-4 rounded-full inline-flex items-center justify-center">{unreadCount}</span>
-            )}
-          </button>
-        ))}
-      </div>
+      <div className="px-4 py-3 border-b border-neutral-100">{categoryTabs}</div>
 
-      {/* List */}
-      <div className="divide-y divide-neutral-50">
-        {filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <Bell className="w-12 h-12 text-neutral-200 mx-auto mb-3" />
-            <p className="font-semibold text-neutral-400">No notifications here</p>
-          </div>
-        ) : filtered.map(n => {
-          const Icon = ICON_MAP[n.iconKey] ?? Package;
-          return (
-            <div
-              key={n.id}
-              onClick={() => handleTap(n.id, n.requestId)}
-              className={`flex items-start gap-3 px-4 py-4 cursor-pointer transition-colors ${n.unread ? "bg-blue-50/60" : "bg-white"}`}
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${colorMap[n.color]}`}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className={`text-sm leading-tight ${n.unread ? "font-bold text-neutral-900" : "font-semibold text-neutral-700"}`}>{n.title}</p>
-                  {n.unread && <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0 mt-1" />}
-                </div>
-                <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
-                <p className="text-[10px] text-neutral-400 mt-1">{n.time}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {notifList}
 
       <BottomNav />
     </div>
