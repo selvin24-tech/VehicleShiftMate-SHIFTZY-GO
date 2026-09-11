@@ -1,5 +1,7 @@
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -178,11 +180,10 @@ export default function Help() {
     }, 1500);
   };
   
-  return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-16">
-      <Header title="Help & Support" variant="primary" />
-      
-      <div className="px-4 py-6">
+  const isDesktop = useIsDesktop();
+
+  const assistantAndFaq = (
+    <>
         <HelpAssistant />
 
         <div className="mb-6">
@@ -200,7 +201,11 @@ export default function Help() {
             ))}
           </Accordion>
         </div>
-        
+    </>
+  );
+
+  const contactAndSupport = (
+    <>
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-lg font-bold">Contact Support</CardTitle>
@@ -267,8 +272,36 @@ export default function Help() {
             </Button>
           </div>
         </div>
+    </>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-5xl mx-auto px-6 py-8">
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100 mb-6">Help &amp; Support</h1>
+          <div className="grid grid-cols-[1fr_380px] gap-6 items-start">
+            <div>{assistantAndFaq}</div>
+            <aside className="sticky top-24">{contactAndSupport}</aside>
+          </div>
+        </main>
+        <ChatFloatingButton />
       </div>
-      
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-16">
+      <Header title="Help & Support" variant="primary" />
+
+      <div className="px-4 py-6">
+        {assistantAndFaq}
+        {contactAndSupport}
+      </div>
+
       <ChatFloatingButton />
       <BottomNav />
     </div>
