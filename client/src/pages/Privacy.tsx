@@ -1,6 +1,8 @@
 import { useLocation } from "wouter";
 import { ChevronLeft, Shield } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 
 const SECTIONS = [
   {
@@ -55,6 +57,49 @@ const SECTIONS = [
 
 export default function Privacy() {
   const [, navigate] = useLocation();
+  const isDesktop = useIsDesktop();
+
+  const intro = (
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
+        <Shield className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+        <p className="text-sm text-blue-800">
+          Your privacy is important to us. This policy explains what data we collect, why we collect it, and how we protect it.
+        </p>
+      </div>
+  );
+
+  const sections = (
+      <div className="space-y-5">
+        {SECTIONS.map((s) => (
+          <div key={s.title}>
+            <h3 className="font-bold text-sm text-blue-700 mb-1.5">{s.title}</h3>
+            <p className="text-sm text-neutral-600 leading-relaxed">{s.body}</p>
+          </div>
+        ))}
+        <div className="bg-orange-50 rounded-xl p-4 text-center">
+          <p className="text-xs text-orange-700 font-medium">Need help with your data?</p>
+          <button onClick={() => navigate("/help")} className="mt-2 text-sm font-bold text-orange-600 underline">
+            Contact Support
+          </button>
+        </div>
+      </div>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-2xl mx-auto px-6 py-10">
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100">Privacy Policy</h1>
+          <p className="text-sm text-neutral-500 mt-1 mb-5">Last updated: June 2026</p>
+          <div className="mb-6">{intro}</div>
+          {sections}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
@@ -71,29 +116,8 @@ export default function Privacy() {
         </div>
       </div>
 
-      {/* Intro */}
-      <div className="mx-4 mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
-        <Shield className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-        <p className="text-sm text-blue-800">
-          Your privacy is important to us. This policy explains what data we collect, why we collect it, and how we protect it.
-        </p>
-      </div>
-
-      {/* Sections */}
-      <div className="px-4 mt-4 space-y-5 pb-6">
-        {SECTIONS.map((s) => (
-          <div key={s.title}>
-            <h3 className="font-bold text-sm text-blue-700 mb-1.5">{s.title}</h3>
-            <p className="text-sm text-neutral-600 leading-relaxed">{s.body}</p>
-          </div>
-        ))}
-        <div className="bg-orange-50 rounded-xl p-4 text-center">
-          <p className="text-xs text-orange-700 font-medium">Need help with your data?</p>
-          <button onClick={() => navigate("/help")} className="mt-2 text-sm font-bold text-orange-600 underline">
-            Contact Support
-          </button>
-        </div>
-      </div>
+      <div className="px-4 mt-4">{intro}</div>
+      <div className="px-4 mt-4 pb-6">{sections}</div>
 
       <BottomNav />
     </div>

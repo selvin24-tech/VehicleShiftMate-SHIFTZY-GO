@@ -1,6 +1,8 @@
 import { useLocation } from "wouter";
 import { ChevronLeft, FileText, Truck, Car, CheckCircle2 } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 
 const SHIFTER_ACK = [
   "My vehicle has valid registration (RC), comprehensive insurance, and is in roadworthy condition.",
@@ -71,32 +73,19 @@ const SECTIONS = [
 
 export default function Terms() {
   const [, navigate] = useLocation();
+  const isDesktop = useIsDesktop();
 
-  return (
-    <div className="max-w-md mx-auto bg-white dark:bg-neutral-950 min-h-screen pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 pt-12 pb-6">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1 as any)} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="font-bold text-lg">Terms & Conditions</h1>
-            <p className="text-blue-200 text-xs">Last updated: June 2026</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Intro */}
-      <div className="mx-4 mt-4 bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-xl p-4 flex gap-3">
+  const intro = (
+      <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-xl p-4 flex gap-3">
         <FileText className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
         <p className="text-sm text-orange-800 dark:text-orange-200">
           Please read these terms carefully before using Shiftzy Go. By creating an account, you agree to all the terms below.
         </p>
       </div>
+  );
 
-      {/* Sections */}
-      <div className="px-4 mt-4 space-y-5 pb-6">
+  const sections = (
+      <div className="space-y-5">
         {SECTIONS.map((s) => (
           <div key={s.title}>
             <h3 className="font-bold text-sm text-blue-700 dark:text-blue-400 mb-1.5">{s.title}</h3>
@@ -155,6 +144,41 @@ export default function Terms() {
           </button>
         </div>
       </div>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-2xl mx-auto px-6 py-10">
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100">Terms &amp; Conditions</h1>
+          <p className="text-sm text-neutral-500 mt-1 mb-5">Last updated: June 2026</p>
+          <div className="mb-6">{intro}</div>
+          {sections}
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto bg-white dark:bg-neutral-950 min-h-screen pb-20">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 pt-12 pb-6">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1 as any)} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="font-bold text-lg">Terms & Conditions</h1>
+            <p className="text-blue-200 text-xs">Last updated: June 2026</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 mt-4">{intro}</div>
+      <div className="px-4 mt-4 pb-6">{sections}</div>
 
       <BottomNav />
     </div>
