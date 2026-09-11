@@ -8,8 +8,19 @@ import { hashPassword } from "./lib/password";
 import * as cashfree from "./lib/cashfree";
 import Stripe from "stripe";
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+// Stripe backs a legacy/dormant mock booking-payment path, superseded by the
+// Cashfree flow below. The client is created lazily (not at module load) so
+// the server can start without STRIPE_SECRET_KEY set — constructing the SDK
+// eagerly with no key throws and crashes the whole process on boot. Mirrors
+// the isConfigured() pattern in server/lib/cashfree.ts.
+let stripe: Stripe | null = null;
+function isStripeConfigured(): boolean {
+  return Boolean(process.env.STRIPE_SECRET_KEY);
+}
+function getStripe(): Stripe {
+  if (!stripe) stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+  return stripe;
+}
 
 import {
   insertShiftRequestSchema,
@@ -574,13 +585,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { vehicleId, totalDays, totalAmount } = req.body;
-      
+
       if (!vehicleId || !totalDays || !totalAmount) {
         return res.status(400).json({ message: "Missing required booking information" });
       }
-      
+
+      if (!isStripeConfigured()) {
+        return res
+          .status(503)
+          .json({ message: "Payment gateway is not configured. Add STRIPE_SECRET_KEY to the server environment." });
+      }
+
       // Create a payment intent with the order amount and currency
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await getStripe().paymentIntents.create({
         amount: Math.round(totalAmount * 100), // Convert to cents
         currency: "inr",
         metadata: {
@@ -606,8 +623,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { paymentIntentId, vehicleId, pickupDate, returnDate, totalDays, totalAmount } = req.body;
       const userId = req.user!.id;
 
+      if (!isStripeConfigured()) {
+        return res
+          .status(503)
+          .json({ message: "Payment gateway is not configured. Add STRIPE_SECRET_KEY to the server environment." });
+      }
+
       // Verify payment was successful
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
       
       if (paymentIntent.status !== "succeeded") {
         return res.status(400).json({ message: "Payment not completed" });
