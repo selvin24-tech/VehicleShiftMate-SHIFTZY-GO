@@ -3,6 +3,8 @@ import { CheckCircle2, Download, Share2, MapPin, Car, Calendar, IndianRupee, Che
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 
 export default function BookingConfirmation() {
   const [, navigate] = useLocation();
@@ -47,8 +49,10 @@ export default function BookingConfirmation() {
     });
   };
 
-  return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-24">
+  const isDesktop = useIsDesktop();
+
+  const body = (
+    <>
       {/* Success Hero */}
       <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 px-6 pt-14 pb-10 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -171,7 +175,27 @@ export default function BookingConfirmation() {
           Back to Home
         </Button>
       </div>
+    </>
+  );
 
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-xl mx-auto py-10">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden shadow-sm border border-neutral-100 dark:border-neutral-800 pb-6">
+            {body}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-24">
+      {body}
       <BottomNav />
     </div>
   );
