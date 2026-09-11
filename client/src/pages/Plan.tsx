@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import { LOCATIONS, NEARBY_SHIFT_REQUESTS } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import { addStoredNotif } from "@/lib/notificationsStore";
@@ -146,14 +148,10 @@ export default function Plan() {
     toast({ title: "Plan removed" });
   };
 
-  return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-24">
-      <Header title="Plan Your Trip" variant="primary" />
+  const isDesktop = useIsDesktop();
 
-      <div className="px-4 py-5 space-y-5">
-
-        {/* ── Form card ── */}
-        <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm">
+  const formCard = (
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
           <div className="bg-gradient-to-br from-blue-600 to-blue-800 px-5 py-4">
             <p className="text-white font-extrabold text-base">Set a Shift Alert</p>
             <p className="text-blue-200 text-xs mt-0.5">
@@ -244,14 +242,15 @@ export default function Plan() {
             </button>
           </div>
         </div>
+  );
 
-        {/* ── Saved Plans list ── */}
-        {plans.length > 0 && (
+  const savedPlansSection = plans.length > 0 && (
           <div className="space-y-3">
             <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-2">
               <Bell className="w-3.5 h-3.5" /> Your Active Alerts ({plans.length})
             </p>
 
+            <div className={isDesktop ? "grid grid-cols-2 gap-3" : "space-y-3"}>
             {plans.map((plan) => {
               const matches = findMatchingShifts(plan.pickup, plan.drop);
               return (
@@ -303,12 +302,13 @@ export default function Plan() {
                 </div>
               );
             })}
+            </div>
           </div>
-        )}
+  );
 
-        {/* Tips */}
-        <div className="bg-neutral-50 rounded-2xl p-4 space-y-2">
-          <p className="text-xs font-bold text-neutral-600 uppercase tracking-wide mb-2">Planning Tips</p>
+  const tipsCard = (
+        <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-4 space-y-2">
+          <p className="text-xs font-bold text-neutral-600 dark:text-neutral-300 uppercase tracking-wide mb-2">Planning Tips</p>
           {[
             "Set alerts 2–3 days ahead for better availability.",
             "You can add multiple alerts for different routes.",
@@ -317,10 +317,41 @@ export default function Plan() {
           ].map((tip, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="text-blue-500 text-xs mt-0.5">•</span>
-              <p className="text-xs text-neutral-500 leading-relaxed">{tip}</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{tip}</p>
             </div>
           ))}
         </div>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-4xl mx-auto px-6 py-8">
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100 mb-1">Plan Your Trip</h1>
+          <p className="text-sm text-neutral-500 mb-6">Set a shift alert and we'll notify you when a matching shift is posted.</p>
+          <div className="grid grid-cols-[1fr_320px] gap-6 items-start">
+            <div className="space-y-5">
+              {formCard}
+              {savedPlansSection}
+            </div>
+            <aside className="sticky top-24">{tipsCard}</aside>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-24">
+      <Header title="Plan Your Trip" variant="primary" />
+
+      <div className="px-4 py-5 space-y-5">
+        {formCard}
+        {savedPlansSection}
+        {tipsCard}
       </div>
 
       <BottomNav />
