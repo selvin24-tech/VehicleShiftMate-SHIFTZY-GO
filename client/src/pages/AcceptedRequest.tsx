@@ -6,6 +6,8 @@ import {
   Landmark, BadgePercent, Receipt,
 } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NEARBY_SHIFT_REQUESTS, computeFare, vehicleTypeToFareCategory } from "@/lib/constants";
 import {
@@ -43,6 +45,8 @@ export default function AcceptedRequest() {
         vehicleTypeToFareCategory(req.vehicle.type, req.vehicle.make)
       )
     : null;
+
+  const isDesktop = useIsDesktop();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -95,30 +99,8 @@ export default function AcceptedRequest() {
     });
   };
 
-  return (
-    <div className="max-w-lg mx-auto bg-white min-h-screen pb-24 flex flex-col">
-      {/* Header */}
-      <div className="sticky top-0 z-30 bg-white border-b border-neutral-100 shadow-sm flex items-center gap-3 px-4 py-3">
-        <button
-          onClick={() => navigate("/")}
-          className="w-9 h-9 rounded-full bg-neutral-100 flex items-center justify-center hover:bg-neutral-200 active:scale-95 transition-all"
-        >
-          <ChevronLeft className="w-5 h-5 text-neutral-700" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <h1 className="font-bold text-base leading-tight truncate">{vehicleName}</h1>
-          <p className="text-[11px] text-neutral-400 truncate">{route}</p>
-        </div>
-        <a
-          href="tel:"
-          className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center active:scale-95 transition-all"
-          aria-label="Call owner"
-        >
-          <Phone className="w-4 h-4" />
-        </a>
-      </div>
-
-      {/* Status banner */}
+  const statusBanner = (
+    <>
       {alreadyPaid ? (
         <div className="mx-4 mt-4 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
           <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0" />
@@ -141,8 +123,10 @@ export default function AcceptedRequest() {
           </p>
         </div>
       ) : null}
+    </>
+  );
 
-      {/* Vehicle + owner card */}
+  const vehicleCard = (
       <div className="mx-4 mt-4 rounded-2xl border border-neutral-200 overflow-hidden shadow-sm">
         {req.vehicle.image && (
           <img
@@ -197,8 +181,9 @@ export default function AcceptedRequest() {
           </div>
         </div>
       </div>
+  );
 
-      {/* Chat */}
+  const chatSection = (
       <div className="mx-4 mt-4 flex-1 flex flex-col">
         <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-2">
           Chat with {req.userName}
@@ -231,9 +216,9 @@ export default function AcceptedRequest() {
           </div>
         )}
       </div>
+  );
 
-      {/* Chat composer */}
-      {accepted && !alreadyPaid && (
+  const chatComposer = accepted && !alreadyPaid && (
         <div className="sticky bottom-16 bg-white border-t border-neutral-100 px-4 py-3 flex items-center gap-2">
           <input
             value={text}
@@ -250,10 +235,9 @@ export default function AcceptedRequest() {
             <Send className="w-4 h-4" />
           </button>
         </div>
-      )}
+  );
 
-      {/* ── Fare breakdown + Confirm / Pay section ── */}
-      {accepted && fare && (
+  const fareSection = accepted && fare && (
         <div className="mx-4 mt-4 space-y-3">
           {/* Fare card */}
           <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm">
@@ -320,8 +304,65 @@ export default function AcceptedRequest() {
             </button>
           )}
         </div>
-      )}
+  );
 
+  const mobileHeader = (
+    <div className="sticky top-0 z-30 bg-white border-b border-neutral-100 shadow-sm flex items-center gap-3 px-4 py-3">
+      <button
+        onClick={() => navigate("/")}
+        className="w-9 h-9 rounded-full bg-neutral-100 flex items-center justify-center hover:bg-neutral-200 active:scale-95 transition-all"
+      >
+        <ChevronLeft className="w-5 h-5 text-neutral-700" />
+      </button>
+      <div className="flex-1 min-w-0">
+        <h1 className="font-bold text-base leading-tight truncate">{vehicleName}</h1>
+        <p className="text-[11px] text-neutral-400 truncate">{route}</p>
+      </div>
+      <a
+        href="tel:"
+        className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center active:scale-95 transition-all"
+        aria-label="Call owner"
+      >
+        <Phone className="w-4 h-4" />
+      </a>
+    </div>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-5xl mx-auto px-6 py-8">
+          <div className="mb-4">
+            <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100">{vehicleName}</h1>
+            <p className="text-sm text-neutral-500">{route}</p>
+          </div>
+          <div className="grid grid-cols-[1fr_380px] gap-6 items-start">
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl overflow-hidden pb-4">
+              {vehicleCard}
+              {chatSection}
+              {chatComposer}
+            </div>
+            <aside className="sticky top-24 space-y-3">
+              {statusBanner}
+              {fareSection}
+            </aside>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-lg mx-auto bg-white min-h-screen pb-24 flex flex-col">
+      {mobileHeader}
+      {statusBanner}
+      {vehicleCard}
+      {chatSection}
+      {chatComposer}
+      {fareSection}
       <BottomNav />
     </div>
   );
