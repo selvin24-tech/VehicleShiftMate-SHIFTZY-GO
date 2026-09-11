@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/dialog";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import { LOCATIONS, CHENNAI_LOCALITIES, DETAILED_VEHICLE_TYPES } from "@/lib/constants";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { addShiftRequest } from "@/lib/appStore";
@@ -191,38 +193,23 @@ export default function ShiftRequest() {
     </button>
   );
 
-  return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-24">
-      <Header title="Shift Your Vehicle" showAnimation={true} />
+  const isDesktop = useIsDesktop();
 
-      {/* Back */}
-      <div className="fixed top-4 left-4 z-50">
-        <button onClick={() => navigate("/")}
-          className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center">
-          <ChevronLeft className="h-7 w-7" />
-        </button>
+  const rcStatus = localStorage.getItem("rcStatus");
+  const rcBanner = rcStatus === "pending" || rcStatus === "verified" ? null : (
+    <a href="/profile?tab=docs" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 active:scale-98 transition-all">
+      <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+        <span className="text-lg">⚠️</span>
       </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-red-700">Your RC document upload is pending</p>
+        <p className="text-xs text-red-500 mt-0.5">Upload your RC in Profile → Documents to book a shift</p>
+      </div>
+      <ChevronRight className="w-4 h-4 text-red-400 shrink-0" />
+    </a>
+  );
 
-      <div className="px-4 py-6">
-
-        {/* ── RC warning banner ── */}
-        {(() => {
-          const rcStatus = localStorage.getItem("rcStatus");
-          if (rcStatus === "pending" || rcStatus === "verified") return null;
-          return (
-            <a href="/profile?tab=docs" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 active:scale-98 transition-all">
-              <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-                <span className="text-lg">⚠️</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-red-700">Your RC document upload is pending</p>
-                <p className="text-xs text-red-500 mt-0.5">Upload your RC in Profile → Documents to book a shift</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-red-400 shrink-0" />
-            </a>
-          );
-        })()}
-
+  const formBody = (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
@@ -725,39 +712,125 @@ export default function ShiftRequest() {
 
           </form>
         </Form>
+  );
+
+  const successDialog = (
+    <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+      <DialogContent className="sm:max-w-md rounded-2xl">
+        <DialogHeader>
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+              <CircleCheck className="w-9 h-9 text-blue-600" />
+            </div>
+          </div>
+          <DialogTitle className="text-center text-xl">Request Submitted! 🎉</DialogTitle>
+          <p className="text-center text-neutral-500 text-sm mt-1">
+            {driverType === "professional"
+              ? "A professional driver will be assigned within 2 hours. You'll get an SMS & in-app notification."
+              : dropPref === "hub"
+              ? "We're matching you with a traveler going your route. Your vehicle will be delivered to the selected hub."
+              : "We're matching you with a traveler going your route. They will deliver your vehicle directly to your address."}
+          </p>
+        </DialogHeader>
+        <div className="bg-neutral-50 rounded-xl p-3 space-y-1.5 text-xs text-neutral-600">
+          <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Request ID: <strong>SHF-{Math.floor(Math.random() * 90000) + 10000}</strong></div>
+          <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Driver type: <strong className="capitalize">{driverType}</strong></div>
+          {dropPref && <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Drop preference: <strong>{dropPref === "hub" ? "Common Hub" : "Home Drop"}</strong></div>}
+        </div>
+        <DialogFooter>
+          <Button onClick={() => { setShowSuccessDialog(false); navigate("/"); }}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3">
+            Go to Home
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    const watchedModel = form.watch("vehicleModel");
+    const watchedPickup = form.watch("pickupLocation");
+    const watchedDrop = form.watch("dropLocation");
+    const watchedDate = form.watch("travelDate");
+
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-5xl mx-auto px-6 py-8">
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100 mb-1">Shift Your Vehicle</h1>
+          <p className="text-sm text-neutral-500 mb-6">Post a request — a verified driver or traveler moves your vehicle for you.</p>
+          <div className="grid grid-cols-[1fr_320px] gap-8 items-start">
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl p-6">
+              {rcBanner}
+              {formBody}
+            </div>
+
+            <aside className="sticky top-24 space-y-4">
+              <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl p-4">
+                <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">Request summary</p>
+                <dl className="space-y-3 text-sm">
+                  <div>
+                    <dt className="text-xs text-neutral-400">Vehicle</dt>
+                    <dd className="font-semibold text-neutral-800 dark:text-neutral-100">
+                      {watchedModel || (selectedVehicleType ? `${selectedVehicleType} (model not chosen)` : "Not chosen yet")}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-neutral-400">Route</dt>
+                    <dd className="font-semibold text-neutral-800 dark:text-neutral-100">
+                      {watchedPickup && watchedDrop ? `${watchedPickup} → ${watchedDrop}` : "Not set yet"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-neutral-400">Travel date</dt>
+                    <dd className="font-semibold text-neutral-800 dark:text-neutral-100">{watchedDate || "Not set yet"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-neutral-400">Driver</dt>
+                    <dd className="font-semibold text-neutral-800 dark:text-neutral-100 capitalize">{driverType ?? "Not chosen yet"}</dd>
+                  </div>
+                  {dropPref && (
+                    <div>
+                      <dt className="text-xs text-neutral-400">Drop preference</dt>
+                      <dd className="font-semibold text-neutral-800 dark:text-neutral-100">{dropPref === "hub" ? "Common Hub" : "Home Drop"}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-900 rounded-2xl p-4">
+                <p className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-1">Why Shiftzy Go</p>
+                <p className="text-xs text-blue-700/80 dark:text-blue-300/80 leading-relaxed">
+                  Every shift is insured, GPS-tracked end to end, and matched with a background-verified driver or traveler.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </main>
+        {successDialog}
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-24">
+      <Header title="Shift Your Vehicle" showAnimation={true} />
+
+      {/* Back */}
+      <div className="fixed top-4 left-4 z-50">
+        <button onClick={() => navigate("/")}
+          className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center">
+          <ChevronLeft className="h-7 w-7" />
+        </button>
       </div>
 
-      {/* ── Success Dialog ── */}
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
-          <DialogHeader>
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                <CircleCheck className="w-9 h-9 text-blue-600" />
-              </div>
-            </div>
-            <DialogTitle className="text-center text-xl">Request Submitted! 🎉</DialogTitle>
-            <p className="text-center text-neutral-500 text-sm mt-1">
-              {driverType === "professional"
-                ? "A professional driver will be assigned within 2 hours. You'll get an SMS & in-app notification."
-                : dropPref === "hub"
-                ? "We're matching you with a traveler going your route. Your vehicle will be delivered to the selected hub."
-                : "We're matching you with a traveler going your route. They will deliver your vehicle directly to your address."}
-            </p>
-          </DialogHeader>
-          <div className="bg-neutral-50 rounded-xl p-3 space-y-1.5 text-xs text-neutral-600">
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Request ID: <strong>SHF-{Math.floor(Math.random() * 90000) + 10000}</strong></div>
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Driver type: <strong className="capitalize">{driverType}</strong></div>
-            {dropPref && <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Drop preference: <strong>{dropPref === "hub" ? "Common Hub" : "Home Drop"}</strong></div>}
-          </div>
-          <DialogFooter>
-            <Button onClick={() => { setShowSuccessDialog(false); navigate("/"); }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3">
-              Go to Home
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <div className="px-4 py-6">
+        {rcBanner}
+        {formBody}
+      </div>
+
+      {successDialog}
 
       <BottomNav />
     </div>
