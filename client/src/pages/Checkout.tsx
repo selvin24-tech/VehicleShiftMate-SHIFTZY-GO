@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Header from "@/components/layout/Header";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import {
   ChevronLeft, MapPin, Fuel, Landmark, BadgePercent, ShieldCheck,
   CreditCard, CheckCircle, Clock, ReceiptText, Navigation, AlertTriangle
@@ -369,6 +371,64 @@ export default function Checkout() {
     }
   };
 
+  const isDesktop = useIsDesktop();
+
+  const loadingState = (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  );
+
+  const paymentSection = !isStripeConfigured ? (
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+      <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+      <p className="text-sm font-semibold text-amber-700">
+        Payment is not configured on this deployment yet. Please check back later.
+      </p>
+    </div>
+  ) : clientSecret && stripePromise ? (
+    <Elements stripe={stripePromise} options={{ clientSecret }}>
+      <PaymentForm onPaymentSuccess={handlePaymentSuccess} />
+    </Elements>
+  ) : null;
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-4xl mx-auto px-6 py-8">
+          <button
+            onClick={() => navigate(`/vehicle/${vehicleId}`)}
+            className="flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 mb-4"
+          >
+            <ChevronLeft className="h-4 w-4" /> Back to vehicle
+          </button>
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100 mb-6">Checkout</h1>
+
+          {isLoading ? loadingState : paymentCompleted && booking ? (
+            <div className="max-w-lg">
+              <Invoice booking={booking} invoiceNo={invoiceNo} paymentId={paymentId} onClose={() => navigate("/profile")} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-[1fr_360px] gap-8 items-start">
+              <div>{paymentSection}</div>
+              <aside className="sticky top-24 space-y-4">
+                {booking && (
+                  <>
+                    <TripSummary booking={booking} />
+                    <FareBreakdownCard booking={booking} paid={false} />
+                  </>
+                )}
+              </aside>
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-md mx-auto bg-neutral-50 min-h-screen pb-20">
       <Header title="Checkout" showBackButton variant="secondary" />
@@ -385,11 +445,7 @@ export default function Checkout() {
       </div>
 
       <div className="p-4 space-y-4 pt-6">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        ) : paymentCompleted && booking ? (
+        {isLoading ? loadingState : paymentCompleted && booking ? (
           <Invoice
             booking={booking}
             invoiceNo={invoiceNo}
@@ -404,19 +460,7 @@ export default function Checkout() {
                 <FareBreakdownCard booking={booking} paid={false} />
               </>
             )}
-
-            {!isStripeConfigured ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-                <p className="text-sm font-semibold text-amber-700">
-                  Payment is not configured on this deployment yet. Please check back later.
-                </p>
-              </div>
-            ) : clientSecret && stripePromise ? (
-              <Elements stripe={stripePromise} options={{ clientSecret }}>
-                <PaymentForm onPaymentSuccess={handlePaymentSuccess} />
-              </Elements>
-            ) : null}
+            {paymentSection}
           </>
         )}
       </div>
