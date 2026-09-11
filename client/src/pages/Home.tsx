@@ -19,6 +19,8 @@ import {
 import VehicleDetailsSheet from "@/components/common/VehicleDetailsSheet";
 import { useShiftRequests, SHIFT_STATUS_LABEL } from "@/lib/appStore";
 import OnboardingTour from "@/components/tour/OnboardingTour";
+import { useIsDesktop } from "@/hooks/use-desktop";
+import DesktopHome from "@/pages/desktop/DesktopHome";
 
 const VEHICLE_BADGE: Record<string, { label: string; color: string }> = {
   car:  { label: "CAR",  color: "bg-blue-100 text-blue-700" },
@@ -52,6 +54,10 @@ export default function Home() {
     const seenTour = localStorage.getItem("hasSeenTour") === "true";
     if (firstLogin && !seenTour) setShowTour(true);
   }, []);
+
+  const isDesktop = useIsDesktop();
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+  if (isDesktop) return <DesktopHome />;
 
   return (
     <div className="max-w-lg mx-auto bg-white dark:bg-neutral-950 min-h-screen pb-20">
