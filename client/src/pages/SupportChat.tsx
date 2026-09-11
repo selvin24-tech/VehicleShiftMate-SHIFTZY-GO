@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BrandName from "@/components/branding/BrandName";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import { formatDistanceToNow } from "date-fns";
 
 const VEHICLE_TYPES = ["Bike", "Car", "SUV", "Premium"];
@@ -109,33 +111,18 @@ export default function SupportChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [thread?.messages?.length]);
 
-  return (
-    <div className="max-w-md mx-auto bg-neutral-50 min-h-screen flex flex-col">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 pt-12 pb-5 shrink-0">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <div className="flex-1">
-            <h1 className="font-bold text-lg">Chat with <BrandName onDark /></h1>
-            <p className="text-blue-100 text-xs flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Direct line to our MD's desk
-            </p>
-          </div>
-          {!showForm && (
+  const isDesktop = useIsDesktop();
+
+  const newButton = !showForm && (
             <button
               onClick={() => { setShowForm(true); setActiveId(null); }}
-              className="flex items-center gap-1 bg-white text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full"
+              className="flex items-center gap-1 bg-white text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full shrink-0"
             >
               <Plus className="w-3.5 h-3.5" /> New
             </button>
-          )}
-        </div>
-      </div>
+  );
 
-      {/* New enquiry form */}
-      {showForm ? (
+  const formContent = (
         <div className="flex-1 overflow-y-auto px-4 py-4">
           <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-4 flex gap-2">
             <MessageCircle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
@@ -237,9 +224,9 @@ export default function SupportChat() {
             </form>
           </Form>
         </div>
-      ) : (
-        /* Chat thread */
-        <>
+  );
+
+  const threadMessages = (
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {threadLoading ? (
               <p className="text-center text-sm text-neutral-400 mt-8">Loading conversation…</p>
@@ -274,9 +261,10 @@ export default function SupportChat() {
               </>
             ) : null}
           </div>
+  );
 
-          {/* Reply box */}
-          <div className="border-t border-neutral-200 bg-white p-2 shrink-0">
+  const replyBox = (
+          <div className="border-t border-neutral-200 bg-white dark:bg-neutral-900 dark:border-neutral-800 p-2 shrink-0">
             <div className="flex gap-2">
               <Input
                 value={reply}
@@ -295,6 +283,59 @@ export default function SupportChat() {
               </Button>
             </div>
           </div>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col">
+        <DesktopTopNav />
+        <div className="flex-1 max-w-2xl w-full mx-auto flex flex-col py-8 px-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100">Chat with <BrandName /></h1>
+              <p className="text-sm text-neutral-500 flex items-center gap-1 mt-1">
+                <ShieldCheck className="w-4 h-4" /> Direct line to our MD's desk
+              </p>
+            </div>
+            {newButton}
+          </div>
+          <div className="flex-1 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl overflow-hidden flex flex-col">
+            {showForm ? formContent : (
+              <>
+                {threadMessages}
+                {replyBox}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto bg-neutral-50 min-h-screen flex flex-col">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 pt-12 pb-5 shrink-0">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/")} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
+            <h1 className="font-bold text-lg">Chat with <BrandName onDark /></h1>
+            <p className="text-blue-100 text-xs flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5" /> Direct line to our MD's desk
+            </p>
+          </div>
+          {newButton}
+        </div>
+      </div>
+
+      {showForm ? formContent : (
+        <>
+          {threadMessages}
+          {replyBox}
         </>
       )}
     </div>
