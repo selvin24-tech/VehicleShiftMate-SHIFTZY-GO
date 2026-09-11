@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import {
   useShiftRequests,
   useGoRequests,
@@ -316,6 +318,116 @@ export default function MyRides() {
     { key: "go", label: "Go History" },
   ];
 
+  const isDesktop = useIsDesktop();
+  const gridCls = isDesktop ? "grid grid-cols-2 gap-3" : "space-y-3";
+
+  const segmentContent = (
+    <AnimatePresence mode="wait">
+
+      {/* ── ACTIVE ── */}
+      {segment === "active" && (
+        <motion.div key="active" className="space-y-3">
+          {activeCount === 0 ? (
+            <EmptyState
+              title="No active rides right now"
+              note="Create a Shift or Go request, or book a nearby shift to see it here."
+            />
+          ) : (
+            <>
+              <PricedTripsPanel priced={pricedTrips} />
+
+              {/* Paid bookings from nearby shift requests */}
+              {paidBookings.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wide flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Confirmed Bookings
+                  </p>
+                  <div className={gridCls}>
+                    {paidBookings.map((r, i) => (
+                      <BookingCard key={r.id} req={r} index={i} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Shift + Go requests */}
+              {(activeShifts.length > 0 || activeGos.length > 0) && (
+                <div className="space-y-3">
+                  {paidBookings.length > 0 && (
+                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5">
+                      <Truck className="w-3.5 h-3.5" /> Shift & Go Requests
+                    </p>
+                  )}
+                  <div className={gridCls}>
+                    {activeShifts.map((r, i) => <ShiftCard key={r.id} req={r} index={i} />)}
+                    {activeGos.map((r, i) => <GoCard key={r.id} req={r} index={activeShifts.length + i} />)}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </motion.div>
+      )}
+
+      {/* ── SHIFT HISTORY ── */}
+      {segment === "shift" && (
+        <motion.div key="shift" className={shifts.length === 0 ? "" : gridCls}>
+          {shifts.length === 0 ? (
+            <EmptyState title="No shift requests yet" note="Create a Shift request to move your vehicle and see it here." />
+          ) : (
+            shifts.map((r, i) => <ShiftCard key={r.id} req={r} index={i} />)
+          )}
+        </motion.div>
+      )}
+
+      {/* ── GO HISTORY ── */}
+      {segment === "go" && (
+        <motion.div key="go" className={gos.length === 0 ? "" : gridCls}>
+          {gos.length === 0 ? (
+            <EmptyState title="No Go trips yet" note="Create a Go request to travel and save, then find it here." />
+          ) : (
+            gos.map((r, i) => <GoCard key={r.id} req={r} index={i} />)
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const segmentTabs = (variant: "mobile" | "desktop") => (
+    <div className={variant === "mobile" ? "flex bg-neutral-100 rounded-xl p-1 gap-1" : "flex bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1 gap-1 w-fit"}>
+      {segments.map((s) => (
+        <button key={s.key} onClick={() => setSegment(s.key)}
+          className={`${variant === "mobile" ? "flex-1" : "px-5"} py-2 text-xs font-bold rounded-lg transition-all ${
+            segment === s.key ? "bg-white dark:bg-neutral-900 text-blue-600 shadow-sm" : "text-neutral-500"
+          }`}
+        >
+          {s.label}
+          {s.key === "active" && activeCount > 0 && (
+            <span className="ml-1 text-[10px] font-bold text-orange-500">({activeCount})</span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-5xl mx-auto px-6 py-8">
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100">My Rides</h1>
+          <p className="text-sm text-neutral-500 mt-1 mb-5">
+            Track your Shift, Go and confirmed bookings — all in one place.
+          </p>
+          {segmentTabs("desktop")}
+          <div className="mt-5">{segmentContent}</div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-lg mx-auto bg-white min-h-screen pb-24">
       <Header title="My Rides" showBackButton showAnimation={false} />
@@ -329,89 +441,11 @@ export default function MyRides() {
 
       {/* Segmented tabs */}
       <div className="px-4 sticky top-[57px] bg-white z-10 pb-2">
-        <div className="flex bg-neutral-100 rounded-xl p-1 gap-1">
-          {segments.map((s) => (
-            <button key={s.key} onClick={() => setSegment(s.key)}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                segment === s.key ? "bg-white text-blue-600 shadow-sm" : "text-neutral-500"
-              }`}
-            >
-              {s.label}
-              {s.key === "active" && activeCount > 0 && (
-                <span className="ml-1 text-[10px] font-bold text-orange-500">({activeCount})</span>
-              )}
-            </button>
-          ))}
-        </div>
+        {segmentTabs("mobile")}
       </div>
 
       <div className="px-4 py-3 space-y-3">
-        <AnimatePresence mode="wait">
-
-          {/* ── ACTIVE ── */}
-          {segment === "active" && (
-            <motion.div key="active" className="space-y-3">
-              {activeCount === 0 ? (
-                <EmptyState
-                  title="No active rides right now"
-                  note="Create a Shift or Go request, or book a nearby shift to see it here."
-                />
-              ) : (
-                <>
-                  <PricedTripsPanel priced={pricedTrips} />
-
-                  {/* Paid bookings from nearby shift requests */}
-                  {paidBookings.length > 0 && (
-                    <div className="space-y-3">
-                      <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wide flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Confirmed Bookings
-                      </p>
-                      {paidBookings.map((r, i) => (
-                        <BookingCard key={r.id} req={r} index={i} />
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Shift + Go requests */}
-                  {(activeShifts.length > 0 || activeGos.length > 0) && (
-                    <div className="space-y-3">
-                      {paidBookings.length > 0 && (
-                        <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5">
-                          <Truck className="w-3.5 h-3.5" /> Shift & Go Requests
-                        </p>
-                      )}
-                      {activeShifts.map((r, i) => <ShiftCard key={r.id} req={r} index={i} />)}
-                      {activeGos.map((r, i) => <GoCard key={r.id} req={r} index={activeShifts.length + i} />)}
-                    </div>
-                  )}
-                </>
-              )}
-            </motion.div>
-          )}
-
-          {/* ── SHIFT HISTORY ── */}
-          {segment === "shift" && (
-            <motion.div key="shift" className="space-y-3">
-              {shifts.length === 0 ? (
-                <EmptyState title="No shift requests yet" note="Create a Shift request to move your vehicle and see it here." />
-              ) : (
-                shifts.map((r, i) => <ShiftCard key={r.id} req={r} index={i} />)
-              )}
-            </motion.div>
-          )}
-
-          {/* ── GO HISTORY ── */}
-          {segment === "go" && (
-            <motion.div key="go" className="space-y-3">
-              {gos.length === 0 ? (
-                <EmptyState title="No Go trips yet" note="Create a Go request to travel and save, then find it here." />
-              ) : (
-                gos.map((r, i) => <GoCard key={r.id} req={r} index={i} />)
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+        {segmentContent}
       </div>
 
       <BottomNav />
