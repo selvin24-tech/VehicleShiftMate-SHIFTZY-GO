@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { ChevronLeft, MapPin, Navigation, ArrowUpDown } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import ShiftRequestCard from "@/components/common/ShiftRequestCard";
 import { NEARBY_SHIFT_REQUESTS, computeFare } from "@/lib/constants";
 
@@ -43,6 +45,100 @@ export default function Nearby() {
     return sorted.slice(0, MAX_RESULTS);
   }, [activeFilter, sortBy]);
 
+  const isDesktop = useIsDesktop();
+
+  const filterChips = (
+    <div className="flex gap-2 overflow-x-auto no-scrollbar">
+      {VEHICLE_FILTERS.map(f => (
+        <button
+          key={f.value}
+          onClick={() => setActiveFilter(f.value)}
+          className={`shrink-0 text-xs font-semibold px-4 py-1.5 rounded-full border transition-all active:scale-95 ${
+            activeFilter === f.value
+              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+              : "bg-white text-neutral-600 border-neutral-200 hover:border-blue-300"
+          }`}
+        >
+          {f.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const sortChips = (
+    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <ArrowUpDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+      {SORT_OPTIONS.map(s => (
+        <button
+          key={s.value}
+          onClick={() => setSortBy(s.value)}
+          className={`shrink-0 text-xs font-semibold px-3 py-1 rounded-full border transition-all active:scale-95 ${
+            sortBy === s.value
+              ? "bg-orange-500 text-white border-orange-500"
+              : "bg-white text-neutral-500 border-neutral-200 hover:border-orange-300"
+          }`}
+        >
+          {s.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const emptyState = (
+    <div className="text-center py-16">
+      <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <Navigation className="w-8 h-8 text-neutral-400" />
+      </div>
+      <p className="font-semibold text-neutral-600">No {activeFilter === "all" ? "" : activeFilter + " "}vehicles nearby</p>
+      <p className="text-sm text-neutral-400 mt-1">Try a different filter or check back later</p>
+    </div>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-6xl mx-auto px-6 py-8">
+          <div className="flex items-start justify-between gap-4 mb-1">
+            <div>
+              <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100">Nearby Pickups</h1>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                <span className="text-sm text-blue-600 font-semibold">Within 5 km of you</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-900 rounded-full px-3 py-1.5 shrink-0">
+              <Navigation className="w-3.5 h-3.5 text-blue-600" />
+              <span className="text-xs font-bold text-blue-700 dark:text-blue-300">{results.length} near you</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 mt-4 mb-2">
+            {filterChips}
+            {sortChips}
+          </div>
+
+          <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-900 rounded-xl px-4 py-3 mt-4 mb-6">
+            <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
+              These vehicle owners need their vehicles moved — share the trip cost and both of you save!
+            </p>
+          </div>
+
+          {results.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4">
+              {results.map(request => (
+                <ShiftRequestCard key={request.id} request={request} showDetails />
+              ))}
+            </div>
+          ) : emptyState}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
 
@@ -69,39 +165,10 @@ export default function Nearby() {
         </div>
 
         {/* Filter chips */}
-        <div className="flex gap-2 px-4 pb-2 overflow-x-auto no-scrollbar">
-          {VEHICLE_FILTERS.map(f => (
-            <button
-              key={f.value}
-              onClick={() => setActiveFilter(f.value)}
-              className={`shrink-0 text-xs font-semibold px-4 py-1.5 rounded-full border transition-all active:scale-95 ${
-                activeFilter === f.value
-                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                  : "bg-white text-neutral-600 border-neutral-200 hover:border-blue-300"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <div className="px-4 pb-2">{filterChips}</div>
 
         {/* Sort chips */}
-        <div className="flex items-center gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
-          <ArrowUpDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-          {SORT_OPTIONS.map(s => (
-            <button
-              key={s.value}
-              onClick={() => setSortBy(s.value)}
-              className={`shrink-0 text-xs font-semibold px-3 py-1 rounded-full border transition-all active:scale-95 ${
-                sortBy === s.value
-                  ? "bg-orange-500 text-white border-orange-500"
-                  : "bg-white text-neutral-500 border-neutral-200 hover:border-orange-300"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <div className="px-4 pb-3">{sortChips}</div>
       </div>
 
       {/* Info strip */}
@@ -118,15 +185,7 @@ export default function Nearby() {
           results.map(request => (
             <ShiftRequestCard key={request.id} request={request} showDetails />
           ))
-        ) : (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Navigation className="w-8 h-8 text-neutral-400" />
-            </div>
-            <p className="font-semibold text-neutral-600">No {activeFilter === "all" ? "" : activeFilter + " "}vehicles nearby</p>
-            <p className="text-sm text-neutral-400 mt-1">Try a different filter or check back later</p>
-          </div>
-        )}
+        ) : emptyState}
       </div>
 
       <BottomNav />
