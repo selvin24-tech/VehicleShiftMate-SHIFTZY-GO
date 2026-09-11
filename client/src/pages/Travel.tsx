@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import DesktopTopNav from "@/components/layout/DesktopTopNav";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
 import BrandName from "@/components/branding/BrandName";
 import {
@@ -131,37 +133,25 @@ export default function Travel() {
     setExpandedId(null);
   };
 
-  return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
-      <Header title="Find a Vehicle to Drive" variant="secondary" showAnimation={true} />
+  const isDesktop = useIsDesktop();
 
-      {/* Back button */}
-      <div className="fixed top-4 left-4 z-50">
-        <button onClick={() => navigate("/")}
-          className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center">
-          <ChevronLeft className="h-7 w-7" />
-        </button>
+  const dlStatus = localStorage.getItem("dlStatus");
+  const dlBanner = dlStatus === "pending" || dlStatus === "verified" ? null : (
+    <a href="/profile?tab=docs" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 active:scale-98 transition-all">
+      <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+        <span className="text-lg">⚠️</span>
       </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-red-700">Driving licence upload is pending</p>
+        <p className="text-xs text-red-500 mt-0.5">Upload your DL in Profile → Documents to book a ride</p>
+      </div>
+      <ChevronRight className="w-4 h-4 text-red-400 shrink-0" />
+    </a>
+  );
 
+  const content = (
       <div className="p-4 space-y-5">
-
-        {/* ── DL warning banner ── */}
-        {(() => {
-          const dlStatus = localStorage.getItem("dlStatus");
-          if (dlStatus === "pending" || dlStatus === "verified") return null;
-          return (
-            <a href="/profile?tab=docs" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 active:scale-98 transition-all">
-              <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-                <span className="text-lg">⚠️</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-red-700">Driving licence upload is pending</p>
-                <p className="text-xs text-red-500 mt-0.5">Upload your DL in Profile → Documents to book a ride</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-red-400 shrink-0" />
-            </a>
-          );
-        })()}
+        {dlBanner}
 
         {/* Hero banner */}
         <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-2xl px-4 py-4 border border-blue-100">
@@ -688,7 +678,10 @@ export default function Travel() {
         </AnimatePresence>
 
       </div>
+  );
 
+  const sharedOverlays = (
+    <>
       <VehiclePhotoGallery
         images={galleryVehicle ? getVehicleImages(galleryVehicle) : []}
         open={galleryOpen}
@@ -704,6 +697,42 @@ export default function Travel() {
           owner={{ name: detailsVehicle.ownerName ?? "Owner", avatar: undefined, rating: detailsVehicle.rating }}
         />
       )}
+    </>
+  );
+
+  if (isDesktop === undefined) return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+        <DesktopTopNav />
+        <main className="max-w-3xl mx-auto px-6 py-8">
+          <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100 mb-1">Find a Vehicle to Drive</h1>
+          <p className="text-sm text-neutral-500 mb-6">Drive someone's vehicle on your route and travel for a fraction of the cost.</p>
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl overflow-hidden">
+            {content}
+          </div>
+        </main>
+        {sharedOverlays}
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
+      <Header title="Find a Vehicle to Drive" variant="secondary" showAnimation={true} />
+
+      {/* Back button */}
+      <div className="fixed top-4 left-4 z-50">
+        <button onClick={() => navigate("/")}
+          className="bg-black text-white shadow-lg hover:bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center">
+          <ChevronLeft className="h-7 w-7" />
+        </button>
+      </div>
+
+      {content}
+
+      {sharedOverlays}
 
       <BottomNav />
     </div>
