@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Lock, User, Phone, CheckCircle2, ArrowLeft, UserPlus, LogIn, MapPin, Smartphone } from "lucide-react";
+import { Eye, EyeOff, Lock, User, Phone, CheckCircle2, ArrowLeft, UserPlus, LogIn, MapPin, Smartphone, Shield, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import BrandName from "@/components/branding/BrandName";
+import { useIsDesktop } from "@/hooks/use-desktop";
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 const signInSchema = z.object({
@@ -223,82 +224,57 @@ export default function Login() {
   // ── Step indicator (only during sign-up verification) ────────────────────
   const verifySteps = ["Sign Up", "Phone OTP", "Verify"];
   const verifyIdx = step === "mobile" ? 1 : step === "otp" ? 2 : 0;
+  const isDesktop = useIsDesktop();
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-
-        {/* Back to website */}
-        <div className="flex justify-start mb-4">
-          <a href="/" className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-blue-600 transition-colors font-medium">
-            <ArrowLeft className="w-4 h-4" /> Back to website
-          </a>
-        </div>
-
-        {/* Brand */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold">
-            <span className="text-blue-600">Shift</span>
-            <span className="text-orange-500">zy</span>
-            <span className="text-blue-600"> Go</span>
-          </h1>
-          <p className="text-neutral-600 mt-1 text-sm font-medium">India's Smart Vehicle Shifting &amp; Travel Platform</p>
-          <p className="text-neutral-400 text-xs tracking-wide mt-0.5">Safe Shift. Joyful Journey.</p>
-        </div>
-
-        {/* ── Sign-up verification steps ─────────────────────────────────── */}
-        {mode === "signUp" && step !== "form" && (
-          <div className="flex items-center justify-center gap-2 mb-5">
-            {verifySteps.map((s, idx) => (
-              <div key={s} className="flex items-center gap-2">
-                <div className={`flex items-center gap-1.5 ${idx <= verifyIdx ? "text-blue-600" : "text-neutral-400"}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
-                    idx < verifyIdx ? "bg-blue-600 border-blue-600 text-white"
-                    : idx === verifyIdx ? "border-blue-600 text-blue-600"
-                    : "border-neutral-300 text-neutral-400"
-                  }`}>
-                    {idx < verifyIdx ? <CheckCircle2 className="w-3.5 h-3.5" /> : idx + 1}
-                  </div>
-                  <span className="text-xs font-medium hidden sm:inline">{s}</span>
-                </div>
-                {idx < verifySteps.length - 1 && (
-                  <div className={`w-6 h-px ${idx < verifyIdx ? "bg-blue-400" : "bg-neutral-200"}`} />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-
-          {/* ── Tab switcher (Sign In / Sign Up) ─── only on form step ──── */}
-          {step === "form" && mode !== "forgot" && (
-            <div className="flex border-b border-neutral-100">
-              <button
-                onClick={() => switchMode("signIn")}
-                className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-colors ${
-                  mode === "signIn"
-                    ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
-                    : "text-neutral-400 hover:text-neutral-600"
-                }`}
-              >
-                <LogIn className="w-4 h-4" /> Sign In
-              </button>
-              <button
-                onClick={() => switchMode("signUp")}
-                className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-colors ${
-                  mode === "signUp"
-                    ? "text-orange-600 border-b-2 border-orange-500 bg-orange-50"
-                    : "text-neutral-400 hover:text-neutral-600"
-                }`}
-              >
-                <UserPlus className="w-4 h-4" /> Sign Up
-              </button>
+  const verifyStepsBar = mode === "signUp" && step !== "form" && (
+    <div className="flex items-center justify-center gap-2 mb-5">
+      {verifySteps.map((s, idx) => (
+        <div key={s} className="flex items-center gap-2">
+          <div className={`flex items-center gap-1.5 ${idx <= verifyIdx ? "text-blue-600" : "text-neutral-400"}`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
+              idx < verifyIdx ? "bg-blue-600 border-blue-600 text-white"
+              : idx === verifyIdx ? "border-blue-600 text-blue-600"
+              : "border-neutral-300 text-neutral-400"
+            }`}>
+              {idx < verifyIdx ? <CheckCircle2 className="w-3.5 h-3.5" /> : idx + 1}
             </div>
+            <span className="text-xs font-medium hidden sm:inline">{s}</span>
+          </div>
+          {idx < verifySteps.length - 1 && (
+            <div className={`w-6 h-px ${idx < verifyIdx ? "bg-blue-400" : "bg-neutral-200"}`} />
           )}
+        </div>
+      ))}
+    </div>
+  );
 
-          <div className="p-6">
+  const tabSwitcher = step === "form" && mode !== "forgot" && (
+    <div className="flex border-b border-neutral-100">
+      <button
+        onClick={() => switchMode("signIn")}
+        className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-colors ${
+          mode === "signIn"
+            ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+            : "text-neutral-400 hover:text-neutral-600"
+        }`}
+      >
+        <LogIn className="w-4 h-4" /> Sign In
+      </button>
+      <button
+        onClick={() => switchMode("signUp")}
+        className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-colors ${
+          mode === "signUp"
+            ? "text-orange-600 border-b-2 border-orange-500 bg-orange-50"
+            : "text-neutral-400 hover:text-neutral-600"
+        }`}
+      >
+        <UserPlus className="w-4 h-4" /> Sign Up
+      </button>
+    </div>
+  );
 
+  const authBody = (
+    <>
             {/* ── SIGN IN ──────────────────────────────────────────────── */}
             {mode === "signIn" && step === "form" && (
               <>
@@ -644,8 +620,110 @@ export default function Login() {
                 <p className="text-center text-xs text-neutral-300 mt-3">Demo OTP: 123456</p>
               </>
             )}
+    </>
+  );
 
+  if (isDesktop === undefined) {
+    return <div className="min-h-screen bg-white dark:bg-neutral-950" />;
+  }
+
+  // ── Desktop/laptop: dedicated split-screen layout ───────────────────────
+  if (isDesktop) {
+    return (
+      <div className="h-screen grid grid-cols-[1fr_460px] bg-white">
+        {/* Left — brand & trust panel */}
+        <div className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-12 py-10 h-screen">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 right-0 w-[500px] h-[500px] bg-white/5 rounded-full translate-x-1/3 -translate-y-1/3" />
+            <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-blue-900/30 rounded-full -translate-x-1/2 translate-y-1/3" />
+            <div className="absolute top-1/2 left-1/4 w-2 h-2 bg-white/30 rounded-full" />
+            <div className="absolute top-1/3 right-1/4 w-3 h-3 bg-orange-400/40 rounded-full" />
           </div>
+
+          <div className="relative">
+            <a href="/" className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors font-medium">
+              <ArrowLeft className="w-4 h-4" /> Back to website
+            </a>
+          </div>
+
+          <div className="relative max-w-sm">
+            <div className="flex items-center gap-2.5 mb-8">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0">
+                <span className="text-blue-600 text-lg font-black">S</span>
+              </div>
+              <span className="text-2xl font-black text-white">
+                Shift<span className="text-orange-400">zy</span> Go
+              </span>
+            </div>
+
+            <h1 className="text-4xl font-black text-white leading-tight mb-4">
+              Safe Shift.<br />Joyful Journey.
+            </h1>
+            <p className="text-white/80 text-base leading-relaxed mb-10">
+              India's smart, peer-to-peer platform for moving vehicles and travelling free — verified drivers, secure payments, real-time tracking.
+            </p>
+
+            <div className="space-y-4">
+              {[
+                { icon: Shield, text: "Every driver & owner verified" },
+                { icon: Lock, text: "Secure, escrow-style payments" },
+                { icon: Zap, text: "Live GPS tracking on every trip" },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-white/90 text-sm font-medium">{text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="relative text-white/50 text-xs">© {new Date().getFullYear()} Shiftzy Go. Made in India.</p>
+        </div>
+
+        {/* Right — auth card */}
+        <div className="h-screen overflow-y-auto flex items-center justify-center px-10 py-12">
+          <div className="w-full max-w-md">
+            {verifyStepsBar}
+            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
+              {tabSwitcher}
+              <div className="p-8">{authBody}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Mobile: existing hand-tuned layout, unchanged ────────────────────────
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+
+        {/* Back to website */}
+        <div className="flex justify-start mb-4">
+          <a href="/" className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-blue-600 transition-colors font-medium">
+            <ArrowLeft className="w-4 h-4" /> Back to website
+          </a>
+        </div>
+
+        {/* Brand */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold">
+            <span className="text-blue-600">Shift</span>
+            <span className="text-orange-500">zy</span>
+            <span className="text-blue-600"> Go</span>
+          </h1>
+          <p className="text-neutral-600 mt-1 text-sm font-medium">India's Smart Vehicle Shifting &amp; Travel Platform</p>
+          <p className="text-neutral-400 text-xs tracking-wide mt-0.5">Safe Shift. Joyful Journey.</p>
+        </div>
+
+        {verifyStepsBar}
+
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          {tabSwitcher}
+          <div className="p-6">{authBody}</div>
         </div>
       </div>
     </div>
