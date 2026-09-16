@@ -164,19 +164,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
 
-      // In a real app, we would get the vehicle ID from the request body
-      // and verify that the vehicle belongs to the user
-      // For simplicity, we'll use the first vehicle belonging to the user
-      const userVehicles = await storage.getVehiclesByUserId(userId);
-      
-      if (userVehicles.length === 0) {
-        return res.status(400).json({ message: "User has no vehicles" });
+      const { vehicleType, vehicleModel, registrationNumber } = req.body;
+      if (!vehicleModel || !registrationNumber) {
+        return res.status(400).json({ message: "vehicleModel and registrationNumber are required" });
       }
-      
+
+      // The shift-request wizard collects the vehicle's details directly (no
+      // separate "add a vehicle" step exists in the UI), so reuse a vehicle
+      // already on file with this registration number, or create one now.
+      const userVehicles = await storage.getVehiclesByUserId(userId);
+      const existingVehicle = userVehicles.find(
+        (v) => v.registrationNumber.replace(/\s+/g, "").toUpperCase() ===
+               String(registrationNumber).replace(/\s+/g, "").toUpperCase()
+      );
+      const vehicle = existingVehicle ?? await storage.createVehicle({
+        userId,
+        type: vehicleType || "car",
+        make: vehicleModel,
+        model: vehicleModel,
+        registrationNumber,
+      });
+
       // Map from request body to our schema
       const requestData = {
         userId,
-        vehicleId: userVehicles[0].id,
+        vehicleId: vehicle.id,
         pickupLocation: req.body.pickupLocation,
         dropLocation: req.body.dropLocation,
         insuranceExpiryDate: req.body.insuranceExpiryDate,
