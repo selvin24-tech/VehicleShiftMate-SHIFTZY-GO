@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { apiRequest } from '@/lib/queryClient';
-import { USER_PROFILE } from '@/lib/constants';
+import { useCurrentUser } from '@/lib/auth';
 
 // Define types
 interface ChatMessage {
@@ -60,19 +60,24 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [connected, setConnected] = useState(false);
 
-  // Convert USER_PROFILE.id to number to avoid type issues
-  const userId = Number(USER_PROFILE.id);
+  // The real, server-verified current user — the WebSocket server now
+  // authenticates the connection itself from the session cookie at upgrade
+  // time (server/routes.ts), so the client never declares who it is.
+  const { user, isAuthenticated } = useCurrentUser();
+  const userId = user?.id;
 
-  // Initialize WebSocket connection
+  // Initialize WebSocket connection — only once we know a real session exists.
   useEffect(() => {
+    if (!isAuthenticated) {
+      setConnected(false);
+      return;
+    }
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log('WebSocket connected');
-      // Authenticate with user ID
-      ws.send(JSON.stringify({ type: 'auth', userId }));
     };
 
     ws.onmessage = (event) => {
@@ -114,13 +119,14 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     return () => {
       ws.close();
     };
-  }, [userId]);
+  }, [isAuthenticated]);
 
   // Load conversation list
   const fetchConversations = async () => {
+    if (!isAuthenticated) return;
     setLoadingConversations(true);
     try {
-      const response = await fetch('/api/chat/conversations');
+      const response = await fetch('/api/chat/conversations', { credentials: 'include' });
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
@@ -133,10 +139,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   };
 
-  // Initial load of conversations
+  // Initial load of conversations, once we know the user is signed in.
   useEffect(() => {
-    fetchConversations();
-  }, []);
+    if (isAuthenticated) fetchConversations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // Function to refresh conversation list
   const refreshConversations = async () => {
@@ -147,7 +154,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const loadMessages = async (conversationId: number) => {
     setLoadingMessages(true);
     try {
-      const response = await fetch(`/api/chat/conversations/${conversationId}/messages`);
+      const response = await fetch(`/api/chat/conversations/${conversationId}/messages`, { credentials: 'include' });
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
@@ -168,10 +175,10 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
   // Function to send a message
   const sendMessage = async (message: string) => {
-    if (!socket || !connected || !currentConversation) return;
-    
-    const recipientId = currentConversation.ownerId === Number(userId) 
-      ? currentConversation.travelerId 
+    if (!socket || !connected || !currentConversation || !userId) return;
+
+    const recipientId = currentConversation.ownerId === userId
+      ? currentConversation.travelerId
       : currentConversation.ownerId;
     
     socket.send(JSON.stringify({
@@ -187,6 +194,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     try {
       const response = await fetch('/api/chat/conversations', {
         method: 'POST',
+        credentials: 'include',
         body: JSON.stringify({
           travelerId,
           shiftRequestId

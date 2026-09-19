@@ -10,14 +10,12 @@ import DesktopTopNav from '@/components/layout/DesktopTopNav';
 import { useIsDesktop } from '@/hooks/use-desktop';
 import { useChat } from '@/contexts/ChatContext';
 import { formatDistanceToNow } from 'date-fns';
-import { USER_PROFILE } from '@/lib/constants';
-
-// Convert the USER_PROFILE.id to a number to avoid type issues
-const USER_ID = Number(USER_PROFILE.id);
+import { useCurrentUser } from '@/lib/auth';
 
 const Chat = () => {
   const [message, setMessage] = useState('');
   const { conversations, currentConversation, messages, sendMessage, selectConversation } = useChat();
+  const { user } = useCurrentUser();
   const [_, setLocation] = useLocation();
 
   const handleSendMessage = async () => {
@@ -89,7 +87,7 @@ const Chat = () => {
               </div>
             ) : (
               messages.map((msg) => {
-                const isSelf = msg.senderId === USER_ID;
+                const isSelf = msg.senderId === user?.id;
                 return (
                   <div key={msg.id} className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[75%] ${isSelf ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-neutral-800'} rounded-lg p-3`}>
