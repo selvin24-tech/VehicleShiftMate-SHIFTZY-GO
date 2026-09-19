@@ -255,20 +255,20 @@ export default function Help() {
         <div className="bg-neutral-50 p-4 rounded-lg border border-neutral-200">
           <h3 className="font-semibold mb-2">Need Immediate Assistance?</h3>
           <p className="text-sm text-neutral-600 mb-3">
-            Our support team is available 24/7 to help you with any issues or questions.
+            Our team reviews and replies to every message personally — this is a real, manually-operated pilot, not an automated 24/7 call center.
           </p>
           <div className="flex flex-col space-y-2">
-            <Button variant="outline" className="justify-start">
-              <i className="fas fa-phone-alt mr-2 text-primary-500"></i>
-              Call Support: +91 98765 43210
+            <Button asChild variant="outline" className="justify-start">
+              <a href="/support">
+                <i className="fas fa-comment-dots mr-2 text-primary-500"></i>
+                Chat with MD's Desk
+              </a>
             </Button>
-            <Button variant="outline" className="justify-start">
-              <i className="fas fa-envelope mr-2 text-primary-500"></i>
-              Email: support@vehicleshift.com
-            </Button>
-            <Button variant="outline" className="justify-start">
-              <i className="fab fa-whatsapp mr-2 text-blue-500"></i>
-              WhatsApp Support
+            <Button asChild variant="outline" className="justify-start">
+              <a href="mailto:support@shiftzygo.in">
+                <i className="fas fa-envelope mr-2 text-primary-500"></i>
+                Email: support@shiftzygo.in
+              </a>
             </Button>
           </div>
         </div>

@@ -23,7 +23,7 @@ const SECTIONS = [
   },
   {
     title: "5. Payment Data",
-    body: "All payment information is processed by Stripe and is subject to Stripe's Privacy Policy. We do not store full card numbers or CVV codes. We retain transaction records (amount, date, booking ID) for accounting and dispute resolution purposes.",
+    body: "All payment information is processed by Cashfree Payments and is subject to Cashfree's Privacy Policy. We do not store full card numbers or CVV codes. We retain transaction records (amount, date, booking ID) for accounting and dispute resolution purposes.",
   },
   {
     title: "6. Data Sharing",

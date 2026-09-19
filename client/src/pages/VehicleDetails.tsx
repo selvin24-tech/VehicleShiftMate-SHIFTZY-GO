@@ -51,8 +51,9 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { AVAILABLE_VEHICLES, computeFare, FUEL_PRICE_PER_LITRE, HUBS, DEFAULT_HUBS, getVehicleImages, getAvailabilityWindow, getVehicleDetails } from "@/lib/constants";
 import VehicleDetailsSheet from "@/components/common/VehicleDetailsSheet";
-import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery"; 
+import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
 import { addStoredNotif } from "@/lib/notificationsStore";
+import { DemoPreviewBanner } from "@/components/common/DemoPreviewTag";
 import { useToast } from "@/hooks/use-toast";
 
 type RequestStage = "form" | "dropped" | "confirmed";
@@ -178,39 +179,43 @@ export default function VehicleDetails() {
   const vehicleImages = getVehicleImages(vehicle);
   const availWindow = getAvailabilityWindow(vehicle.id);
 
+  // This listing is sample/preview data (see AVAILABLE_VEHICLES) — there is
+  // no real owner-matching or booking backend for it yet. Rather than fake a
+  // booking/payment against it, send the customer to the real, working
+  // product: submitting their own vehicle via Shift Request.
+  const goToRealFlow = () => {
+    toast({
+      title: "This is a sample listing",
+      description: "Booking a specific vehicle isn't live yet. Start a real Shift Request instead — our team prices and assigns it manually.",
+    });
+    navigate("/shift-request");
+  };
+
   const bookingButtons = (
     <div className="grid grid-cols-2 gap-3">
       <Button
         className="w-full bg-blue-600 hover:bg-blue-700 text-white"
         size="lg"
-        onClick={() => { resetRequest(); setIsBookingOpen(true); }}
+        onClick={goToRealFlow}
       >
-        Quick Book
+        Shift a Vehicle
       </Button>
 
       <Button
         className="w-full bg-secondary-500 hover:bg-secondary-600 text-white"
         size="lg"
         variant="outline"
-        onClick={() => {
-          const category = tripCategoryParam
-            || (vehicle.vehicleCategory === "premium" ? "premium" : vehicle.type || "car");
-          const distance = (tripDistance && tripDistance > 0) ? tripDistance : "";
-          const q = new URLSearchParams();
-          if (distance) q.set("distance", String(distance));
-          q.set("category", category);
-          if (tripPickup) q.set("pickup", tripPickup);
-          if (tripDrop) q.set("drop", tripDrop);
-          navigate(`/checkout/${vehicleId}?${q.toString()}`);
-        }}
+        onClick={goToRealFlow}
       >
-        Pay Now
+        Get Started
       </Button>
     </div>
   );
 
   const mainContent = (
     <>
+      <DemoPreviewBanner note="This vehicle listing is sample data for preview — there's no live owner-matching marketplace yet. To move your own vehicle for real, use Shift a Vehicle." />
+
       {/* Vehicle Images */}
       <div className="relative rounded-xl overflow-hidden bg-neutral-100 h-64 mb-2">
         {vehicle.image ? (

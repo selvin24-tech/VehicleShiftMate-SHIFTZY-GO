@@ -1,19 +1,23 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import DesktopTopNav from "@/components/layout/DesktopTopNav";
 import { useIsDesktop } from "@/hooks/use-desktop";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
+import { DemoPreviewBanner } from "@/components/common/DemoPreviewTag";
 import BrandName from "@/components/branding/BrandName";
 import {
   AVAILABLE_VEHICLES, LOCATIONS, CHENNAI_LOCALITIES, computeFare, FUEL_PRICE_PER_LITRE,
   getVehicleImages, getAvailabilityWindow, isWithinWindow,
 } from "@/lib/constants";
 import { Vehicle } from "@/lib/types";
-import { addGoRequest, GO_STATUS_LABEL, type GoRequestRecord } from "@/lib/appStore";
+import { addGoRequest, type GoRequestRecord } from "@/lib/appStore";
+import { useCurrentUser } from "@/lib/auth";
+import type { DocumentMeta } from "@shared/schema";
 import { ChevronLeft, ChevronRight, Star, X, Clock, Images, Camera, Check, CheckCircle2, Send, Route, Timer, Receipt, Fuel, Landmark, BadgePercent, CalendarDays, RefreshCw, Info } from "lucide-react";
 import VehicleDetailsSheet from "@/components/common/VehicleDetailsSheet";
 
@@ -120,8 +124,8 @@ export default function Travel() {
     });
     setGoRequest(rec);
     toast({
-      title: "Go request sent! 🚗",
-      description: "We'll match you with a vehicle owner shortly. Track it under My Rides.",
+      title: "Saved on this device",
+      description: "Live traveler matching isn't available yet — this preview isn't sent to anyone. Message MD's Desk if you'd like our team to follow up personally.",
     });
   };
 
@@ -135,8 +139,10 @@ export default function Travel() {
 
   const isDesktop = useIsDesktop();
 
-  const dlStatus = localStorage.getItem("dlStatus");
-  const dlBanner = dlStatus === "pending" || dlStatus === "verified" ? null : (
+  const { user } = useCurrentUser();
+  const { data: documents = [] } = useQuery<DocumentMeta[]>({ queryKey: ["/api/documents"], enabled: Boolean(user) });
+  const hasDlDoc = documents.some((d) => d.type === "dl");
+  const dlBanner = !user || hasDlDoc ? null : (
     <a href="/profile?tab=docs" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 active:scale-98 transition-all">
       <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
         <span className="text-lg">⚠️</span>
@@ -368,6 +374,7 @@ export default function Travel() {
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
             className="space-y-4 overflow-hidden"
           >
+            <DemoPreviewBanner note="These vehicle & availability results are sample data for preview — Go & Travel isn't a live marketplace yet." />
             <div>
               <p className="text-sm text-neutral-600">
                 <span className="font-bold text-blue-700">{pickup}</span> → <span className="font-bold text-orange-600">{drop}</span>
@@ -637,21 +644,20 @@ export default function Travel() {
                     <CheckCircle2 className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-extrabold text-emerald-800 text-sm">Go request sent!</p>
+                    <p className="font-extrabold text-emerald-800 text-sm">Saved on this device</p>
                     <p className="text-xs text-emerald-700 mt-0.5">
                       {goRequest.pickup} → {goRequest.drop} · {goRequest.vehicleType}
                     </p>
                     <div className="inline-flex items-center gap-1.5 mt-2 bg-white border border-emerald-200 rounded-full px-2.5 py-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                      <span className="text-[11px] font-bold text-emerald-700">{GO_STATUS_LABEL[goRequest.status]}</span>
+                      <span className="text-[11px] font-bold text-emerald-700">Preview only — not sent to anyone</span>
                     </div>
                   </div>
                 </div>
                 <button
-                  onClick={() => navigate("/my-rides")}
+                  onClick={() => navigate("/support")}
                   className="w-full mt-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm active:scale-95 transition-all"
                 >
-                  Track in My Rides
+                  Ask MD's Desk to follow up
                 </button>
               </motion.div>
             ) : (

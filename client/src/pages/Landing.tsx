@@ -45,11 +45,11 @@ const VEHICLE_TYPES = [
 ];
 
 const WHY_SHIFTZY = [
-  { icon: Shield, color: "text-blue-600", bg: "bg-blue-50", title: "Fully Verified Users", desc: "Every driver and owner is verified with DL, RC, and mobile OTP before their first booking." },
-  { icon: Lock, color: "text-emerald-600", bg: "bg-emerald-50", title: "Secure Payments", desc: "Stripe-powered payments. Your money is held safely and released only after successful delivery." },
+  { icon: Shield, color: "text-blue-600", bg: "bg-blue-50", title: "Manually Reviewed Users", desc: "Every DL and RC document is reviewed by our team, not an automated system, before a shift is approved." },
+  { icon: Lock, color: "text-emerald-600", bg: "bg-emerald-50", title: "Secure Payments", desc: "Cashfree-powered payments. Your money is processed securely and verified server-side before your trip is confirmed." },
   { icon: Zap, color: "text-orange-600", bg: "bg-orange-50", title: "Real-time Tracking", desc: "Live GPS tracking so owners always know where their vehicle is during the entire journey." },
-  { icon: HeartHandshake, color: "text-rose-600", bg: "bg-rose-50", title: "Insurance Covered", desc: "All shifts require valid insurance. In-app insurance add-on available for extra peace of mind." },
-  { icon: Clock, color: "text-purple-600", bg: "bg-purple-50", title: "24×7 Support", desc: "Got a question? Our support team is available round the clock via chat, call, or email." },
+  { icon: HeartHandshake, color: "text-rose-600", bg: "bg-rose-50", title: "Insurance Covered", desc: "All shifts require valid insurance details to be submitted before travel." },
+  { icon: Clock, color: "text-purple-600", bg: "bg-purple-50", title: "Real People, Not Bots", desc: "Every request is reviewed personally by our team, not an automated system — reach us anytime via chat or email." },
   { icon: IndianRupee, color: "text-yellow-600", bg: "bg-yellow-50", title: "Fair & Transparent Pricing", desc: "No hidden charges. Distance-based pricing shown upfront before you confirm any booking." },
 ];
 
@@ -77,7 +77,7 @@ const TESTIMONIALS = [
 const FAQS = [
   { q: "How is Shiftzy Go different from a car rental?", a: "We are a peer-to-peer platform. Instead of renting a commercial car, an owner who needs their vehicle transported connects with a traveler going the same way. The traveler drives the owner's car and gets free travel. The owner pays a small fee." },
   { q: "Is my vehicle safe?", a: "Yes. Every driver is verified (DL, mobile OTP). Insurance is mandatory. You can track your vehicle in real-time. Ratings and reviews keep both parties accountable. We have a dedicated dispute resolution team." },
-  { q: "Who pays whom?", a: "The vehicle owner pays the traveler/driver a fee based on distance. We charge a small platform commission (included in the price shown). Payments are secure via Stripe and released after confirmation of delivery." },
+  { q: "Who pays whom?", a: "The vehicle owner pays the traveler/driver a fee based on distance. We charge a small platform commission (included in the price shown). Payments are processed securely via Cashfree." },
   { q: "What documents do I need to sign up?", a: "As a vehicle owner: mobile OTP verification + vehicle RC upload. As a traveler/driver: mobile OTP + Driving Licence upload. Verification is quick and usually done within 2 hours." },
   { q: "Which cities are available?", a: "We currently serve Chennai, Bangalore, Coimbatore, Madurai, Pondicherry, and 10+ more cities. We're expanding rapidly. If your city isn't listed, sign up and we'll notify you when we launch there!" },
 ];
@@ -496,24 +496,23 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Company */}
-            <div>
-              <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Company</p>
-              <div className="space-y-2">
-                {["About Us", "Careers", "Blog", "Press"].map(l => (
-                  <a key={l} href="#" className="block text-sm text-neutral-500 hover:text-neutral-300 transition-colors">{l}</a>
-                ))}
-              </div>
-            </div>
-
             {/* Legal */}
             <div>
               <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Legal</p>
               <div className="space-y-2">
                 <a href="/terms" className="block text-sm text-neutral-500 hover:text-neutral-300 transition-colors">Terms of Service</a>
                 <a href="/privacy" className="block text-sm text-neutral-500 hover:text-neutral-300 transition-colors">Privacy Policy</a>
-                <a href="#" className="block text-sm text-neutral-500 hover:text-neutral-300 transition-colors">Cookie Policy</a>
-                <a href="#" className="block text-sm text-neutral-500 hover:text-neutral-300 transition-colors">Cancellation Policy</a>
+                <a href="/privacy" className="block text-sm text-neutral-500 hover:text-neutral-300 transition-colors">Cookie Policy</a>
+                <a href="/terms" className="block text-sm text-neutral-500 hover:text-neutral-300 transition-colors">Cancellation Policy</a>
+              </div>
+            </div>
+
+            {/* Support */}
+            <div>
+              <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Support</p>
+              <div className="space-y-2">
+                <a href="/help" className="block text-sm text-neutral-500 hover:text-neutral-300 transition-colors">Help &amp; FAQs</a>
+                <a href="/support" className="block text-sm text-neutral-500 hover:text-neutral-300 transition-colors">MD's Desk</a>
               </div>
             </div>
           </div>
@@ -522,7 +521,7 @@ export default function Landing() {
             <p className="text-xs text-neutral-600">© 2025 Shiftzy Go. All rights reserved. Made with ❤️ in India.</p>
             <div className="flex items-center gap-4">
               <span className="text-xs text-neutral-600 flex items-center gap-1"><Shield className="w-3 h-3" /> SSL Secured</span>
-              <span className="text-xs text-neutral-600 flex items-center gap-1"><Lock className="w-3 h-3" /> Stripe Payments</span>
+              <span className="text-xs text-neutral-600 flex items-center gap-1"><Lock className="w-3 h-3" /> Cashfree Payments</span>
             </div>
           </div>
         </div>

@@ -23,7 +23,6 @@ import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import MyRides from "@/pages/MyRides";
 import PaymentHistory from "@/pages/PaymentHistory";
-import AcceptedRequest from "@/pages/AcceptedRequest";
 import TripPayment from "@/pages/TripPayment";
 import { ChatProvider } from "@/contexts/ChatContext";
 import LoadingScreen from "@/components/branding/LoadingScreen";
@@ -87,7 +86,6 @@ function Router() {
       <Route path="/plan">{() => <RequireAuth><Plan /></RequireAuth>}</Route>
       <Route path="/track">{() => <RequireAuth><Track /></RequireAuth>}</Route>
       <Route path="/chat">{() => <RequireAuth><Chat /></RequireAuth>}</Route>
-      <Route path="/request/:id">{() => <RequireAuth><AcceptedRequest /></RequireAuth>}</Route>
       <Route path="/trip-payment/:tripId">{() => <RequireAuth><TripPayment /></RequireAuth>}</Route>
       <Route path="/notifications">{() => <RequireAuth><Notifications /></RequireAuth>}</Route>
 

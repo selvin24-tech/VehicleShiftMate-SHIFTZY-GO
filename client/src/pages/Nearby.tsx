@@ -123,7 +123,7 @@ export default function Nearby() {
           <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-900 rounded-xl px-4 py-3 mt-4 mb-6">
             <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
             <p className="text-xs text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
-              These vehicle owners need their vehicles moved — share the trip cost and both of you save!
+              These are sample listings to preview how nearby pickups will work — not a live marketplace yet. To move your own vehicle for real, use Shift a Vehicle.
             </p>
           </div>
 
@@ -175,7 +175,7 @@ export default function Nearby() {
       <div className="mx-4 mt-4 mb-3 flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
         <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
         <p className="text-xs text-amber-800 font-medium leading-relaxed">
-          These vehicle owners need their vehicles moved — share the trip cost and both of you save!
+          These are sample listings to preview how nearby pickups will work — not a live marketplace yet. To move your own vehicle for real, use Shift a Vehicle.
         </p>
       </div>
 

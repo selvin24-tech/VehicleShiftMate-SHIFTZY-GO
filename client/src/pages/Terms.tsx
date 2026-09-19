@@ -39,7 +39,7 @@ const SECTIONS = [
   },
   {
     title: "5. Payments & Refunds",
-    body: "All payments are processed securely through Stripe. Refunds for cancellations made more than 24 hours before the scheduled pickup will be processed within 5–7 business days. Cancellations made within 24 hours may incur a cancellation fee of up to ₹500.",
+    body: "All payments are processed securely through Cashfree Payments. Refunds for cancellations made more than 24 hours before the scheduled pickup will be processed within 5–7 business days. Cancellations made within 24 hours may incur a cancellation fee of up to ₹500.",
   },
   {
     title: "6. Vehicle Condition",
