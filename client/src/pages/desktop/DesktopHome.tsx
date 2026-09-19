@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import DesktopTopNav from "@/components/layout/DesktopTopNav";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
 import SendRequestButton from "@/components/common/SendRequestButton";
 import VehicleDetailsSheet from "@/components/common/VehicleDetailsSheet";
+import { DemoPreviewTag } from "@/components/common/DemoPreviewTag";
 import heroBanner from "@assets/file_00000000b280720988e7255eb04daace_1783322892934.png";
 import {
   NEARBY_SHIFT_REQUESTS, computeFare, vehicleTypeToFareCategory,
@@ -14,7 +16,17 @@ import {
   MapPin, ChevronRight, Star, CalendarDays, Clock, Shield, Navigation,
   Lock, Images, Fuel, Truck, Compass, MessageCircle, ArrowRight,
 } from "lucide-react";
-import { useShiftRequests, SHIFT_STATUS_LABEL } from "@/lib/appStore";
+import { useCurrentUser } from "@/lib/auth";
+
+type MyRequest = {
+  id: number;
+  pickupLocation: string;
+  dropLocation: string;
+  status: string;
+  createdAt: string;
+  vehicle: { make: string; model: string } | null;
+  trip: { status: string } | null;
+};
 
 const VEHICLE_BADGE: Record<string, { label: string; color: string }> = {
   car: { label: "Car", color: "bg-blue-100 text-blue-700" },
@@ -43,8 +55,11 @@ export default function DesktopHome() {
   const [, navigate] = useLocation();
   const [galleryId, setGalleryId] = useState<string | null>(null);
   const [vehicleDetailsReq, setVehicleDetailsReq] = useState<typeof NEARBY_SHIFT_REQUESTS[0] | null>(null);
-  const shiftRequests = useShiftRequests();
-  const activeShift = shiftRequests.find(r => r.status !== "completed" && r.status !== "cancelled");
+  const { user } = useCurrentUser();
+  const { data: myRequests = [] } = useQuery<MyRequest[]>({ queryKey: ["/api/shift-requests"], enabled: Boolean(user) });
+  const activeShift = myRequests.find(
+    r => r.status === "pending" || (r.status === "approved" && r.trip?.status !== "completed" && r.trip?.status !== "cancelled")
+  );
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
@@ -101,7 +116,10 @@ export default function DesktopHome() {
           {/* ── Main column: nearby trips grid ── */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-xl font-extrabold text-neutral-900 dark:text-neutral-100">Nearby available trips</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-extrabold text-neutral-900 dark:text-neutral-100">Nearby available trips</h2>
+                <DemoPreviewTag />
+              </div>
               <button
                 onClick={() => navigate("/nearby")}
                 className="flex items-center gap-1 text-sm font-bold text-blue-600 hover:text-blue-700"
@@ -109,7 +127,7 @@ export default function DesktopHome() {
                 View all <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-sm text-neutral-400 font-medium mb-4">Within 5 – 10 km radius</p>
+            <p className="text-sm text-neutral-400 font-medium mb-4">Sample listings — within 5 – 10 km radius</p>
 
             <div className="grid grid-cols-2 gap-4">
               {NEARBY_SHIFT_REQUESTS.slice(0, 6).map((req, i) => {
@@ -201,14 +219,14 @@ export default function DesktopHome() {
                     <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
                     <p className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">Active shift request</p>
                   </div>
-                  <span className="text-[10px] font-bold bg-white dark:bg-neutral-900 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-full px-2 py-0.5">
-                    {SHIFT_STATUS_LABEL[activeShift.status]}
+                  <span className="text-[10px] font-bold bg-white dark:bg-neutral-900 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-full px-2 py-0.5 capitalize">
+                    {activeShift.status === "pending" ? "Under review" : (activeShift.trip?.status || activeShift.status).replace(/_/g, " ")}
                   </span>
                 </div>
-                <p className="font-extrabold text-neutral-900 dark:text-neutral-100 text-sm">{activeShift.pickup} → {activeShift.drop}</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                  {activeShift.vehicleModel} · {activeShift.driverType === "professional" ? "Professional Driver" : "Traveler"}
-                </p>
+                <p className="font-extrabold text-neutral-900 dark:text-neutral-100 text-sm">{activeShift.pickupLocation} → {activeShift.dropLocation}</p>
+                {activeShift.vehicle && (
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{activeShift.vehicle.make} {activeShift.vehicle.model}</p>
+                )}
                 <button
                   onClick={() => navigate("/my-rides")}
                   className="w-full mt-3 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1"

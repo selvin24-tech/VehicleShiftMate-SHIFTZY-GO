@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import VehiclePhotoGallery from "@/components/common/VehiclePhotoGallery";
@@ -13,14 +14,24 @@ import {
 import {
   MapPin, ChevronRight, Star, Briefcase, CalendarDays, Clock,
   Shield, Navigation, Lock, ChevronDown, Route, Timer,
-  Phone, MessageCircle, Images, Camera,
+  MessageCircle, Images, Camera,
   Fuel, Landmark, BadgePercent, Receipt, Info,
 } from "lucide-react";
 import VehicleDetailsSheet from "@/components/common/VehicleDetailsSheet";
-import { useShiftRequests, SHIFT_STATUS_LABEL } from "@/lib/appStore";
+import { DemoPreviewTag } from "@/components/common/DemoPreviewTag";
 import OnboardingTour from "@/components/tour/OnboardingTour";
 import { useIsDesktop } from "@/hooks/use-desktop";
 import DesktopHome from "@/pages/desktop/DesktopHome";
+
+type MyRequest = {
+  id: number;
+  pickupLocation: string;
+  dropLocation: string;
+  status: string;
+  createdAt: string;
+  vehicle: { make: string; model: string } | null;
+  trip: { status: string } | null;
+};
 
 const VEHICLE_BADGE: Record<string, { label: string; color: string }> = {
   car:  { label: "CAR",  color: "bg-blue-100 text-blue-700" },
@@ -45,8 +56,10 @@ export default function Home() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [galleryId, setGalleryId] = useState<string | null>(null);
   const [vehicleDetailsReq, setVehicleDetailsReq] = useState<typeof NEARBY_SHIFT_REQUESTS[0] | null>(null);
-  const shiftRequests = useShiftRequests();
-  const activeShift = shiftRequests.find(r => r.status !== "completed" && r.status !== "cancelled");
+  const { data: myRequests = [] } = useQuery<MyRequest[]>({ queryKey: ["/api/shift-requests"] });
+  const activeShift = myRequests.find(
+    r => r.status === "pending" || (r.status === "approved" && r.trip?.status !== "completed" && r.trip?.status !== "cancelled")
+  );
   const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
@@ -184,17 +197,16 @@ export default function Home() {
                   <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
                   <p className="text-xs font-bold text-blue-700 uppercase tracking-wide">Your active shift request</p>
                 </div>
-                <span className="text-[10px] font-bold bg-white text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">
-                  {SHIFT_STATUS_LABEL[activeShift.status]}
+                <span className="text-[10px] font-bold bg-white text-blue-700 border border-blue-200 rounded-full px-2 py-0.5 capitalize">
+                  {activeShift.status === "pending" ? "Under review" : (activeShift.trip?.status || activeShift.status).replace(/_/g, " ")}
                 </span>
               </div>
-              <p className="font-extrabold text-neutral-900 text-sm">{activeShift.pickup} → {activeShift.drop}</p>
-              <p className="text-[11px] text-neutral-500 mt-0.5">
-                {activeShift.vehicleModel} · {activeShift.driverType === "professional" ? "Professional Driver" : "Traveler"}
-              </p>
+              <p className="font-extrabold text-neutral-900 text-sm">{activeShift.pickupLocation} → {activeShift.dropLocation}</p>
+              {activeShift.vehicle && (
+                <p className="text-[11px] text-neutral-500 mt-0.5">{activeShift.vehicle.make} {activeShift.vehicle.model}</p>
+              )}
               <div className="flex items-center gap-3 mt-1.5 text-neutral-400">
-                <span className="flex items-center gap-1 text-[10px]"><CalendarDays className="w-3 h-3" />{activeShift.date}</span>
-                <span className="flex items-center gap-1 text-[10px]"><Clock className="w-3 h-3" />{activeShift.timeRange}</span>
+                <span className="flex items-center gap-1 text-[10px]"><CalendarDays className="w-3 h-3" />{new Date(activeShift.createdAt).toLocaleDateString("en-IN")}</span>
               </div>
               <button
                 onClick={() => navigate("/my-rides")}
@@ -210,7 +222,10 @@ export default function Home() {
       {/* ── Nearby Available Trips ── */}
       <div className="px-4 mt-6">
         <div className="flex items-center justify-between mb-1">
-          <h2 data-tour="nearby-trips" className="text-base font-extrabold text-neutral-900 dark:text-neutral-100">Nearby available trips</h2>
+          <div className="flex items-center gap-2">
+            <h2 data-tour="nearby-trips" className="text-base font-extrabold text-neutral-900 dark:text-neutral-100">Nearby available trips</h2>
+            <DemoPreviewTag />
+          </div>
           <button
             onClick={() => navigate("/nearby")}
             className="flex items-center gap-0.5 text-xs font-bold text-blue-600"
@@ -218,7 +233,7 @@ export default function Home() {
             View all <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
-        <p className="text-[11px] text-neutral-400 font-medium mb-3">Within 5 – 10 km radius</p>
+        <p className="text-[11px] text-neutral-400 font-medium mb-3">Sample listings — within 5 – 10 km radius</p>
 
         <div className="space-y-2">
           {NEARBY_SHIFT_REQUESTS.slice(0, 5).map((req, i) => {
@@ -488,9 +503,6 @@ export default function Home() {
                           {/* Action buttons */}
                           <div className="flex gap-2">
                             <SendRequestButton request={req} className="flex-1" />
-                            <button className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center active:scale-95 transition-all">
-                              <Phone className="w-4 h-4" />
-                            </button>
                           </div>
                         </div>
                       </div>

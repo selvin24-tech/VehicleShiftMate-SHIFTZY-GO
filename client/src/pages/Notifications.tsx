@@ -1,23 +1,28 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, ChevronLeft, CheckCheck, Package, CreditCard, Car, XCircle, Navigation } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
 import DesktopTopNav from "@/components/layout/DesktopTopNav";
 import { useIsDesktop } from "@/hooks/use-desktop";
-import {
-  useStoredNotifs, markNotifRead, markAllNotifsRead, type StoredIconKey,
-} from "@/lib/notificationsStore";
+import type { Notification } from "@shared/schema";
 
-const ICON_MAP: Record<StoredIconKey, typeof Package> = {
-  request: Package,
-  accepted: CheckCheck,
-  rejected: XCircle,
-  payment: CreditCard,
-  "trip-started": Navigation,
-  "trip-completed": Car,
+const ICON_MAP: Record<string, typeof Package> = {
+  request_approved: CheckCheck,
+  request_rejected: XCircle,
+  payment_paid: CreditCard,
+  trip_status: Navigation,
+};
+
+const COLOR_MAP: Record<string, string> = {
+  request_approved: "bg-blue-100 text-blue-600",
+  request_rejected: "bg-red-100 text-red-600",
+  payment_paid: "bg-blue-100 text-blue-600",
+  trip_status: "bg-orange-100 text-orange-600",
 };
 
 type NotifCategory = "all" | "bookings" | "payments";
+const typeCategory = (type: string): NotifCategory => (type === "payment_paid" ? "payments" : "bookings");
 
 const CATEGORY_TABS: { id: NotifCategory; label: string }[] = [
   { id: "all", label: "All" },
@@ -25,23 +30,29 @@ const CATEGORY_TABS: { id: NotifCategory; label: string }[] = [
   { id: "payments", label: "Payments" },
 ];
 
-const colorMap: Record<string, string> = {
-  blue: "bg-blue-100 text-blue-600",
-  orange: "bg-orange-100 text-orange-600",
-};
-
 export default function Notifications() {
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
   const [active, setActive] = useState<NotifCategory>("all");
-  const notifications = useStoredNotifs();
 
-  const filtered = active === "all" ? notifications : notifications.filter(n => n.category === active);
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const { data: notifications = [] } = useQuery<Notification[]>({ queryKey: ["/api/notifications"] });
 
-  const markAllRead = () => markAllNotifsRead();
-  const handleTap = (id: number, requestId?: string) => {
-    markNotifRead(id);
-    if (requestId) navigate(`/request/${requestId}`);
+  const filtered = active === "all" ? notifications : notifications.filter(n => typeCategory(n.type) === active);
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
+  };
+
+  const markAllRead = async () => {
+    await fetch("/api/notifications/read-all", { method: "POST", credentials: "include" });
+    invalidate();
+  };
+  const handleTap = async (id: number) => {
+    await fetch(`/api/notifications/${id}/read`, { method: "POST", credentials: "include" });
+    invalidate();
+    navigate("/my-rides");
   };
 
   const isDesktop = useIsDesktop();
@@ -75,23 +86,23 @@ export default function Notifications() {
           <p className="font-semibold text-neutral-400">No notifications here</p>
         </div>
       ) : filtered.map(n => {
-        const Icon = ICON_MAP[n.iconKey] ?? Package;
+        const Icon = ICON_MAP[n.type] ?? Package;
         return (
           <div
             key={n.id}
-            onClick={() => handleTap(n.id, n.requestId)}
-            className={`flex items-start gap-3 px-4 py-4 cursor-pointer transition-colors ${n.unread ? "bg-blue-50/60 dark:bg-blue-950/40" : "bg-white dark:bg-neutral-900"}`}
+            onClick={() => handleTap(n.id)}
+            className={`flex items-start gap-3 px-4 py-4 cursor-pointer transition-colors ${!n.isRead ? "bg-blue-50/60 dark:bg-blue-950/40" : "bg-white dark:bg-neutral-900"}`}
           >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${colorMap[n.color]}`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${COLOR_MAP[n.type] ?? "bg-neutral-100 text-neutral-600"}`}>
               <Icon className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <p className={`text-sm leading-tight ${n.unread ? "font-bold text-neutral-900 dark:text-neutral-100" : "font-semibold text-neutral-700 dark:text-neutral-300"}`}>{n.title}</p>
-                {n.unread && <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0 mt-1" />}
+                <p className={`text-sm leading-tight ${!n.isRead ? "font-bold text-neutral-900 dark:text-neutral-100" : "font-semibold text-neutral-700 dark:text-neutral-300"}`}>{n.title}</p>
+                {!n.isRead && <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0 mt-1" />}
               </div>
               <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
-              <p className="text-[10px] text-neutral-400 mt-1">{n.time}</p>
+              <p className="text-[10px] text-neutral-400 mt-1">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}</p>
             </div>
           </div>
         );

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
   Form,
@@ -28,12 +29,18 @@ import DesktopTopNav from "@/components/layout/DesktopTopNav";
 import { useIsDesktop } from "@/hooks/use-desktop";
 import { LOCATIONS, CHENNAI_LOCALITIES, DETAILED_VEHICLE_TYPES } from "@/lib/constants";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { addShiftRequest } from "@/lib/appStore";
+import { useCurrentUser, loginUrlWithReturn } from "@/lib/auth";
+import type { DocumentMeta } from "@shared/schema";
 import {
   ChevronLeft, CircleCheck, ChevronRight,
   Shield, Users, Building2, Home, Clock, User, Phone,
   KeyRound, StickyNote, MapPin, CheckCircle2, RefreshCw
 } from "lucide-react";
+
+// The exact shape we stash in sessionStorage if a visitor tries to submit
+// without an account, so nothing they've typed is lost across the login
+// redirect (restored once they land back here signed in).
+const DRAFT_KEY = "shiftzy_shift_request_draft";
 
 /* ─── Hubs ─── */
 const HUBS = [
@@ -82,6 +89,13 @@ type DropPref    = "hub" | "home" | null;
 export default function ShiftRequest() {
   const [, navigate] = useLocation();
   const { toast }    = useToast();
+  const { user, isAuthenticated } = useCurrentUser();
+
+  const { data: documents = [] } = useQuery<DocumentMeta[]>({
+    queryKey: ["/api/documents"],
+    enabled: Boolean(user),
+  });
+  const hasRcDoc = documents.some((d) => d.type === "rc");
 
   /* vehicle form state */
   const [selectedVehicleType, setSelectedVehicleType] = useState<"car"|"bike"|"suv"|"luxury"|null>(null);
@@ -125,6 +139,28 @@ export default function ShiftRequest() {
     form.setValue("vehicleModel", "");
   };
 
+  // Restore a draft left behind by a visitor who was sent to log in mid-form
+  // (the photo itself can't survive the redirect — only text fields can).
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    try {
+      const draft = JSON.parse(raw);
+      form.reset(draft.values);
+      if (draft.selectedVehicleType) setSelectedVehicleType(draft.selectedVehicleType);
+      if (draft.driverType) setDriverType(draft.driverType);
+      if (draft.dropPref) setDropPref(draft.dropPref);
+      if (draft.agreedTerms) setAgreedTerms(true);
+      toast({ title: "Welcome back", description: "Your shift request draft was restored — please re-attach the vehicle photo." });
+    } catch {
+      // ignore a corrupt draft
+    } finally {
+      sessionStorage.removeItem(DRAFT_KEY);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -134,10 +170,24 @@ export default function ShiftRequest() {
     reader.readAsDataURL(file);
   };
 
+  const [submittedRequestId, setSubmittedRequestId] = useState<number | null>(null);
+
   const onSubmit = async (data: FormValues) => {
     setAttempted(true);
-    const rcStatus = localStorage.getItem("rcStatus");
-    if (!rcStatus || rcStatus === "none") {
+
+    // Visitor-first: browsing and filling the form needs no account — only
+    // the actual submit does. Save a draft and send them to log in, then
+    // bring them right back here.
+    if (!isAuthenticated) {
+      sessionStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ values: data, selectedVehicleType, driverType, dropPref, agreedTerms })
+      );
+      navigate(loginUrlWithReturn("/shift-request"));
+      return;
+    }
+
+    if (!hasRcDoc) {
       toast({ title: "RC document upload pending", description: "Please upload your vehicle RC in Profile → Documents to submit a shift request.", variant: "destructive" });
       navigate("/profile?tab=docs");
       return;
@@ -156,30 +206,39 @@ export default function ShiftRequest() {
     }
     try {
       setIsUploading(true);
-      const payload = {
+
+      // Upload the actual photo bytes first (if any) — the shift request
+      // then only carries a reference to the stored document, never a
+      // client-only boolean.
+      let vehiclePhotoDocId: number | undefined;
+      if (photoFile) {
+        const form = new FormData();
+        form.append("file", photoFile);
+        form.append("type", "vehicle_photo");
+        const uploadRes = await fetch("/api/documents", { method: "POST", credentials: "include", body: form });
+        const doc = await uploadRes.json().catch(() => ({}));
+        if (!uploadRes.ok) throw new Error(doc.message || "Could not upload the vehicle photo");
+        vehiclePhotoDocId = doc.id;
+      }
+
+      const payload: Record<string, unknown> = {
         ...data,
         driverType,
         dropPreference: dropPref,
         ...(dropPref === "hub"  ? { selectedHub, hubCollectionTime: hubCollection }          : {}),
         ...(dropPref === "home" ? { deliveryAddress: deliveryAddr, timeSlot, keyHandover,
                                     receiverName, receiverPhone, specialNote }               : {}),
-        photoUploaded: !!photoFile,
+        ...(vehiclePhotoDocId ? { vehiclePhotoDocId } : {}),
       };
       if (data.vehicleType !== "luxury") delete payload.luxuryBrand;
-      await apiRequest("POST", "/api/shift-requests", payload);
-      addShiftRequest({
-        pickup: data.pickupLocation,
-        drop: data.dropLocation,
-        vehicleType: data.vehicleType ?? selectedVehicleType ?? "car",
-        vehicleModel: data.vehicleModel,
-        driverType,
-        date: data.travelDate,
-        timeRange: `${data.pickupTimeFrom} – ${data.pickupTimeTo}`,
-      });
+
+      const res = await apiRequest("POST", "/api/shift-requests", payload);
+      const created = await res.json();
+      setSubmittedRequestId(created.id);
       setShowSuccessDialog(true);
       queryClient.invalidateQueries({ queryKey: ["/api/shift-requests"] });
-    } catch {
-      toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Error", description: (err as Error).message || "Something went wrong. Please try again.", variant: "destructive" });
     } finally {
       setIsUploading(false);
     }
@@ -195,8 +254,7 @@ export default function ShiftRequest() {
 
   const isDesktop = useIsDesktop();
 
-  const rcStatus = localStorage.getItem("rcStatus");
-  const rcBanner = rcStatus === "pending" || rcStatus === "verified" ? null : (
+  const rcBanner = !isAuthenticated || hasRcDoc ? null : (
     <a href="/profile?tab=docs" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 active:scale-98 transition-all">
       <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
         <span className="text-lg">⚠️</span>
@@ -725,22 +783,20 @@ export default function ShiftRequest() {
           </div>
           <DialogTitle className="text-center text-xl">Request Submitted! 🎉</DialogTitle>
           <p className="text-center text-neutral-500 text-sm mt-1">
-            {driverType === "professional"
-              ? "A professional driver will be assigned within 2 hours. You'll get an SMS & in-app notification."
-              : dropPref === "hub"
-              ? "We're matching you with a traveler going your route. Your vehicle will be delivered to the selected hub."
-              : "We're matching you with a traveler going your route. They will deliver your vehicle directly to your address."}
+            Our team reviews every request manually — you'll get a notification here as soon as it's priced and a driver is assigned. This is not an automated match.
           </p>
         </DialogHeader>
         <div className="bg-neutral-50 rounded-xl p-3 space-y-1.5 text-xs text-neutral-600">
-          <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Request ID: <strong>SHF-{Math.floor(Math.random() * 90000) + 10000}</strong></div>
+          {submittedRequestId != null && (
+            <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Request ID: <strong>#{submittedRequestId}</strong></div>
+          )}
           <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Driver type: <strong className="capitalize">{driverType}</strong></div>
           {dropPref && <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Drop preference: <strong>{dropPref === "hub" ? "Common Hub" : "Home Drop"}</strong></div>}
         </div>
         <DialogFooter>
-          <Button onClick={() => { setShowSuccessDialog(false); navigate("/"); }}
+          <Button onClick={() => { setShowSuccessDialog(false); navigate("/my-rides"); }}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3">
-            Go to Home
+            View My Rides
           </Button>
         </DialogFooter>
       </DialogContent>
