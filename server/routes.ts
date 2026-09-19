@@ -2,12 +2,32 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 import passport from "passport";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin, resolveUserIdFromCookie } from "./auth";
 import { hashPassword, verifyPassword, generateToken, hashToken } from "./lib/password";
 import * as cashfree from "./lib/cashfree";
 import * as email from "./lib/email";
+
+// Basic abuse protection for the endpoints most attractive to brute-force /
+// spam / enumeration: credential guessing, password-reset spam, and the
+// unauthenticated public enquiry form. Keyed by IP (default) — fine for a
+// single-region V1 pilot behind Render.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many attempts. Please wait a few minutes and try again." },
+});
+const publicWriteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many requests. Please wait a few minutes and try again." },
+});
 
 // In-memory multipart parsing (files go straight into Postgres as bytea, no
 // disk/tmp involved) — capped at 8MB per file, images + PDFs only.
@@ -41,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // --- Auth routes ---
   // Register a new user, hash their password, and log them in (session created).
-  app.post("/api/user/register", async (req, res) => {
+  app.post("/api/user/register", authLimiter, async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
 
@@ -73,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Log in with email + password (passport-local, session-based)
-  app.post("/api/user/login", (req, res, next) => {
+  app.post("/api/user/login", authLimiter, (req, res, next) => {
     passport.authenticate(
       "local",
       (error: Error | null, user: Express.User | false, info: { message?: string } | undefined) => {
@@ -150,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Change password while logged in — requires the current password.
-  app.post("/api/user/change-password", requireAuth, async (req, res) => {
+  app.post("/api/user/change-password", authLimiter, requireAuth, async (req, res) => {
     try {
       const schema = z.object({
         currentPassword: z.string().min(1),
@@ -177,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // message regardless of whether the email exists (standard anti-enumeration
   // practice) — but if the email service itself isn't configured, that is
   // reported honestly rather than pretending an email went out.
-  app.post("/api/user/forgot-password", async (req, res) => {
+  app.post("/api/user/forgot-password", authLimiter, async (req, res) => {
     try {
       const { email: rawEmail } = z.object({ email: z.string().email() }).parse(req.body);
 
@@ -210,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Complete a password reset using the token emailed above. Single-use.
-  app.post("/api/user/reset-password", async (req, res) => {
+  app.post("/api/user/reset-password", authLimiter, async (req, res) => {
     try {
       const { token, newPassword } = z
         .object({ token: z.string().min(1), newPassword: z.string().min(6, "Password must be at least 6 characters") })
@@ -753,7 +773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // friction contact form). A one-time, unguessable access token is minted
   // and returned ONLY in this response; the client must hold onto it to read
   // or reply to this thread later. Only its SHA-256 hash is stored.
-  app.post("/api/enquiries", async (req, res) => {
+  app.post("/api/enquiries", publicWriteLimiter, async (req, res) => {
     try {
       const data = insertEnquirySchema.parse(req.body);
       const accessToken = generateToken();
