@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,10 +12,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Lock, User, Phone, CheckCircle2, ArrowLeft, UserPlus, LogIn, MapPin, Smartphone, Shield, Zap } from "lucide-react";
+import { Eye, EyeOff, Lock, User, Phone, CheckCircle2, ArrowLeft, UserPlus, LogIn, Shield, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import BrandName from "@/components/branding/BrandName";
 import { useIsDesktop } from "@/hooks/use-desktop";
+import { returnAfterLoginPath } from "@/lib/auth";
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 const signInSchema = z.object({
@@ -34,48 +35,20 @@ const signUpSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const mobileSchema = z.object({
-  mobileNumber: z
-    .string()
-    .min(10, "Mobile number must be 10 digits")
-    .max(10, "Mobile number must be 10 digits")
-    .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number"),
-  loginPlace: z.string().min(2, "Please enter your current city or place"),
-});
-
-const otpSchema = z.object({
-  otp: z
-    .string()
-    .min(6, "OTP must be 6 digits")
-    .max(6, "OTP must be 6 digits")
-    .regex(/^\d{6}$/, "Only digits allowed"),
-});
-
 type SignInData = z.infer<typeof signInSchema>;
 type SignUpData = z.infer<typeof signUpSchema>;
-type MobileData = z.infer<typeof mobileSchema>;
-type OtpData = z.infer<typeof otpSchema>;
 
 type Mode = "signIn" | "signUp" | "forgot";
-type Step = "form" | "mobile" | "otp";
-
-const SIMULATED_OTP = "123456";
 
 export default function Login() {
   const { toast } = useToast();
   const [mode, setMode] = useState<Mode>("signIn");
-  const [step, setStep] = useState<Step>("form");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [maskedPhone, setMaskedPhone] = useState("");
-  const [countdown, setCountdown] = useState(0);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [forgotPhone, setForgotPhone] = useState("");
-  const [forgotOtpSent, setForgotOtpSent] = useState(false);
-  const [forgotOtp, setForgotOtp] = useState("");
-  const [forgotNewPwd, setForgotNewPwd] = useState("");
-  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSubmitted, setForgotSubmitted] = useState(false);
+  const [forgotError, setForgotError] = useState("");
 
   const signInForm = useForm<SignInData>({
     resolver: zodResolver(signInSchema),
@@ -87,37 +60,18 @@ export default function Login() {
     defaultValues: { firstName: "", lastName: "", username: "", password: "", confirmPassword: "" },
   });
 
-  const mobileForm = useForm<MobileData>({
-    resolver: zodResolver(mobileSchema),
-    defaultValues: { mobileNumber: "", loginPlace: "" },
-  });
-
-  const otpForm = useForm<OtpData>({
-    resolver: zodResolver(otpSchema),
-    defaultValues: { otp: "" },
-  });
-
-  useEffect(() => {
-    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
-  }, []);
-
-  const startCountdown = () => {
-    setCountdown(30);
-    countdownRef.current = setInterval(() => {
-      setCountdown(c => {
-        if (c <= 1) { clearInterval(countdownRef.current!); return 0; }
-        return c - 1;
-      });
-    }, 1000);
-  };
-
   const switchMode = (m: Mode) => {
     setMode(m);
-    setStep("form");
     signInForm.reset();
     signUpForm.reset();
-    mobileForm.reset();
-    otpForm.reset();
+    setForgotSubmitted(false);
+    setForgotError("");
+  };
+
+  // Any protected action (submit a shift request, pay, open My Rides, etc.)
+  // can redirect here with ?next=<path>; after auth, send the user back.
+  const goAfterAuth = () => {
+    window.location.href = returnAfterLoginPath();
   };
 
   // ── Sign In: real email+password login against the server session ───────
@@ -138,17 +92,15 @@ export default function Login() {
         return;
       }
 
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userType", body.role === "admin" ? "admin" : "customer");
-      localStorage.setItem("username", data.username);
-      window.location.href = "/";
+      goAfterAuth();
     } catch {
       setIsLoading(false);
       toast({ title: "Couldn't sign in", description: "Please check your connection and try again.", variant: "destructive" });
     }
   };
 
-  // ── Sign Up: create the real account → Mobile OTP (still simulated) → home ─
+  // ── Sign Up: create the real account (session starts immediately) → home ──
+  // Real phone/OTP verification is a V2 item; we never simulate one here.
   const handleSignUp = async (data: SignUpData) => {
     setIsLoading(true);
     try {
@@ -170,85 +122,43 @@ export default function Login() {
         return;
       }
 
-      localStorage.setItem("userType", "customer");
-      localStorage.setItem("username", data.username);
-      localStorage.setItem("displayName", `${data.firstName} ${data.lastName}`);
-      localStorage.setItem("isFirstLogin", "true");
-      setStep("mobile");
+      goAfterAuth();
     } catch {
       setIsLoading(false);
       toast({ title: "Couldn't create account", description: "Please check your connection and try again.", variant: "destructive" });
     }
   };
 
-  const handleSendOtp = (data: MobileData) => {
+  // ── Forgot password: real email flow — POST /api/user/forgot-password ────
+  const handleForgotSubmit = async () => {
+    if (!forgotEmail.includes("@")) {
+      setForgotError("Enter a valid email address.");
+      return;
+    }
+    setForgotError("");
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      const last4 = data.mobileNumber.slice(-4);
-      setMaskedPhone(`+91 XXXXXX${last4}`);
-      localStorage.setItem("loginPlace", data.loginPlace);
-      startCountdown();
-      setStep("otp");
-      toast({
-        title: "OTP Sent!",
-        description: `A 6-digit OTP has been sent to your mobile number ending in ${last4}.`,
+    try {
+      const res = await fetch("/api/user/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
       });
-    }, 1000);
-  };
-
-  const handleResendOtp = () => {
-    if (countdown > 0) return;
-    setIsLoading(true);
-    setTimeout(() => {
+      const body = await res.json().catch(() => ({}));
       setIsLoading(false);
-      startCountdown();
-      toast({ title: "OTP Resent", description: "A new OTP has been sent to your registered mobile." });
-    }, 800);
-  };
-
-  const handleVerifyOtp = (data: OtpData) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (data.otp !== SIMULATED_OTP) {
-        otpForm.setError("otp", { message: "Incorrect OTP. Try again." });
+      if (!res.ok) {
+        setForgotError(body.message || "Couldn't send the reset email right now.");
         return;
       }
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userType", "customer");
-      window.location.href = "/";
-    }, 1000);
+      setForgotSubmitted(true);
+    } catch {
+      setIsLoading(false);
+      setForgotError("Check your connection and try again.");
+    }
   };
 
-  // ── Step indicator (only during sign-up verification) ────────────────────
-  const verifySteps = ["Sign Up", "Phone OTP", "Verify"];
-  const verifyIdx = step === "mobile" ? 1 : step === "otp" ? 2 : 0;
   const isDesktop = useIsDesktop();
 
-  const verifyStepsBar = mode === "signUp" && step !== "form" && (
-    <div className="flex items-center justify-center gap-2 mb-5">
-      {verifySteps.map((s, idx) => (
-        <div key={s} className="flex items-center gap-2">
-          <div className={`flex items-center gap-1.5 ${idx <= verifyIdx ? "text-blue-600" : "text-neutral-400"}`}>
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
-              idx < verifyIdx ? "bg-blue-600 border-blue-600 text-white"
-              : idx === verifyIdx ? "border-blue-600 text-blue-600"
-              : "border-neutral-300 text-neutral-400"
-            }`}>
-              {idx < verifyIdx ? <CheckCircle2 className="w-3.5 h-3.5" /> : idx + 1}
-            </div>
-            <span className="text-xs font-medium hidden sm:inline">{s}</span>
-          </div>
-          {idx < verifySteps.length - 1 && (
-            <div className={`w-6 h-px ${idx < verifyIdx ? "bg-blue-400" : "bg-neutral-200"}`} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-
-  const tabSwitcher = step === "form" && mode !== "forgot" && (
+  const tabSwitcher = mode !== "forgot" && (
     <div className="flex border-b border-neutral-100">
       <button
         onClick={() => switchMode("signIn")}
@@ -276,7 +186,7 @@ export default function Login() {
   const authBody = (
     <>
             {/* ── SIGN IN ──────────────────────────────────────────────── */}
-            {mode === "signIn" && step === "form" && (
+            {mode === "signIn" && (
               <>
                 <p className="text-neutral-500 text-sm mb-5 text-center">Welcome back! Sign in to continue.</p>
                 <Form {...signInForm}>
@@ -315,7 +225,7 @@ export default function Login() {
                     </Button>
 
                     <div className="text-center">
-                      <button type="button" onClick={() => { setMode("forgot"); setForgotPhone(""); setForgotOtpSent(false); setForgotOtp(""); setForgotNewPwd(""); setForgotSuccess(false); }}
+                      <button type="button" onClick={() => { setMode("forgot"); setForgotEmail(""); setForgotSubmitted(false); setForgotError(""); }}
                         className="text-sm text-blue-600 font-semibold hover:underline">
                         Forgot Password?
                       </button>
@@ -336,7 +246,7 @@ export default function Login() {
               </>
             )}
 
-            {/* ── FORGOT PASSWORD ───────────────────────────────────────── */}
+            {/* ── FORGOT PASSWORD — real email flow ───────────────────── */}
             {mode === "forgot" && (
               <div className="space-y-4">
                 <div className="text-center">
@@ -345,80 +255,49 @@ export default function Login() {
                   </div>
                   <h2 className="font-bold text-lg">Reset Password</h2>
                   <p className="text-sm text-neutral-500 mt-1">
-                    {forgotSuccess ? "Password reset successfully!" : forgotOtpSent ? "Enter the OTP sent to your phone" : "Enter your registered phone number"}
+                    {forgotSubmitted
+                      ? "Check your email for a reset link."
+                      : "Enter your account email — we'll send you a link to set a new password."}
                   </p>
                 </div>
 
-                {forgotSuccess ? (
+                {forgotSubmitted ? (
                   <div className="text-center space-y-4">
                     <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
                       <CheckCircle2 className="w-9 h-9 text-blue-600" />
                     </div>
-                    <p className="text-sm text-blue-700 font-medium">Your password has been reset. You can now sign in.</p>
-                    <Button onClick={() => setMode("signIn")} className="w-full bg-blue-600 hover:bg-blue-700 h-11">Sign In Now</Button>
+                    <p className="text-sm text-blue-700 font-medium">
+                      If {forgotEmail} is registered, a password reset link is on its way.
+                    </p>
+                    <Button onClick={() => setMode("signIn")} className="w-full bg-blue-600 hover:bg-blue-700 h-11">Back to Sign In</Button>
                   </div>
-                ) : !forgotOtpSent ? (
-                  <>
-                    <div>
-                      <label className="text-sm font-medium text-neutral-700">Registered Phone Number</label>
-                      <div className="relative mt-1">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                        <input
-                          type="tel" placeholder="+91 98765 43210" value={forgotPhone}
-                          onChange={e => setForgotPhone(e.target.value)}
-                          className="w-full border border-neutral-200 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-blue-400"
-                        />
-                      </div>
-                    </div>
-                    <Button onClick={() => { if (forgotPhone.length >= 10) { setForgotOtpSent(true); toast({ title: "OTP Sent", description: "A 6-digit OTP has been sent to your phone." }); } }}
-                      disabled={forgotPhone.length < 10} className="w-full bg-blue-600 hover:bg-blue-700 h-11">
-                      Send OTP
-                    </Button>
-                  </>
                 ) : (
                   <>
                     <div>
-                      <label className="text-sm font-medium text-neutral-700">Enter OTP (use 123456)</label>
-                      <input type="text" maxLength={6} placeholder="6-digit OTP" value={forgotOtp}
-                        onChange={e => setForgotOtp(e.target.value.replace(/\D/, ""))}
-                        className="w-full border border-neutral-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-400 mt-1 tracking-widest text-center text-lg font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-neutral-700">New Password</label>
+                      <label className="text-sm font-medium text-neutral-700">Account Email</label>
                       <div className="relative mt-1">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                        <input type="password" placeholder="New password (min. 6 chars)" value={forgotNewPwd}
-                          onChange={e => setForgotNewPwd(e.target.value)}
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="email" placeholder="you@example.com" value={forgotEmail}
+                          onChange={e => setForgotEmail(e.target.value)}
                           className="w-full border border-neutral-200 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-blue-400"
                         />
                       </div>
+                      {forgotError && <p className="text-xs text-red-600 mt-1">{forgotError}</p>}
                     </div>
-                    <Button onClick={() => {
-                      if (forgotOtp === "123456" && forgotNewPwd.length >= 6) {
-                        setForgotSuccess(true);
-                      } else if (forgotOtp !== "123456") {
-                        toast({ title: "Wrong OTP", description: "Incorrect OTP. Try again.", variant: "destructive" });
-                      } else {
-                        toast({ title: "Password too short", description: "Minimum 6 characters required.", variant: "destructive" });
-                      }
-                    }} disabled={forgotOtp.length < 6 || forgotNewPwd.length < 6}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white h-11">
-                      Reset Password
+                    <Button onClick={handleForgotSubmit} disabled={isLoading || !forgotEmail} className="w-full bg-blue-600 hover:bg-blue-700 h-11">
+                      {isLoading ? "Sending…" : "Send Reset Link"}
                     </Button>
+                    <button onClick={() => setMode("signIn")} className="w-full flex items-center justify-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mt-2">
+                      <ArrowLeft className="w-4 h-4" /> Back to Sign In
+                    </button>
                   </>
-                )}
-
-                {!forgotSuccess && (
-                  <button onClick={() => setMode("signIn")} className="w-full flex items-center justify-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mt-2">
-                    <ArrowLeft className="w-4 h-4" /> Back to Sign In
-                  </button>
                 )}
               </div>
             )}
 
             {/* ── SIGN UP — form ───────────────────────────────────────── */}
-            {mode === "signUp" && step === "form" && (
+            {mode === "signUp" && (
               <>
                 <p className="text-neutral-500 text-sm mb-5 text-center">Create your account in seconds.</p>
                 <Form {...signUpForm}>
@@ -497,129 +376,6 @@ export default function Login() {
               </>
             )}
 
-            {/* ── SIGN UP — Mobile OTP step ─────────────────────────────── */}
-            {mode === "signUp" && step === "mobile" && (
-              <>
-                <div className="text-center mb-5">
-                  <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
-                    <Smartphone className="w-7 h-7 text-blue-600" />
-                  </div>
-                  <h2 className="font-bold text-lg">Verify Your Mobile</h2>
-                  <p className="text-sm text-neutral-500 mt-1">We'll send a one-time password to confirm your number</p>
-                </div>
-                <Form {...mobileForm}>
-                  <form onSubmit={mobileForm.handleSubmit(handleSendOtp)} className="space-y-4" autoComplete="off">
-                    <FormField control={mobileForm.control} name="mobileNumber" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Mobile Number</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                            <span className="absolute left-9 top-1/2 -translate-y-1/2 text-neutral-400 text-sm font-medium border-r border-neutral-200 pr-2">+91</span>
-                            <Input
-                              {...field}
-                              placeholder="98765 43210"
-                              className="pl-[4.5rem] tracking-wider"
-                              maxLength={10}
-                              inputMode="numeric"
-                              autoComplete="tel"
-                              onChange={e => field.onChange(e.target.value.replace(/\D/g, ""))}
-                            />
-                          </div>
-                        </FormControl>
-                        <p className="text-xs text-neutral-400 mt-1">10-digit number starting with 6, 7, 8, or 9</p>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-
-                    <FormField control={mobileForm.control} name="loginPlace" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Your Current City / Place</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                            <Input
-                              {...field}
-                              placeholder="e.g. Chennai, Coimbatore"
-                              className="pl-10"
-                              autoComplete="off"
-                            />
-                          </div>
-                        </FormControl>
-                        <p className="text-xs text-neutral-400 mt-1">City or area you are currently signing up from</p>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex gap-2">
-                      <Phone className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-blue-700">A 6-digit OTP will be sent to the mobile number you enter above.</p>
-                    </div>
-
-                    <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 h-11 font-semibold" disabled={isLoading}>
-                      {isLoading ? "Sending OTP..." : "Send OTP"}
-                    </Button>
-                    <Button type="button" variant="ghost" onClick={() => setStep("form")} className="w-full text-neutral-500">
-                      <ArrowLeft className="h-4 w-4 mr-1" /> Back
-                    </Button>
-                  </form>
-                </Form>
-              </>
-            )}
-
-            {/* ── SIGN UP — OTP step ───────────────────────────────────── */}
-            {mode === "signUp" && step === "otp" && (
-              <>
-                <h2 className="font-bold text-lg text-center mb-1">Enter OTP</h2>
-                <p className="text-sm text-neutral-500 text-center mb-5">
-                  OTP sent to mobile <strong>{maskedPhone}</strong>
-                </p>
-                <Form {...otpForm}>
-                  <form onSubmit={otpForm.handleSubmit(handleVerifyOtp)} className="space-y-4" autoComplete="off">
-                    <FormField control={otpForm.control} name="otp" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>One-Time Password</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                            <Input
-                              {...field}
-                              placeholder="e.g. 847291"
-                              className="pl-10 tracking-[0.5em] text-center text-xl font-bold h-14"
-                              maxLength={6}
-                              inputMode="numeric"
-                              autoComplete="one-time-code"
-                              onChange={e => field.onChange(e.target.value.replace(/\D/g, ""))}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-neutral-400">Didn't receive OTP?</span>
-                      <button
-                        type="button"
-                        onClick={handleResendOtp}
-                        disabled={countdown > 0}
-                        className={`font-semibold ${countdown > 0 ? "text-neutral-300 cursor-not-allowed" : "text-blue-600"}`}
-                      >
-                        {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
-                      </button>
-                    </div>
-
-                    <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 h-11 font-semibold" disabled={isLoading}>
-                      {isLoading ? "Verifying..." : "Verify & Create Account"}
-                    </Button>
-                    <Button type="button" variant="ghost" onClick={() => setStep("mobile")} className="w-full text-neutral-500">
-                      <ArrowLeft className="h-4 w-4 mr-1" /> Change Mobile Number
-                    </Button>
-                  </form>
-                </Form>
-                <p className="text-center text-xs text-neutral-300 mt-3">Demo OTP: 123456</p>
-              </>
-            )}
     </>
   );
 
@@ -685,7 +441,6 @@ export default function Login() {
         {/* Right — auth card */}
         <div className="h-screen overflow-y-auto flex items-center justify-center px-10 py-12">
           <div className="w-full max-w-md">
-            {verifyStepsBar}
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
               {tabSwitcher}
               <div className="p-8">{authBody}</div>
@@ -718,8 +473,6 @@ export default function Login() {
           <p className="text-neutral-600 mt-1 text-sm font-medium">India's Smart Vehicle Shifting &amp; Travel Platform</p>
           <p className="text-neutral-400 text-xs tracking-wide mt-0.5">Safe Shift. Joyful Journey.</p>
         </div>
-
-        {verifyStepsBar}
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {tabSwitcher}

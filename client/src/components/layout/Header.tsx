@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Bell, ChevronLeft, Menu, Home as HomeIcon, Truck, Compass,
   Briefcase, Receipt, MessageCircle, User, HelpCircle, Moon, Sun, LogOut,
 } from "lucide-react";
-import { USER_PROFILE } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import HeaderLogo from "@/components/branding/HeaderLogo";
 import BrandName from "@/components/branding/BrandName";
@@ -13,7 +13,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { useTheme } from "@/components/ui/theme-provider";
-import { useUnreadNotifCount } from "@/lib/notificationsStore";
+import { useCurrentUser, performLogout } from "@/lib/auth";
 
 interface HeaderProps {
   title?: string;
@@ -42,7 +42,13 @@ export default function Header({
   showAnimation = true,
 }: HeaderProps) {
   const [, setLocation] = useLocation();
-  const unreadCount = useUnreadNotifCount();
+  const { user } = useCurrentUser();
+  const { data: unreadData } = useQuery<{ count: number }>({
+    queryKey: ["/api/notifications/unread-count"],
+    enabled: Boolean(user),
+    refetchInterval: 30000,
+  });
+  const unreadCount = unreadData?.count ?? 0;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
@@ -54,15 +60,7 @@ export default function Header({
     setLocation(path);
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/user/logout", { method: "POST", credentials: "include" });
-    } catch {
-      // Best-effort: still clear local session state below even if this fails.
-    }
-    ["isAuthenticated", "hasSeenTour", "isFirstLogin", "username", "userType"].forEach(k => localStorage.removeItem(k));
-    window.location.href = "/";
-  };
+  const handleLogout = () => performLogout();
 
   const NavDrawer = (
     <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
@@ -95,13 +93,23 @@ export default function Header({
             {isDark ? <Sun className="w-5 h-5 text-orange-400 shrink-0" /> : <Moon className="w-5 h-5 text-blue-600 shrink-0" />}
             <span className="font-medium text-sm">{isDark ? "Light Mode" : "Dark Mode"}</span>
           </button>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-neutral-800 transition-colors text-left"
-          >
-            <LogOut className="w-5 h-5 shrink-0" />
-            <span className="font-medium text-sm">Log Out</span>
-          </button>
+          {user ? (
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-neutral-800 transition-colors text-left"
+            >
+              <LogOut className="w-5 h-5 shrink-0" />
+              <span className="font-medium text-sm">Log Out</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => go("/login")}
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-blue-600 hover:bg-blue-50 dark:hover:bg-neutral-800 transition-colors text-left"
+            >
+              <User className="w-5 h-5 shrink-0" />
+              <span className="font-medium text-sm">Sign In / Sign Up</span>
+            </button>
+          )}
         </div>
       </SheetContent>
     </Sheet>
@@ -139,9 +147,9 @@ export default function Header({
           </button>
           <button onClick={() => setLocation("/profile")} aria-label="Profile" data-tour="profile">
             <Avatar className="h-8 w-8 border-2 border-orange-200">
-              <AvatarImage src={USER_PROFILE.avatarUrl} alt={USER_PROFILE.name} />
+              <AvatarImage src={user?.avatarUrl || undefined} alt={user?.name || "Profile"} />
               <AvatarFallback className="bg-blue-100 text-blue-700 font-bold text-sm">
-                {USER_PROFILE.name.charAt(0)}
+                {(user?.name || "?").charAt(0)}
               </AvatarFallback>
             </Avatar>
           </button>
@@ -194,8 +202,8 @@ export default function Header({
         </button>
         <button onClick={() => setLocation("/profile")} aria-label="Profile">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={USER_PROFILE.avatarUrl} alt={USER_PROFILE.name} />
-            <AvatarFallback>{USER_PROFILE.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={user?.avatarUrl || undefined} alt={user?.name || "Profile"} />
+            <AvatarFallback>{(user?.name || "?").charAt(0)}</AvatarFallback>
           </Avatar>
         </button>
       </div>

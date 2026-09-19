@@ -790,8 +790,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // An admin can read any thread; anyone else must present the access token
   // handed out at creation (as `?token=` or `x-enquiry-token` header) — this
   // closes the previous "guess the id" PII exposure.
-  function canAccessEnquiry(req: import("express").Request, enquiry: { accessTokenHash: string }): boolean {
+  function canAccessEnquiry(req: import("express").Request, enquiry: { accessTokenHash: string | null }): boolean {
     if (req.isAuthenticated() && req.user.role === "admin") return true;
+    if (!enquiry.accessTokenHash) return false; // legacy row, minted before tokens existed
     const supplied = (req.query.token as string | undefined) || req.header("x-enquiry-token");
     return Boolean(supplied) && hashToken(supplied!) === enquiry.accessTokenHash;
   }
