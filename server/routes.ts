@@ -1,26 +1,25 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import multer from "multer";
 import passport from "passport";
 import { storage } from "./storage";
-import { requireAuth, requireAdmin } from "./auth";
-import { hashPassword } from "./lib/password";
+import { requireAuth, requireAdmin, resolveUserIdFromCookie } from "./auth";
+import { hashPassword, verifyPassword, generateToken, hashToken } from "./lib/password";
 import * as cashfree from "./lib/cashfree";
-import Stripe from "stripe";
+import * as email from "./lib/email";
 
-// Stripe backs a legacy/dormant mock booking-payment path, superseded by the
-// Cashfree flow below. The client is created lazily (not at module load) so
-// the server can start without STRIPE_SECRET_KEY set — constructing the SDK
-// eagerly with no key throws and crashes the whole process on boot. Mirrors
-// the isConfigured() pattern in server/lib/cashfree.ts.
-let stripe: Stripe | null = null;
-function isStripeConfigured(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
-}
-function getStripe(): Stripe {
-  if (!stripe) stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-  return stripe;
-}
+// In-memory multipart parsing (files go straight into Postgres as bytea, no
+// disk/tmp involved) — capped at 8MB per file, images + PDFs only.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = /^image\/(jpeg|png|webp)$|^application\/pdf$/.test(file.mimetype);
+    if (!ok) return cb(new Error("Only JPEG/PNG/WEBP images or PDF files are allowed"));
+    cb(null, true);
+  },
+});
 
 import {
   insertShiftRequestSchema,
@@ -127,6 +126,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(req.user);
   });
 
+  // Update the current user's own profile fields (name/phone/address). Never
+  // accepts email/password/role here — those have their own dedicated,
+  // more carefully-guarded endpoints.
+  app.patch("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const schema = z.object({
+        name: z.string().trim().min(1).optional(),
+        phone: z.string().trim().min(6).max(15).optional(),
+        address: z.string().trim().optional(),
+        avatarUrl: z.string().optional(),
+      });
+      const patch = schema.parse(req.body);
+      const updated = await storage.updateUserProfile(req.user!.id, patch);
+      if (!updated) return res.status(404).json({ message: "User not found" });
+      const { password, ...safeUser } = updated;
+      res.json(safeUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors });
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Change password while logged in — requires the current password.
+  app.post("/api/user/change-password", requireAuth, async (req, res) => {
+    try {
+      const schema = z.object({
+        currentPassword: z.string().min(1),
+        newPassword: z.string().min(6, "Password must be at least 6 characters"),
+      });
+      const { currentPassword, newPassword } = schema.parse(req.body);
+
+      const user = await storage.getUser(req.user!.id);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const valid = await verifyPassword(currentPassword, user.password);
+      if (!valid) return res.status(400).json({ message: "Current password is incorrect" });
+
+      await storage.updateUserPassword(user.id, await hashPassword(newPassword));
+      res.status(204).end();
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors });
+      console.error("Error changing password:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Request a password-reset email. Always responds with the same generic
+  // message regardless of whether the email exists (standard anti-enumeration
+  // practice) — but if the email service itself isn't configured, that is
+  // reported honestly rather than pretending an email went out.
+  app.post("/api/user/forgot-password", async (req, res) => {
+    try {
+      const { email: rawEmail } = z.object({ email: z.string().email() }).parse(req.body);
+
+      if (!email.isConfigured()) {
+        return res.status(503).json({
+          message: "Password reset email is not configured on this deployment yet. Contact support directly.",
+        });
+      }
+
+      const token = generateToken();
+      const expires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+      const user = await storage.setPasswordResetToken(rawEmail, hashToken(token), expires);
+
+      if (user) {
+        const resetUrl = `${cashfree.appBaseUrl()}/reset-password?token=${token}`;
+        try {
+          await email.sendPasswordResetEmail(user.email, resetUrl);
+        } catch (e) {
+          console.error("Failed to send password reset email:", e);
+          return res.status(502).json({ message: "Could not send the reset email. Please try again shortly." });
+        }
+      }
+
+      res.json({ message: "If that email is registered, a password reset link has been sent." });
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors });
+      console.error("Error requesting password reset:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Complete a password reset using the token emailed above. Single-use.
+  app.post("/api/user/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = z
+        .object({ token: z.string().min(1), newPassword: z.string().min(6, "Password must be at least 6 characters") })
+        .parse(req.body);
+
+      const user = await storage.getUserByValidResetTokenHash(hashToken(token));
+      if (!user) {
+        return res.status(400).json({ message: "This reset link is invalid or has expired. Request a new one." });
+      }
+
+      await storage.updateUserPassword(user.id, await hashPassword(newPassword));
+      res.json({ message: "Your password has been reset. You can now sign in." });
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors });
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // --- Vehicle Routes ---
   // Get user's vehicles
   app.get("/api/vehicles", requireAuth, async (req, res) => {
@@ -158,6 +261,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // --- Document Routes (real file storage — vehicle photos, RC, DL, insurance) ---
+  const ALLOWED_DOC_TYPES = ["vehicle_photo", "rc", "dl", "insurance", "avatar"] as const;
+
+  // Upload a document. File bytes are stored directly in Postgres; only
+  // metadata (never the bytes) is ever sent back in list responses.
+  app.post("/api/documents", requireAuth, upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+      const { type, vehicleId, shiftRequestId } = req.body as Record<string, string | undefined>;
+      if (!type || !ALLOWED_DOC_TYPES.includes(type as (typeof ALLOWED_DOC_TYPES)[number])) {
+        return res.status(400).json({ message: `type must be one of: ${ALLOWED_DOC_TYPES.join(", ")}` });
+      }
+
+      const doc = await storage.createDocument({
+        userId: req.user!.id,
+        vehicleId: vehicleId ? parseInt(vehicleId) : null,
+        shiftRequestId: shiftRequestId ? parseInt(shiftRequestId) : null,
+        type,
+        fileName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        fileSize: req.file.size,
+        data: req.file.buffer,
+      });
+      res.status(201).json(doc);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ message: (error as Error).message || "Server error" });
+    }
+  });
+
+  // List the current user's documents (metadata only).
+  app.get("/api/documents", requireAuth, async (req, res) => {
+    try {
+      res.json(await storage.getDocumentsByUserId(req.user!.id));
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Stream a document's actual bytes — ownership (or admin) checked.
+  app.get("/api/documents/:id/file", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const doc = await storage.getDocumentWithData(id);
+      if (!doc) return res.status(404).json({ message: "Document not found" });
+      if (doc.userId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Not authorized to view this document" });
+      }
+      res.setHeader("Content-Type", doc.mimeType);
+      res.setHeader("Content-Disposition", `inline; filename="${doc.fileName}"`);
+      res.send(doc.data);
+    } catch (error) {
+      console.error("Error fetching document file:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.delete("/api/documents/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const doc = await storage.getDocumentMeta(id);
+      if (!doc) return res.status(404).json({ message: "Document not found" });
+      if (doc.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to delete this document" });
+      }
+      await storage.deleteDocument(id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // --- Notifications (real, DB-backed) ---
+  app.get("/api/notifications", requireAuth, async (req, res) => {
+    try {
+      res.json(await storage.getNotificationsByUserId(req.user!.id));
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", requireAuth, async (req, res) => {
+    try {
+      res.json({ count: await storage.getUnreadNotificationCount(req.user!.id) });
+    } catch (error) {
+      console.error("Error fetching unread notification count:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/notifications/:id/read", requireAuth, async (req, res) => {
+    try {
+      await storage.markNotificationRead(parseInt(req.params.id), req.user!.id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error marking notification read:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/notifications/read-all", requireAuth, async (req, res) => {
+    try {
+      await storage.markAllNotificationsRead(req.user!.id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error marking all notifications read:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // --- Real payment history ---
+  app.get("/api/payments", requireAuth, async (req, res) => {
+    try {
+      res.json(await storage.getPaymentsByUserId(req.user!.id));
+    } catch (error) {
+      console.error("Error fetching payment history:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // --- Shift Request Routes ---
   // Create a new shift request
   app.post("/api/shift-requests", requireAuth, async (req, res) => {
@@ -185,6 +412,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         registrationNumber,
       });
 
+      // A real, previously-uploaded document id (from POST /api/documents),
+      // not a boolean flag — the actual photo bytes are stored in Postgres.
+      let vehiclePhotoRef: string | undefined;
+      if (req.body.vehiclePhotoDocId) {
+        const docId = parseInt(req.body.vehiclePhotoDocId);
+        const doc = await storage.getDocumentMeta(docId);
+        if (!doc || doc.userId !== userId) {
+          return res.status(400).json({ message: "Invalid vehicle photo document" });
+        }
+        vehiclePhotoRef = `/api/documents/${docId}/file`;
+      }
+
       // Map from request body to our schema
       const requestData = {
         userId,
@@ -192,13 +431,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pickupLocation: req.body.pickupLocation,
         dropLocation: req.body.dropLocation,
         insuranceExpiryDate: req.body.insuranceExpiryDate,
-        vehiclePhoto: req.body.photoUploaded ? "vehicle-photo-url.jpg" : undefined,
+        vehiclePhoto: vehiclePhotoRef,
         status: "pending",
       };
-      
+
       const validatedData = insertShiftRequestSchema.parse(requestData);
       const newRequest = await storage.createShiftRequest(validatedData);
-      
+
+      if (req.body.vehiclePhotoDocId) {
+        await storage.linkDocumentToShiftRequest(parseInt(req.body.vehiclePhotoDocId), newRequest.id, vehicle.id);
+      }
+
       res.status(201).json(newRequest);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -506,12 +749,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // --- Customer Enquiry (MD support desk) Routes ---
-  // Customer creates a new enquiry
+  // Customer creates a new enquiry — no account required (intentional low-
+  // friction contact form). A one-time, unguessable access token is minted
+  // and returned ONLY in this response; the client must hold onto it to read
+  // or reply to this thread later. Only its SHA-256 hash is stored.
   app.post("/api/enquiries", async (req, res) => {
     try {
       const data = insertEnquirySchema.parse(req.body);
-      const enquiry = await storage.createEnquiry(data);
-      res.status(201).json(enquiry);
+      const accessToken = generateToken();
+      const enquiry = await storage.createEnquiry(data, hashToken(accessToken));
+      const { accessTokenHash, ...safeEnquiry } = enquiry;
+      res.status(201).json({ ...safeEnquiry, accessToken });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
@@ -528,7 +776,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const withMeta = await Promise.all(
         enquiries.map(async (e) => {
           const messages = await storage.getEnquiryMessages(e.id);
-          return { ...e, messageCount: messages.length, lastMessage: messages[messages.length - 1] };
+          const { accessTokenHash, ...safe } = e;
+          return { ...safe, messageCount: messages.length, lastMessage: messages[messages.length - 1] };
         })
       );
       res.json(withMeta);
@@ -538,26 +787,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // An admin can read any thread; anyone else must present the access token
+  // handed out at creation (as `?token=` or `x-enquiry-token` header) — this
+  // closes the previous "guess the id" PII exposure.
+  function canAccessEnquiry(req: import("express").Request, enquiry: { accessTokenHash: string }): boolean {
+    if (req.isAuthenticated() && req.user.role === "admin") return true;
+    const supplied = (req.query.token as string | undefined) || req.header("x-enquiry-token");
+    return Boolean(supplied) && hashToken(supplied!) === enquiry.accessTokenHash;
+  }
+
   // Get a single enquiry's message thread
   app.get("/api/enquiries/:id/messages", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const enquiry = await storage.getEnquiry(id);
       if (!enquiry) return res.status(404).json({ message: "Enquiry not found" });
+      if (!canAccessEnquiry(req, enquiry)) {
+        return res.status(403).json({ message: "Not authorized to view this enquiry" });
+      }
+      const { accessTokenHash, ...safeEnquiry } = enquiry;
       const messages = await storage.getEnquiryMessages(id);
-      res.json({ enquiry, messages });
+      res.json({ enquiry: safeEnquiry, messages });
     } catch (error) {
       console.error("Error fetching enquiry messages:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
 
-  // Add a message to an enquiry thread (customer, unauthenticated; or MD/admin)
+  // Add a message to an enquiry thread (token-holding customer, or admin as "md")
   app.post("/api/enquiries/:id/messages", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const enquiry = await storage.getEnquiry(id);
       if (!enquiry) return res.status(404).json({ message: "Enquiry not found" });
+      if (!canAccessEnquiry(req, enquiry)) {
+        return res.status(403).json({ message: "Not authorized to post to this enquiry" });
+      }
 
       // Only an authenticated admin may post as "md" — everyone else can only
       // post as "customer", regardless of what the request body claims.
@@ -591,89 +856,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // WebSocket server for real-time chat
-  // --- Payment Routes ---
-  // Create a payment intent for vehicle booking
-  app.post("/api/create-payment-intent", async (req, res) => {
-    try {
-      const { vehicleId, totalDays, totalAmount } = req.body;
-
-      if (!vehicleId || !totalDays || !totalAmount) {
-        return res.status(400).json({ message: "Missing required booking information" });
-      }
-
-      if (!isStripeConfigured()) {
-        return res
-          .status(503)
-          .json({ message: "Payment gateway is not configured. Add STRIPE_SECRET_KEY to the server environment." });
-      }
-
-      // Create a payment intent with the order amount and currency
-      const paymentIntent = await getStripe().paymentIntents.create({
-        amount: Math.round(totalAmount * 100), // Convert to cents
-        currency: "inr",
-        metadata: {
-          vehicleId: vehicleId.toString(),
-          totalDays: totalDays.toString()
-        }
-      });
-      
-      // Send the client secret to the client
-      res.json({ 
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id
-      });
-    } catch (error) {
-      console.error("Error creating payment intent:", error);
-      res.status(500).json({ message: "Error creating payment intent" });
-    }
+  // --- Retired legacy Stripe/mock booking path ---
+  // These endpoints predate the real Cashfree flow below and never fully
+  // persisted a booking (confirm-booking returned a fabricated, non-DB trip
+  // object). Cashfree is the only real V1 payment path. Kept as permanent
+  // 410s (rather than deleted) so any stale client build fails loudly and
+  // honestly instead of silently fabricating a "successful" booking.
+  app.post("/api/create-payment-intent", (_req, res) => {
+    res.status(410).json({ message: "This payment path has been retired. Use the Cashfree trip-payment flow." });
   });
-  
-  // Confirm a booking after successful payment
-  app.post("/api/confirm-booking", requireAuth, async (req, res) => {
-    try {
-      const { paymentIntentId, vehicleId, pickupDate, returnDate, totalDays, totalAmount } = req.body;
-      const userId = req.user!.id;
-
-      if (!isStripeConfigured()) {
-        return res
-          .status(503)
-          .json({ message: "Payment gateway is not configured. Add STRIPE_SECRET_KEY to the server environment." });
-      }
-
-      // Verify payment was successful
-      const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
-      
-      if (paymentIntent.status !== "succeeded") {
-        return res.status(400).json({ message: "Payment not completed" });
-      }
-      
-      // Create a new trip/booking record
-      const tripData = {
-        userId,
-        vehicleId: parseInt(vehicleId),
-        driverId: userId, // In a real app, this could be different from userId
-        pickupDate: new Date(pickupDate).toISOString(),
-        returnDate: new Date(returnDate).toISOString(),
-        totalDays: parseInt(totalDays),
-        totalAmount: parseFloat(totalAmount),
-        paymentId: paymentIntentId,
-        status: "confirmed"
-      };
-      
-      // Create the trip in database - Using a mock response for now
-      // const newTrip = await storage.createTrip(tripData);
-      const mockTrip = {
-        id: Math.floor(Math.random() * 10000),
-        ...tripData,
-        createdAt: new Date().toISOString()
-      };
-      
-      res.status(201).json(mockTrip);
-    } catch (error) {
-      console.error("Error confirming booking:", error);
-      res.status(500).json({ message: "Error confirming booking" });
-    }
+  app.post("/api/confirm-booking", (_req, res) => {
+    res.status(410).json({ message: "This payment path has been retired. Use the Cashfree trip-payment flow." });
   });
 
   // ─────────────────────────────────────────────────────────────────────
@@ -753,6 +946,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (trip && trip.status === "awaiting_payment") {
         await storage.updateTripStatus(trip.id, "scheduled");
       }
+
+      await storage.createNotification({
+        userId: payment.userId,
+        type: "payment_paid",
+        title: "Payment successful",
+        body: `Your payment of ₹${payment.amount} was received. Your trip is now scheduled.`,
+        relatedId: payment.tripId,
+      });
+
       return updated;
     }
 
@@ -953,6 +1155,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           endDate: toDate(data.endDate),
         }
       );
+
+      await storage.createNotification({
+        userId: updatedRequest.userId,
+        type: "request_approved",
+        title: "Your shift request was approved",
+        body: `Priced at ₹${trip.price}. Open My Rides to review and pay.`,
+        relatedId: trip.id,
+      });
+
       res.status(201).json({ request: updatedRequest, trip });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -978,9 +1189,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updated = await storage.rejectShiftRequest(id, req.user!.id, reason);
+
+      if (updated) {
+        await storage.createNotification({
+          userId: updated.userId,
+          type: "request_rejected",
+          title: "Your shift request was declined",
+          body: reason,
+          relatedId: updated.id,
+        });
+      }
+
       res.json(updated);
     } catch (error) {
       console.error("Error rejecting shift request:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ── Admin: real aggregate summary for the Control Center overview ──
+  app.get("/api/admin/summary", requireAdmin, async (_req, res) => {
+    try {
+      res.json(await storage.getAdminSummary());
+    } catch (error) {
+      console.error("Error fetching admin summary:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
@@ -1005,10 +1237,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `status must be one of: ${ALLOWED_TRIP_STATUS.join(", ")}`,
         });
       }
-      const trip = await storage.getTrip(id);
+      const trip = await storage.getTripWithRelations(id);
       if (!trip) return res.status(404).json({ message: "Trip not found" });
 
       const updated = await storage.updateTripStatus(id, status);
+
+      if (trip.shiftRequest?.userId) {
+        const STATUS_LABEL: Record<string, string> = {
+          scheduled: "Trip scheduled",
+          in_transit: "Your vehicle is on the way",
+          completed: "Trip completed",
+          cancelled: "Trip cancelled",
+        };
+        await storage.createNotification({
+          userId: trip.shiftRequest.userId,
+          type: "trip_status",
+          title: STATUS_LABEL[status] || "Trip status updated",
+          body: `Trip #${id}: status changed to "${status.replace("_", " ")}".`,
+          relatedId: id,
+        });
+      }
+
       res.json(updated);
     } catch (error) {
       console.error("Error updating trip status:", error);
@@ -1017,54 +1266,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  // Store active connections
+  const wss = new WebSocketServer({ noServer: true });
+
+  // Store active connections, keyed by the SERVER-VERIFIED user id only.
   const clients = new Map<number, WebSocket>();
-  
-  wss.on('connection', (ws) => {
-    let userId: number | null = null;
-    
+
+  // Authenticate the upgrade itself against the real session cookie (the
+  // same Postgres-backed session store used by every HTTP route) — a client
+  // can no longer declare who it is. Unauthenticated upgrades are rejected
+  // before a WebSocket connection is ever established.
+  httpServer.on("upgrade", async (req, socket, head) => {
+    const url = new URL(req.url || "", "http://localhost");
+    if (url.pathname !== "/ws") return; // let other upgrade handlers (e.g. Vite HMR) deal with it
+
+    const userId = await resolveUserIdFromCookie(req.headers.cookie);
+    if (!userId) {
+      socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+      socket.destroy();
+      return;
+    }
+
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit("connection", ws, req, userId);
+    });
+  });
+
+  wss.on('connection', (ws: WebSocket, _req: unknown, userId: number) => {
+    clients.set(userId, ws);
+    ws.send(JSON.stringify({ type: 'auth', success: true }));
+
     ws.on('message', async (message) => {
       try {
         const data = JSON.parse(message.toString());
-        
-        // Handle authentication message
-        if (data.type === 'auth') {
-          userId = parseInt(data.userId);
-          clients.set(userId, ws);
-          ws.send(JSON.stringify({ type: 'auth', success: true }));
-          return;
-        }
-        
-        // If not authenticated, reject other message types
-        if (!userId) {
-          ws.send(JSON.stringify({ type: 'error', message: 'Not authenticated' }));
-          return;
-        }
-        
-        // Handle chat message
+
+        // Handle chat message — conversation membership is verified against
+        // the DB, and recipientId is derived from the conversation itself,
+        // never trusted from the client.
         if (data.type === 'message') {
+          const conversation = await storage.getChatConversation(parseInt(data.conversationId));
+          if (!conversation) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Conversation not found' }));
+            return;
+          }
+          if (conversation.ownerId !== userId && conversation.travelerId !== userId) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not a participant in this conversation' }));
+            return;
+          }
+          const recipientId = conversation.ownerId === userId ? conversation.travelerId : conversation.ownerId;
+
           const messageData = insertChatMessageSchema.parse({
-            conversationId: data.conversationId,
+            conversationId: conversation.id,
             senderId: userId,
-            recipientId: data.recipientId,
+            recipientId,
             message: data.message
           });
-          
-          // Store message in database
+
           const savedMessage = await storage.sendChatMessage(messageData);
-          
-          // Send to recipient if online
-          const recipientWs = clients.get(data.recipientId);
+
+          const recipientWs = clients.get(recipientId);
           if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
             recipientWs.send(JSON.stringify({
               type: 'message',
               message: savedMessage
             }));
           }
-          
-          // Confirm to sender
+
           ws.send(JSON.stringify({
             type: 'message_sent',
             message: savedMessage
@@ -1078,11 +1344,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
       }
     });
-    
+
     ws.on('close', () => {
-      if (userId) {
-        clients.delete(userId);
-      }
+      if (clients.get(userId) === ws) clients.delete(userId);
     });
   });
   

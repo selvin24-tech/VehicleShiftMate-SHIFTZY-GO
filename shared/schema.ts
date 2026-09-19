@@ -1,6 +1,15 @@
-import { pgTable, text, serial, timestamp, varchar, boolean, integer, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, varchar, boolean, integer, real, customType } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Raw binary column (Postgres bytea) for storing uploaded file bytes directly
+// in the database — no external object-storage credentials required. Fine at
+// V1-pilot scale; revisit (S3/Cloudinary) only if document volume grows.
+const bytea = customType<{ data: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -17,6 +26,11 @@ export const users = pgTable("users", {
   // Rating fields for the user
   averageRating: real("average_rating").default(0),
   totalRatings: integer("total_ratings").default(0),
+  // Password-reset flow (Phase: security hardening). The token itself is
+  // never stored — only its SHA-256 hash — so a DB read alone can't be used
+  // to reset a password. Single-use: cleared once consumed.
+  resetTokenHash: text("reset_token_hash"),
+  resetTokenExpires: timestamp("reset_token_expires"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -208,7 +222,10 @@ export type InsertChatConversation = z.infer<typeof insertChatConversationSchema
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 
-// Customer enquiries — direct line to the MD / Shiftzy support desk
+// Customer enquiries — direct line to the MD / Shiftzy support desk.
+// Anonymous by design (no account required to contact support), so ownership
+// of a thread is proven by possessing its one-time access token (returned
+// only in the create-enquiry response) rather than by a userId FK.
 export const enquiries = pgTable("enquiries", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -219,6 +236,11 @@ export const enquiries = pgTable("enquiries", {
   preferredDate: text("preferred_date"),
   message: text("message").notNull(),
   status: text("status").default("new"), // new, in_progress, resolved
+  // SHA-256 hash of the access token handed to the creator once. Never store
+  // the raw token. Nullable only for enquiries created before this column
+  // existed — those are admin-only accessible going forward (no token was
+  // ever captured for them to be reissued).
+  accessTokenHash: text("access_token_hash"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -238,7 +260,58 @@ export const insertEnquirySchema = createInsertSchema(enquiries, {
   vehicleType: z.string().min(1, "Vehicle type is required"),
   preferredDate: z.string().min(1, "Preferred date & time is required"),
   message: z.string().min(1, "Please type your question"),
-}).omit({ id: true, createdAt: true, status: true });
+}).omit({ id: true, createdAt: true, status: true, accessTokenHash: true });
+
+// Uploaded proof documents — vehicle photos, RC, DL, insurance proof.
+// File bytes are stored directly in Postgres (bytea); no external object
+// storage credentials required. Ownership is enforced by userId, checked on
+// every read/download.
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  // Optional link to the vehicle/shift request this document belongs to.
+  vehicleId: integer("vehicle_id").references(() => vehicles.id),
+  shiftRequestId: integer("shift_request_id").references(() => shiftRequests.id),
+  // "vehicle_photo" | "rc" | "dl" | "insurance" | "avatar"
+  type: text("type").notNull(),
+  fileName: text("file_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  data: bytea("data").notNull(),
+  // Manual review, mirroring the Honest Pilot's admin-operated verification —
+  // no automated document verification is implied or performed.
+  status: text("status").notNull().default("uploaded"), // uploaded | verified | rejected
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertDocumentSchema = createInsertSchema(documents).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+});
+
+export type DocumentRow = typeof documents.$inferSelect;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+// Metadata-only shape (never carries file bytes over the wire in list calls).
+export type DocumentMeta = Omit<DocumentRow, "data">;
+
+// Real, DB-backed notifications — replaces the earlier localStorage-only demo
+// notification feed. Created by the server at real lifecycle events (request
+// approved/rejected, payment confirmed, trip status changed).
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  // "request_approved" | "request_rejected" | "payment_paid" | "trip_status"
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  // Optional deep-link target, e.g. a shiftRequestId or tripId.
+  relatedId: integer("related_id"),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
 
 export const insertEnquiryMessageSchema = createInsertSchema(enquiryMessages, {
   enquiryId: z.number(),

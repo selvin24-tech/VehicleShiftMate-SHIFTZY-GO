@@ -1,4 +1,4 @@
-import { eq, and, or, asc, desc } from "drizzle-orm";
+import { eq, and, or, asc, desc, sql, gte } from "drizzle-orm";
 import { db } from "./db";
 import {
   users,
@@ -12,6 +12,8 @@ import {
   enquiries,
   enquiryMessages,
   payments,
+  documents,
+  notifications,
   User,
   InsertUser,
   Vehicle,
@@ -33,7 +35,11 @@ import {
   Enquiry,
   InsertEnquiry,
   EnquiryMessage,
-  InsertEnquiryMessage
+  InsertEnquiryMessage,
+  DocumentRow,
+  InsertDocument,
+  DocumentMeta,
+  Notification,
 } from "@shared/schema";
 
 // Composite shapes returned by the Phase 2 business-flow queries.
@@ -66,6 +72,11 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserRating(userId: number, newRating: number): Promise<User | undefined>;
+  updateUserProfile(id: number, patch: Partial<Pick<User, "name" | "phone" | "address" | "avatarUrl">>): Promise<User | undefined>;
+  updateUserPassword(id: number, hashedPassword: string): Promise<void>;
+  setPasswordResetToken(email: string, tokenHash: string, expires: Date): Promise<User | undefined>;
+  getUserByValidResetTokenHash(tokenHash: string): Promise<User | undefined>;
+  clearPasswordResetToken(id: number): Promise<void>;
 
   // Vehicle operations
   getVehicle(id: number): Promise<Vehicle | undefined>;
@@ -135,12 +146,43 @@ export interface IStorage {
   markMessagesAsRead(conversationId: number, userId: number): Promise<void>;
 
   // Enquiry (MD support) operations
-  createEnquiry(enquiry: InsertEnquiry): Promise<Enquiry>;
+  createEnquiry(enquiry: InsertEnquiry, accessTokenHash: string): Promise<Enquiry>;
   getEnquiries(): Promise<Enquiry[]>;
   getEnquiry(id: number): Promise<Enquiry | undefined>;
   updateEnquiryStatus(id: number, status: string): Promise<Enquiry | undefined>;
   getEnquiryMessages(enquiryId: number): Promise<EnquiryMessage[]>;
   addEnquiryMessage(message: InsertEnquiryMessage): Promise<EnquiryMessage>;
+
+  // Document (real file) operations
+  createDocument(doc: InsertDocument): Promise<DocumentMeta>;
+  getDocumentsByUserId(userId: number): Promise<DocumentMeta[]>;
+  getDocumentMeta(id: number): Promise<DocumentMeta | undefined>;
+  getDocumentWithData(id: number): Promise<DocumentRow | undefined>;
+  deleteDocument(id: number): Promise<void>;
+  linkDocumentToShiftRequest(docId: number, shiftRequestId: number, vehicleId: number): Promise<void>;
+
+  // Real payment history
+  getPaymentsByUserId(userId: number): Promise<Payment[]>;
+
+  // Notifications
+  createNotification(n: { userId: number; type: string; title: string; body: string; relatedId?: number | null }): Promise<Notification>;
+  getNotificationsByUserId(userId: number): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: number): Promise<number>;
+  markNotificationRead(id: number, userId: number): Promise<void>;
+  markAllNotificationsRead(userId: number): Promise<void>;
+
+  // Admin — real aggregate summary (Control Center overview)
+  getAdminSummary(): Promise<{
+    pendingRequests: number;
+    activeTrips: number;
+    completedTrips: number;
+    totalUsers: number;
+    totalCustomers: number;
+    paymentsPaidToday: number;
+    revenueToday: number;
+    revenueAllTime: number;
+    openEnquiries: number;
+  }>;
 }
 
 // PostgreSQL-backed storage implementation (Phase 1: real, persistent accounts/data)
@@ -176,6 +218,43 @@ export class DbStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return updated;
+  }
+
+  async updateUserProfile(
+    id: number,
+    patch: Partial<Pick<User, "name" | "phone" | "address" | "avatarUrl">>
+  ): Promise<User | undefined> {
+    const [updated] = await db.update(users).set(patch).where(eq(users.id, id)).returning();
+    return updated;
+  }
+
+  async updateUserPassword(id: number, hashedPassword: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ password: hashedPassword, resetTokenHash: null, resetTokenExpires: null })
+      .where(eq(users.id, id));
+  }
+
+  async setPasswordResetToken(email: string, tokenHash: string, expires: Date): Promise<User | undefined> {
+    const user = await this.getUserByEmail(email);
+    if (!user) return undefined;
+    const [updated] = await db
+      .update(users)
+      .set({ resetTokenHash: tokenHash, resetTokenExpires: expires })
+      .where(eq(users.id, user.id))
+      .returning();
+    return updated;
+  }
+
+  async getUserByValidResetTokenHash(tokenHash: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.resetTokenHash, tokenHash));
+    if (!user || !user.resetTokenExpires) return undefined;
+    if (user.resetTokenExpires.getTime() < Date.now()) return undefined;
+    return user;
+  }
+
+  async clearPasswordResetToken(id: number): Promise<void> {
+    await db.update(users).set({ resetTokenHash: null, resetTokenExpires: null }).where(eq(users.id, id));
   }
 
   // Vehicle methods
@@ -574,8 +653,8 @@ export class DbStorage implements IStorage {
   }
 
   // Enquiry (MD support) operations
-  async createEnquiry(enquiryData: InsertEnquiry): Promise<Enquiry> {
-    const [enquiry] = await db.insert(enquiries).values(enquiryData).returning();
+  async createEnquiry(enquiryData: InsertEnquiry, accessTokenHash: string): Promise<Enquiry> {
+    const [enquiry] = await db.insert(enquiries).values({ ...enquiryData, accessTokenHash }).returning();
 
     // Seed the chat thread: the customer's first message + an auto-reply from the MD desk
     await this.addEnquiryMessage({ enquiryId: enquiry.id, sender: "customer", message: enquiryData.message });
@@ -613,6 +692,145 @@ export class DbStorage implements IStorage {
   async addEnquiryMessage(message: InsertEnquiryMessage): Promise<EnquiryMessage> {
     const [enquiryMessage] = await db.insert(enquiryMessages).values(message).returning();
     return enquiryMessage;
+  }
+
+  // --- Document (real file) operations ---
+  private stripData(doc: DocumentRow): DocumentMeta {
+    const { data, ...meta } = doc;
+    return meta;
+  }
+
+  async createDocument(docData: InsertDocument): Promise<DocumentMeta> {
+    const [doc] = await db.insert(documents).values(docData).returning();
+    return this.stripData(doc);
+  }
+
+  async getDocumentsByUserId(userId: number): Promise<DocumentMeta[]> {
+    const rows = await db
+      .select({
+        id: documents.id,
+        userId: documents.userId,
+        vehicleId: documents.vehicleId,
+        shiftRequestId: documents.shiftRequestId,
+        type: documents.type,
+        fileName: documents.fileName,
+        mimeType: documents.mimeType,
+        fileSize: documents.fileSize,
+        status: documents.status,
+        createdAt: documents.createdAt,
+      })
+      .from(documents)
+      .where(eq(documents.userId, userId))
+      .orderBy(desc(documents.id));
+    return rows as DocumentMeta[];
+  }
+
+  async getDocumentMeta(id: number): Promise<DocumentMeta | undefined> {
+    const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+    return doc ? this.stripData(doc) : undefined;
+  }
+
+  async getDocumentWithData(id: number): Promise<DocumentRow | undefined> {
+    const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+    return doc;
+  }
+
+  async deleteDocument(id: number): Promise<void> {
+    await db.delete(documents).where(eq(documents.id, id));
+  }
+
+  async linkDocumentToShiftRequest(docId: number, shiftRequestId: number, vehicleId: number): Promise<void> {
+    await db.update(documents).set({ shiftRequestId, vehicleId }).where(eq(documents.id, docId));
+  }
+
+  // --- Real payment history ---
+  async getPaymentsByUserId(userId: number): Promise<Payment[]> {
+    return db.select().from(payments).where(eq(payments.userId, userId)).orderBy(desc(payments.id));
+  }
+
+  // --- Notifications ---
+  async createNotification(n: {
+    userId: number;
+    type: string;
+    title: string;
+    body: string;
+    relatedId?: number | null;
+  }): Promise<Notification> {
+    const [created] = await db
+      .insert(notifications)
+      .values({ ...n, relatedId: n.relatedId ?? null })
+      .returning();
+    return created;
+  }
+
+  async getNotificationsByUserId(userId: number): Promise<Notification[]> {
+    return db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.id))
+      .limit(50);
+  }
+
+  async getUnreadNotificationCount(userId: number): Promise<number> {
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return count;
+  }
+
+  async markNotificationRead(id: number, userId: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  }
+
+  async markAllNotificationsRead(userId: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  }
+
+  // --- Admin — real aggregate summary ---
+  async getAdminSummary() {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [[pending], [active], [completed], [totalUsers], [totalCustomers], [paidToday], [openEnq], allPaid] =
+      await Promise.all([
+        db.select({ c: sql<number>`count(*)::int` }).from(shiftRequests).where(eq(shiftRequests.status, "pending")),
+        db
+          .select({ c: sql<number>`count(*)::int` })
+          .from(trips)
+          .where(sql`${trips.status} in ('scheduled','in_transit')`),
+        db.select({ c: sql<number>`count(*)::int` }).from(trips).where(eq(trips.status, "completed")),
+        db.select({ c: sql<number>`count(*)::int` }).from(users),
+        db.select({ c: sql<number>`count(*)::int` }).from(users).where(eq(users.role, "customer")),
+        db
+          .select({ c: sql<number>`count(*)::int`, sum: sql<number>`coalesce(sum(${payments.amount}::numeric),0)::float` })
+          .from(payments)
+          .where(and(eq(payments.status, "paid"), gte(payments.paidAt, startOfToday))),
+        db.select({ c: sql<number>`count(*)::int` }).from(enquiries).where(sql`${enquiries.status} != 'resolved'`),
+        db
+          .select({ sum: sql<number>`coalesce(sum(${payments.amount}::numeric),0)::float` })
+          .from(payments)
+          .where(eq(payments.status, "paid")),
+      ]);
+
+    return {
+      pendingRequests: pending.c,
+      activeTrips: active.c,
+      completedTrips: completed.c,
+      totalUsers: totalUsers.c,
+      totalCustomers: totalCustomers.c,
+      paymentsPaidToday: paidToday.c,
+      revenueToday: paidToday.sum,
+      revenueAllTime: allPaid[0].sum,
+      openEnquiries: openEnq.c,
+    };
   }
 }
 

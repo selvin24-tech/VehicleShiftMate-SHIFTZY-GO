@@ -23,15 +23,26 @@ function stripPassword(user: User): SafeUser {
   return safe;
 }
 
-export function createSessionMiddleware(): RequestHandler {
+// Shared session store — also used to authenticate the WebSocket upgrade
+// request against the same server-side session record (see verifySessionCookie
+// below), so the WS layer never has to trust a client-supplied identity.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let sessionStore: any = null;
+
+export function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET;
   if (!secret) {
     throw new Error("SESSION_SECRET must be set. Add it to your .env file.");
   }
+  return secret;
+}
 
+export function createSessionMiddleware(): RequestHandler {
+  const secret = getSessionSecret();
   const PgSession = connectPgSimple(session);
+  sessionStore = new PgSession({ pool, tableName: "session", createTableIfMissing: true });
   return session({
-    store: new PgSession({ pool, tableName: "session", createTableIfMissing: true }),
+    store: sessionStore,
     secret,
     resave: false,
     saveUninitialized: false,
@@ -41,6 +52,34 @@ export function createSessionMiddleware(): RequestHandler {
       sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     },
+  });
+}
+
+/**
+ * Resolve the authenticated user id for a raw Node request (used at the
+ * WebSocket upgrade, before Express/Passport middleware runs). Reads the
+ * signed session cookie, unsigns it with SESSION_SECRET, and looks the
+ * session up in the same Postgres-backed store used for normal HTTP auth —
+ * i.e. the exact same trust boundary as `requireAuth`. Never trusts anything
+ * supplied by the client itself.
+ */
+export async function resolveUserIdFromCookie(cookieHeader: string | undefined): Promise<number | null> {
+  if (!cookieHeader || !sessionStore) return null;
+  const cookie = await import("cookie");
+  const signature = await import("cookie-signature");
+  const parsed = cookie.parse(cookieHeader);
+  const raw = parsed["connect.sid"];
+  if (!raw) return null;
+
+  const unsigned = raw.startsWith("s:") ? signature.unsign(raw.slice(2), getSessionSecret()) : false;
+  if (!unsigned) return null;
+
+  return new Promise((resolve) => {
+    sessionStore!.get(unsigned, (err: Error | null, sessionData: any) => {
+      if (err || !sessionData) return resolve(null);
+      const userId = sessionData.passport?.user;
+      resolve(typeof userId === "number" ? userId : null);
+    });
   });
 }
 
