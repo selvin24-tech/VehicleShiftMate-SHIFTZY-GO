@@ -420,7 +420,9 @@ export default function Profile() {
           <div className="flex items-start justify-between mb-2">
             <div>
               <p className="font-bold text-sm">{r.pickupLocation} → {r.dropLocation}</p>
-              <p className="text-xs text-neutral-400 mt-0.5">{r.vehicle?.make} {r.vehicle?.model}</p>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                {r.vehicle && (r.vehicle.make === r.vehicle.model ? r.vehicle.make : `${r.vehicle.make} ${r.vehicle.model}`)}
+              </p>
             </div>
             <span className={`text-[10px] font-bold px-2 py-1 rounded-full capitalize ${STATUS_STYLE[r.status] || "bg-neutral-200 text-neutral-600"}`}>
               {r.status}

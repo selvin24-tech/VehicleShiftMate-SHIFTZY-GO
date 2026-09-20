@@ -65,7 +65,9 @@ function RequestCard({ r }: { r: PricedRequest }) {
       </div>
 
       {r.vehicle && (
-        <p className="text-[11px] text-neutral-500 pl-11">{r.vehicle.make} {r.vehicle.model}</p>
+        <p className="text-[11px] text-neutral-500 pl-11">
+          {r.vehicle.make === r.vehicle.model ? r.vehicle.make : `${r.vehicle.make} ${r.vehicle.model}`}
+        </p>
       )}
 
       {r.status === "rejected" && r.rejectionReason && (

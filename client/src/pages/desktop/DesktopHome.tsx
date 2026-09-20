@@ -225,7 +225,9 @@ export default function DesktopHome() {
                 </div>
                 <p className="font-extrabold text-neutral-900 dark:text-neutral-100 text-sm">{activeShift.pickupLocation} → {activeShift.dropLocation}</p>
                 {activeShift.vehicle && (
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{activeShift.vehicle.make} {activeShift.vehicle.model}</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    {activeShift.vehicle.make === activeShift.vehicle.model ? activeShift.vehicle.make : `${activeShift.vehicle.make} ${activeShift.vehicle.model}`}
+                  </p>
                 )}
                 <button
                   onClick={() => navigate("/my-rides")}

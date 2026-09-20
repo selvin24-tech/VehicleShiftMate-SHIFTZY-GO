@@ -203,7 +203,9 @@ export default function Home() {
               </div>
               <p className="font-extrabold text-neutral-900 text-sm">{activeShift.pickupLocation} → {activeShift.dropLocation}</p>
               {activeShift.vehicle && (
-                <p className="text-[11px] text-neutral-500 mt-0.5">{activeShift.vehicle.make} {activeShift.vehicle.model}</p>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  {activeShift.vehicle.make === activeShift.vehicle.model ? activeShift.vehicle.make : `${activeShift.vehicle.make} ${activeShift.vehicle.model}`}
+                </p>
               )}
               <div className="flex items-center gap-3 mt-1.5 text-neutral-400">
                 <span className="flex items-center gap-1 text-[10px]"><CalendarDays className="w-3 h-3" />{new Date(activeShift.createdAt).toLocaleDateString("en-IN")}</span>

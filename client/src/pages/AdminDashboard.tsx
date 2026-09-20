@@ -313,7 +313,7 @@ export default function AdminDashboard() {
                     <span className="col-span-2 flex items-center gap-1"><MapPin className="w-3 h-3" /> <strong className="text-gray-700">{req.pickupLocation} → {req.dropLocation}</strong></span>
                     {req.customer?.email && <span className="truncate">Email: <strong className="text-gray-700">{req.customer.email}</strong></span>}
                     {req.customer?.phone && <span>Phone: <strong className="text-gray-700">{req.customer.phone}</strong></span>}
-                    {req.vehicle && <span>Vehicle: <strong className="text-gray-700">{req.vehicle.make} {req.vehicle.model}</strong></span>}
+                    {req.vehicle && <span>Vehicle: <strong className="text-gray-700">{req.vehicle.make === req.vehicle.model ? req.vehicle.make : `${req.vehicle.make} ${req.vehicle.model}`}</strong></span>}
                     {req.vehicle && <span>Reg: <strong className="text-gray-700">{req.vehicle.registrationNumber}</strong></span>}
                     <span>Insurance exp: <strong className="text-gray-700">{req.insuranceExpiryDate}</strong></span>
                     {req.createdAt && <span>Submitted: <strong className="text-gray-700">{new Date(req.createdAt).toLocaleString()}</strong></span>}
