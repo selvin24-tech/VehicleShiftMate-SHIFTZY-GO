@@ -8,18 +8,19 @@ import { storage } from "./storage";
 import { verifyPassword } from "./lib/password";
 import type { User } from "@shared/schema";
 
-type SafeUser = Omit<User, "password">;
+type SafeUser = Omit<User, "password" | "resetTokenHash" | "resetTokenExpires">;
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
-    // Augments req.user across the app with our user shape (password stripped).
+    // Augments req.user across the app with our user shape (internal auth
+    // columns stripped — nothing in this shape may ever reach a client).
     interface User extends SafeUser {}
   }
 }
 
 function stripPassword(user: User): SafeUser {
-  const { password, ...safe } = user;
+  const { password, resetTokenHash, resetTokenExpires, ...safe } = user;
   return safe;
 }
 

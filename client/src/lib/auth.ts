@@ -64,11 +64,28 @@ export function loginUrlWithReturn(currentPath: string): string {
   return `/login?next=${encodeURIComponent(currentPath)}`;
 }
 
+/**
+ * A `next` value is only safe to redirect to when it's unambiguously a
+ * same-origin, relative path: exactly one leading "/", never "//..." or
+ * "/\..." (both are protocol-relative — browsers treat them as a redirect
+ * to a different host) and never containing a scheme like "javascript:" or
+ * "https:" before the first "/". Anything else falls back to "/".
+ */
+function isSafeNextPath(next: string | null): next is string {
+  if (!next) return false;
+  if (!next.startsWith("/")) return false;
+  if (next.startsWith("//") || next.startsWith("/\\")) return false;
+  // Reject an embedded scheme (e.g. "/\t/javascript:alert(1)" style tricks)
+  // by requiring everything up to the first "/" or "?" to be empty.
+  if (/^\/[^/?#]*:/i.test(next)) return false;
+  return true;
+}
+
 /** After a successful login/signup, go back to whatever the user was
  * trying to do (if we redirected them here for that reason), else home. */
 export function returnAfterLoginPath(): string {
   const next = new URLSearchParams(window.location.search).get("next");
-  return next && next.startsWith("/") ? next : "/";
+  return isSafeNextPath(next) ? next : "/";
 }
 
 export function useInvalidateCurrentUser() {

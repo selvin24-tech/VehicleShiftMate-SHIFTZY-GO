@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...userData,
         password: await hashPassword(userData.password),
       });
-      const { password, ...safeUser } = newUser;
+      const { password, resetTokenHash, resetTokenExpires, ...safeUser } = newUser;
 
       req.login(safeUser, (error) => {
         if (error) {
@@ -132,7 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const vehicles = await storage.getVehiclesByUserId(user.id);
       const trips = await storage.getTripsByUserId(user.id);
 
-      const { password, ...safeUser } = user;
+      const { password, resetTokenHash, resetTokenExpires, ...safeUser } = user;
       res.json({ ...safeUser, vehicles, trips });
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -160,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const patch = schema.parse(req.body);
       const updated = await storage.updateUserProfile(req.user!.id, patch);
       if (!updated) return res.status(404).json({ message: "User not found" });
-      const { password, ...safeUser } = updated;
+      const { password, resetTokenHash, resetTokenExpires, ...safeUser } = updated;
       res.json(safeUser);
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors });

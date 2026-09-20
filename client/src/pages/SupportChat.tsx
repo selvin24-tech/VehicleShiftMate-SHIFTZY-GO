@@ -7,7 +7,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { ChevronLeft, Send, ShieldCheck, MessageCircle, Plus } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { LOCATIONS, USER_PROFILE } from "@/lib/constants";
+import { LOCATIONS } from "@/lib/constants";
 import { insertEnquirySchema, type Enquiry, type EnquiryMessage } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,8 +57,8 @@ export default function SupportChat() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: USER_PROFILE.name || "",
-      phone: USER_PROFILE.phone || "",
+      name: "",
+      phone: "",
       pickup: "",
       drop: "",
       vehicleType: "",
